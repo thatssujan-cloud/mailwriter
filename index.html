@@ -100,6 +100,10 @@
     };
   </script>
 
+  <!-- External stylesheet: interaction & accessibility layer (sticky nav,
+       focus rings, reveals, back-to-top, shortcut modal). See css/styles.css -->
+  <link rel="stylesheet" href="css/styles.css" />
+
   <style>
     /* ---------- Custom styles (kept light; Tailwind does the heavy lifting) ---------- */
     :root { color-scheme: light; }
@@ -3273,5 +3277,10 @@
     updateToneChips(els.toneSelect.value);
     updateCounts();
   </script>
+
+  <!-- External UX layer: sticky nav, scroll progress, back-to-top, keyboard
+       shortcuts (? for help), reveal animations and form auto-save.
+       Loaded last so it only enhances the already-initialized page. -->
+  <script src="js/app.js" defer></script>
 </body>
 </html>
