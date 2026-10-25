@@ -91,9 +91,13 @@ function cleanText(raw, maxLen) {
   return s;
 }
 
+// Positive-integer only: rejects '', floats/garbage ('5.9'), NaN and Infinity,
+// then clamps into [perPageMin, perPageMax]. Never throws on null/undefined.
 function cleanPerPage(raw, dflt = '5') {
-  const n = parseInt(String(raw == null ? '' : raw), 10);
-  if (!Number.isFinite(n) || String(raw).trim() === '') return dflt;
+  const s = String(raw == null ? '' : raw).trim();
+  if (!/^\d+$/.test(s)) return String(dflt);
+  const n = Number(s);
+  if (!Number.isSafeInteger(n)) return String(dflt);
   return String(Math.min(LIMITS.perPageMax, Math.max(LIMITS.perPageMin, n)));
 }
 
@@ -121,6 +125,8 @@ const UPSTREAM_HOSTS = new Set([
   'api.groq.com'
 ]);
 
+const MAX_UPSTREAM_BODY_BYTES = 512 * 1024; // 512 KB cap on any upstream payload
+
 async function safeFetch(urlStr, init = {}, timeoutMs = 9000) {
   let u;
   try { u = new URL(urlStr); } catch (e) { throw new Error('bad-url'); }
@@ -131,7 +137,15 @@ async function safeFetch(urlStr, init = {}, timeoutMs = 9000) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    return await fetch(u.toString(), { redirect: 'error', ...init, signal: ctrl.signal });
+    // Spread `init` FIRST so our hardening flags (redirect/signal) always
+    // win — previously a caller-supplied `signal` could defeat the timeout.
+    const res = await fetch(u.toString(), { ...init, redirect: 'error', signal: ctrl.signal });
+    // Bound memory: reject oversized payloads before buffering them.
+    const declaredLen = Number(res.headers.get('content-length'));
+    if (Number.isFinite(declaredLen) && declaredLen > MAX_UPSTREAM_BODY_BYTES) {
+      throw new Error('upstream-body-too-large');
+    }
+    return res;
   } finally {
     clearTimeout(timer);
   }
@@ -141,9 +155,19 @@ async function safeFetch(urlStr, init = {}, timeoutMs = 9000) {
 // Fixed-window counter kept in the function instance's memory. Serverless
 // instances are short-lived, so this is a best-effort first line of defense;
 // pair it with platform-level WAF rules for hard guarantees.
-const WINDOW_MS = 60_000;
+const WINDOW_MS = 60_000;       // per-minute window (IP/session rate limits, Groq req cap)
+const TOKEN_WINDOW_MS = 15 * 60_000; // rolling token/spend window (see note below)
 const bucketsIP = new Map();      // ip -> { count, resetAt }
 const bucketsSession = new Map(); // session -> { count, resetAt }
+
+// Robust positive-integer env reader: NaN-safe, floor-bounded, defaults.
+// A misconfigured env var (e.g. RATE_LIMIT_PER_IP="abc" or "0") previously
+// produced parseInt -> NaN/0, which silently disabled the limiter entirely
+// (NaN comparisons are always false) — now it falls back to the default.
+function envInt(name, dflt) {
+  const n = parseInt(process.env[name], 10);
+  return Number.isSafeInteger(n) && n > 0 ? n : dflt;
+}
 
 function clientIp(req, event) {
   const fwd = (req && req.headers && req.headers.get && req.headers.get('x-forwarded-for')) ||
@@ -173,17 +197,22 @@ function consume(map, key, cap) {
 }
 
 function checkRateLimit(req, event) {
-  const ipCap = parseInt(process.env.RATE_LIMIT_PER_IP || '30', 10);
-  const sessCap = parseInt(process.env.RATE_LIMIT_PER_SESSION || '60', 10); // per browser session, same 1-min window
+  const ipCap = envInt('RATE_LIMIT_PER_IP', 30);
+  const sessCap = envInt('RATE_LIMIT_PER_SESSION', 60); // per browser session, same 1-min window
+  const now = Date.now();
   const ip = clientIp(req, event);
   if (!consume(bucketsIP, ip, ipCap)) {
     logWarn('rate-limit', { scope: 'ip', ip });
-    return { retryAfter: WINDOW_MS, scope: 'ip' };
+    // Report the REAL seconds until this bucket's window resets (read AFTER
+    // consume, which guarantees the entry exists) instead of always 60.
+    const resetAt = bucketsIP.get(ip).resetAt;
+    return { retryAfter: Math.max(1000, Math.ceil((resetAt - now) / 1000) * 1000), scope: 'ip' };
   }
   const sess = clientSession(req, event);
   if (sess && !consume(bucketsSession, sess, sessCap)) {
     logWarn('rate-limit', { scope: 'session', ip });
-    return { retryAfter: WINDOW_MS, scope: 'session' };
+    const resetAt = bucketsSession.get(sess).resetAt;
+    return { retryAfter: Math.max(1000, Math.ceil((resetAt - now) / 1000) * 1000), scope: 'session' };
   }
   return null;
 }
@@ -193,34 +222,57 @@ function checkRateLimit(req, event) {
 // we can meter real usage across warm instances within a window. When any
 // cap trips, the route returns 429 "groq-cap" and the client falls back to
 // the local template engine — spend can never exceed one window's worth.
-const groqUsage = { requests: 0, tokens: 0, windowStart: Date.now(), alerted: {} };
+//
+// Two independent windows:
+//   • requests  -> fixed 1-minute window  (GROQ_MAX_REQUESTS_PER_MIN)
+//   • tokens    -> fixed 15-minute window (GROQ_MAX_TOKENS_PER_HOUR is an
+//     hourly budget; serverless instances are short-lived, so a shorter
+//     window keeps worst-case over-spend small while still throttling hard).
+const groqUsage = {
+  requests: 0,
+  tokens: 0,
+  minuteStart: Date.now(),      // start of the current request window
+  tokenWindowStart: Date.now(), // start of the current token/spend window
+  alerted: {}
+};
 
-function groqWindowRollover() {
+function groqRollover() {
   const now = Date.now();
-  if (now - groqWindowStartSafe() >= WINDOW_MS) {
+  if (now - groqUsage.minuteStart >= WINDOW_MS) {          // per-minute counter
     groqUsage.requests = 0;
-    groqUsage.tokens = 0;
-    groqUsage.windowStart = now;
+    groqUsage.minuteStart = now;
     groqUsage.alerted = {};
   }
+  if (now - groqUsage.tokenWindowStart >= TOKEN_WINDOW_MS) { // token budget
+    groqUsage.tokens = 0;
+    groqUsage.tokenWindowStart = now;
+  }
 }
-function groqWindowStartSafe() { return groqUsage.windowStart || Date.now(); }
 
 function groqCapStatus() {
-  groqWindowRollover();
-  const reqCap = parseInt(process.env.GROQ_MAX_REQUESTS_PER_MIN || '10', 10);
-  const tokCap = parseInt(process.env.GROQ_MAX_TOKENS_PER_HOUR || '60000', 10);
+  groqRollover();
+  const reqCap = envInt('GROQ_MAX_REQUESTS_PER_MIN', 10);
+  const tokCap = envInt('GROQ_MAX_TOKENS_PER_HOUR', 60000);
   if (groqUsage.requests >= reqCap) return 'requests';
   if (groqUsage.tokens >= tokCap) return 'tokens';
   return null;
 }
 
+// Seconds until the earliest window reset — used for Retry-After on 429s
+// instead of a hard-coded "60".
+function groqRetryAfterSeconds() {
+  const now = Date.now();
+  const toNextMinute = Math.ceil((groqUsage.minuteStart + WINDOW_MS - now) / 1000);
+  const toNextTokenWindow = Math.ceil((groqUsage.tokenWindowStart + TOKEN_WINDOW_MS - now) / 1000);
+  return String(Math.max(1, Math.min(toNextMinute, toNextTokenWindow)));
+}
+
 function recordGroqUsage(tokens) {
-  groqWindowRollover();
+  groqRollover();
   groqUsage.requests += 1;
   groqUsage.tokens += Math.max(0, tokens | 0);
-  const reqCap = parseInt(process.env.GROQ_MAX_REQUESTS_PER_MIN || '10', 10);
-  const tokCap = parseInt(process.env.GROQ_MAX_TOKENS_PER_HOUR || '60000', 10);
+  const reqCap = envInt('GROQ_MAX_REQUESTS_PER_MIN', 10);
+  const tokCap = envInt('GROQ_MAX_TOKENS_PER_HOUR', 60000);
   // Usage alerts at 80% and hard cap — wire these events into your log
   // provider's alerting (Vercel → Alerts, Netlify → log drain + PagerDuty,
   // or Groq console usage alerts as the upstream source of truth).
@@ -261,7 +313,7 @@ module.exports = {
   corsHeaders,
   LIMITS, cleanText, cleanPerPage, cleanAuthorId, cleanEmail,
   safeFetch,
-  checkRateLimit, clientIp, clientSession,
-  groqCapStatus, recordGroqUsage,
+  checkRateLimit, clientIp, clientSession, envInt,
+  groqCapStatus, groqRetryAfterSeconds, recordGroqUsage,
   noteAbuse
 };
