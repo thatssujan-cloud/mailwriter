@@ -4722,7 +4722,16 @@ Alex Rivera</pre>
         const fb = buildEmail(ctx.tone);                      // deterministic fallback
         renderOutput(fb.subject, fb.body);
         els.badge.textContent = `${TYPE_LABELS[ctx.type]} · ${TONE_LABELS[ctx.tone]} · template fallback`;
-        showToast('Groq unavailable right now — used the fast local template instead.', 'info');
+        // Surface structured proxy errors (#7/#8): rate limit / budget with retry window.
+        const le = (typeof PROXY_STATUS !== 'undefined' && PROXY_STATUS.lastError) || null;
+        if (le && le.status === 429) {
+          const wait = le.retryAfter ? ` — retry in ${le.retryAfter}s` : '';
+          showToast(`AI budget reached${wait}. Used the fast local template instead.`, 'info');
+        } else if (le && /budget|spend|quota/i.test(le.error || '')) {
+          showToast('AI budget reached — used the fast local template instead.', 'info');
+        } else {
+          showToast('Groq unavailable right now — used the fast local template instead.', 'info');
+        }
         return false;
       } finally {
         hideLdOverlay();
