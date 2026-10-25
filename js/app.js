@@ -252,21 +252,47 @@
 
   /* ------------------------------------------------------------------
      6. Auto-save the form (localStorage) so returning users keep context
+
+     §4 Privacy — Minimize LocalStorage Usage: sensitive personal details
+     (student name, academic background, research interests/focus, tool
+     skills, professor name AND professor email) are NEVER persisted to
+     localStorage any more; they can be read back by whoever uses this
+     browser next. Only low-sensitivity UI preferences are saved. Full
+     persistence is further gated behind the "Disable auto-save" toggle
+     in index.html (window.ldAutoSaveDisabled()), and everything stored
+     can be wiped with the "Erase saved data" button.
   ------------------------------------------------------------------ */
   var STORE_KEY = 'letterdesk-form-v1';
-  var SAVE_FIELDS = ['studentName', 'degreeMajor', 'termYear', 'background',
-                     'profName', 'researchFocus', 'toolSkill', 'profEmail',
-                     'assistType', 'emailFormat', 'tone'];
+  // PII fields that must never touch localStorage (§4 remediation).
+  var SENSITIVE_FIELDS = ['studentName', 'background', 'profName',
+                          'researchFocus', 'toolSkill', 'profEmail'];
+  // Only non-sensitive UI preferences remain persisted.
+  var SAVE_FIELDS = ['degreeMajor', 'termYear', 'assistType', 'emailFormat', 'tone'];
 
   // P1-2 null safeguards: every element lookup is checked before any
   // property is read or written, so a hidden/not-yet-rendered field can
   // never throw "Cannot set properties of null" and kill the script.
   function restoreForm() {
+    // §4 Privacy: honour the "Disable auto-save" toggle — when persistence
+    // is off we neither read nor write localStorage on this page.
+    if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) return;
     try {
       var raw = localStorage.getItem(STORE_KEY);
       if (!raw) return;
       var saved = JSON.parse(raw);
       if (!saved || typeof saved !== 'object') return;
+      // One-time scrub: older builds persisted PII under this key. Drop any
+      // sensitive values so they stop lingering in storage on shared devices.
+      var scrubbed = false;
+      SENSITIVE_FIELDS.forEach(function (id) {
+        if (Object.prototype.hasOwnProperty.call(saved, id)) {
+          delete saved[id];
+          scrubbed = true;
+        }
+      });
+      if (scrubbed) {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(saved)); } catch (e) {}
+      }
       SAVE_FIELDS.forEach(function (id) {
         var el = $(id);
         if (el && typeof el.value === 'string' &&
@@ -283,6 +309,8 @@
   // QuotaExceededError (private mode, full storage) degrades gracefully
   // instead of breaking subsequent execution.
   function saveFormDebounced() {
+    // §4 Privacy: "Disable auto-save" toggle — no writes when persistence is off.
+    if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) return;
     clearTimeout(saveFormDebounced._t);
     saveFormDebounced._t = setTimeout(function () {
       var data = {};
@@ -296,7 +324,12 @@
 
   // Shared guarded localStorage writer (used by auto-save here; the core
   // tracker/checklist writers in index.html carry equivalent try/catch).
+  // §4 Privacy: single choke-point that honours the "Disable auto-save"
+  // toggle so NO page script persists data while persistence is off.
   function safeSetItem(key, value, warnMsg) {
+    if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) {
+      return false; // auto-save disabled by the user — skip silently
+    }
     try {
       localStorage.setItem(key, value);
       return true;

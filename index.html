@@ -366,7 +366,7 @@
         <div id="howItWorksPanel" hidden class="mt-4 max-w-2xl rounded-lg bg-white/5 ring-1 ring-white/10 p-4 text-xs md:text-sm text-slate-300 leading-relaxed space-y-2">
           <p><strong class="text-slate-100">1 · Supervisor discovery.</strong> Searches run live against public scholarly APIs — OpenAlex, Semantic Scholar, and Crossref — restricted to geoscience topic areas. Results are merged and de-duplicated by author identifier.</p>
           <p><strong class="text-slate-100">2 · Drafting &amp; review.</strong> Templates assemble only the facts you enter plus publication metadata returned by those APIs. A deterministic style pass ("Natural Language Polish") and a rule-based pre-send reviewer run entirely in your browser.</p>
-          <p><strong class="text-slate-100">3 · Privacy.</strong> Your name, profile text, and drafts are assembled and reviewed entirely in your browser — they are never uploaded anywhere. Three kinds of requests do leave this page: your search query goes to the public scholarly APIs (OpenAlex, Semantic Scholar, Crossref), an address's email domain goes to Google DNS-over-HTTPS for the MX deliverability check, and when you choose "Open in Email Client" the finished draft is handed to your own mail application via a mailto: link. Everything else — polish, review, tracker — stays local. Tracker data is saved in this browser's local storage only; use CSV export before clearing cookies or switching devices, because it does not sync.</p>
+          <p><strong class="text-slate-100">3 · Privacy.</strong> Your name, profile text, and drafts are assembled and reviewed entirely in your browser — they are never uploaded anywhere. Requests that do leave this page: (a) your search query goes to the public scholarly APIs (OpenAlex, Semantic Scholar, Crossref); (b) email verification is domain-only by default — just the university domain (never the full address, never your name) goes to Google DNS-over-HTTPS for the MX deliverability check; (c) only if you explicitly tick “Verify full address” does the complete professor email get forwarded to third-party verifiers (Hunter.io, Abstract API, or ZeroBounce) through our serverless proxy; (d) when you choose "Open in Email Client" the finished draft is handed to your own mail application via a mailto: link. Everything else — polish, review, tracker — stays local. Tracker data is saved in this browser's local storage only; use CSV export before clearing cookies or switching devices, because it does not sync. On shared or public computers turn on “Disable auto-save” below and use “Erase saved data” when you finish — anything left in local storage can be read by the next person who uses this browser.</p>
           <p><strong class="text-slate-100">4 · Honest limits.</strong> Affiliations come from publication metadata ("last known"), not official HR records — always verify on the department's faculty page before sending. LetterDesk never predicts admission or funding outcomes.</p>
         </div>
         <div class="mt-5 flex flex-wrap gap-2 text-[11px] md:text-xs font-medium">
@@ -460,7 +460,7 @@
                hero so Step 1 stays minimal; #searchHint keeps its id for core JS refs. -->
           <details id="searchHint" class="mt-2 text-ink-500" style="font-size:var(--fs-sm)">
             <summary class="cursor-pointer font-semibold">How results work &amp; privacy</summary>
-            <p class="mt-1 leading-relaxed">Results come from three free engines — OpenAlex, Semantic Scholar and Crossref — restricted to Geology &amp; Earth Sciences authors. Only your search query leaves this page; drafts and tracker data stay in your browser. Clicking a result jumps to Step 2 with the form pre-filled, including an email pattern verified against the university's mail server.</p>
+            <p class="mt-1 leading-relaxed">Results come from three free engines — OpenAlex, Semantic Scholar and Crossref — restricted to Geology &amp; Earth Sciences authors. Only your search query leaves this page; drafts and tracker data stay in your browser. Email verification is domain-only by default (the university domain goes to Google DNS-over-HTTPS for an MX check); the full address is sent to third-party verifiers (Hunter.io / Abstract API / ZeroBounce) only if you explicitly opt in with “Verify full address”. Clicking a result jumps to Step 2 with the form pre-filled, including an email pattern verified against the university's mail server.</p>
           </details>
           <p class="mt-4 pt-4 border-t border-ink-200" style="font-size:var(--fs-md)">
             <a href="#" id="manualEntryLink" class="font-bold underline decoration-dotted cursor-pointer" style="color:var(--accent-dark)">No professor? Fill the form manually →</a>
@@ -622,8 +622,46 @@
                   <input id="profEmail" name="profEmail" type="email" autocomplete="off" placeholder="e.g., j.smith@university.edu"
                          class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" style="font-size:var(--fs-md)" />
                   <p id="emailVerifyStatus" class="mt-1.5 text-[11px] leading-relaxed text-ink-500"></p>
+                  <!-- §4 Privacy: full-address verification is strictly opt-in.
+                       Off (default) = domain-only MX lookup; the address itself
+                       never leaves this page. On = the complete address is sent
+                       to third-party verifiers (Hunter.io / Abstract API /
+                       ZeroBounce) through our serverless proxy. Consent is
+                       remembered only for this tab (sessionStorage). -->
+                  <label class="mt-2 flex items-start gap-2.5 rounded-lg border border-ink-200 bg-slate-50 px-3 py-2.5 cursor-pointer select-none">
+                    <input id="fullEmailConsent" type="checkbox"
+                           class="mt-0.5 h-4 w-4 rounded border-ink-300 accent-clay-600" />
+                    <span>
+                      <span class="block font-semibold text-ink-800" style="font-size:var(--fs-sm)">Verify full address with third-party providers (optional)</span>
+                      <span class="block text-ink-500 leading-relaxed" style="font-size:var(--fs-sm)">Off by default — only the university domain is checked against public DNS mail-exchanger records. Ticking this sends the professor's <strong>complete email address</strong> to Hunter.io, Abstract API or ZeroBounce (via our proxy) for a deliverability verdict. Turn it off again anytime; consent lasts for this browser tab only.</span>
+                    </span>
+                  </label>
                   <!-- Pattern suggestions generated when no direct email is on file -->
                   <div id="emailSuggestions" class="hidden mt-2 flex flex-wrap gap-2"></div>
+
+                  <!-- §4 Privacy: local-storage controls. "Disable auto-save"
+                       stops every localStorage write on this page (form
+                       preferences, outreach tracker, roadmap, audit
+                       checklist); "Erase saved data" wipes all LetterDesk
+                       keys plus this tab's verification consent. -->
+                  <div class="mt-2 rounded-lg border border-ink-200 bg-slate-50 px-3 py-2.5">
+                    <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                      <input id="autoSaveToggle" type="checkbox"
+                             class="mt-0.5 h-4 w-4 rounded border-ink-300 accent-clay-600" />
+                      <span>
+                        <span class="block font-semibold text-ink-800" style="font-size:var(--fs-sm)">Disable auto-save on this device</span>
+                        <span class="block text-ink-500 leading-relaxed" style="font-size:var(--fs-sm)">Nothing will be remembered in this browser between visits — recommended on shared or public computers. Your choice itself is kept only for this tab and lasts until you reload.</span>
+                      </span>
+                    </label>
+                    <div class="mt-2.5 flex items-center gap-3">
+                      <button type="button" id="eraseSavedBtn"
+                              class="inline-flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-400/40 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        Erase saved data
+                      </button>
+                      <span id="eraseSavedInfo" class="text-[11px] text-ink-400">Removes form preferences, tracker, roadmap &amp; checklist from this browser.</span>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Polish toggle: auto-apply the natural-language style pass on every generate -->
@@ -2967,6 +3005,9 @@ Alex Rivera</pre>
       try { return JSON.parse(localStorage.getItem(auditStoreKey())) || {}; } catch (e) { return {}; }
     }
     function saveAuditLog(log) {
+      // §4 Privacy: honour the "Disable auto-save" toggle — no localStorage
+      // writes while persistence is off.
+      if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) return;
       try { localStorage.setItem(auditStoreKey(), JSON.stringify(log)); }
       catch (e) {
         const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
@@ -3290,10 +3331,17 @@ Alex Rivera</pre>
     }
 
     /** Check whether a domain has active MX records (mail server alive). */
-    async function checkMxRecords(domain) {
-      // 1) Serverless proxy route (when deployed): uses Hunter/Abstract/ZeroBounce
-      //    verification APIs with keys held in environment variables.
-      const proxied = await dataFetch('email-verify', { email: `probe@${domain}` });
+    async function checkMxRecords(domain, fullEmail) {
+      // §4 Privacy: the default path is DOMAIN-ONLY. The probe local part
+      // ("probe@") means even the proxy never sees a real person's address.
+      // A paid third-party check of the FULL address (Hunter.io / Abstract
+      // API / ZeroBounce) runs only when the user explicitly opted in via
+      // the "Verify full address" checkbox — then we forward the real
+      // address plus consent=full so the proxy may call those providers.
+      const optIn = !!fullEmail && isFullEmailConsentGranted();
+      const proxied = await dataFetch('email-verify',
+        optIn ? { email: String(fullEmail).trim(), consent: 'full' }
+              : { email: `probe@${domain}` });
       if (proxied && typeof proxied.mx_active === 'boolean') return proxied.mx_active;
       // 2) Free fallback: Google DNS-over-HTTPS MX query — no key needed.
       try {
@@ -3568,6 +3616,33 @@ Alex Rivera</pre>
       if (verifiedProfessor) renderAuditCard(); // keep the audit card badge in sync
     }
 
+    /* ---------- §4 Privacy: full-address verification is opt-in ----------
+       Consent lives in the "Verify full address" checkbox next to the email
+       field and persists for THIS TAB ONLY (sessionStorage — never
+       localStorage, so it can't leak on a shared device after restart). */
+    const FULL_EMAIL_CONSENT_KEY = 'letterdesk.consent.fullemail'; // sessionStorage
+    function isFullEmailConsentGranted() {
+      try { return sessionStorage.getItem(FULL_EMAIL_CONSENT_KEY) === '1'; }
+      catch (e) { return false; }
+    }
+    function setFullEmailConsent(granted) {
+      try {
+        if (granted) sessionStorage.setItem(FULL_EMAIL_CONSENT_KEY, '1');
+        else sessionStorage.removeItem(FULL_EMAIL_CONSENT_KEY);
+      } catch (e) { /* storage unavailable — consent stays off (safe default) */ }
+    }
+
+    /* ---------- §4 Privacy: storage controls (auto-save toggle + erase) ----
+       window.ldAutoSaveDisabled() is the single source of truth consulted
+       by every localStorage writer on this page (tracker, roadmap, audit
+       checklist) and by js/app.js (form auto-save). The choice itself lives
+       in sessionStorage only — it never persists to localStorage, so it
+       can't leak or linger on a shared device. */
+    const AUTOSAVE_OFF_KEY = 'letterdesk.autosave.off'; // sessionStorage
+    window.ldAutoSaveDisabled = function ldAutoSaveDisabled() {
+      try { return sessionStorage.getItem(AUTOSAVE_OFF_KEY) === '1'; }
+      catch (e) { return false; }
+    };
     /** Full verification pipeline for whatever is typed in the email field. */
     async function verifyEmailField() {
       const email = document.getElementById('profEmail').value.trim();
@@ -3586,12 +3661,19 @@ Alex Rivera</pre>
         setEmailBadge('red', `"${domain}" is not an official academic domain (.edu / .ac.uk / .edu.au …). Professors rarely mail from personal accounts — double-check their department page.`);
         return;
       }
-      setEmailBadge('yellow', `Academic domain ✓ — checking whether ${domain} runs an active mail server…`);
+      const optedIn = isFullEmailConsentGranted();
+      setEmailBadge('yellow', optedIn
+        ? `Checking ${domain} via DNS MX${BACKEND.USE_SERVER_PROXY ? ' + third-party verifier (full address sent — you opted in)' : ''}…`
+        : `Academic domain ✓ — checking whether ${domain} runs an active mail server (domain-only lookup)…`);
       const token = ++emailVerifyToken;
-      const mx = await checkMxRecords(domain);
+      // §4: pass the full address only so checkMxRecords can honour consent;
+      // without consent it degrades to the probe@domain / DoH path anyway.
+      const mx = await checkMxRecords(domain, email);
       if (token !== emailVerifyToken) return; // a newer keystroke superseded this check
       if (mx === true) {
-        setEmailBadge('green', `Academic domain ✓ and ${domain} has active MX mail servers — this inbox can receive mail.`);
+        setEmailBadge('green', optedIn
+          ? `Address checked by a third-party verifier (you enabled “Verify full address”) — deliverable at ${domain}.`
+          : `Academic domain ✓ and ${domain} has active MX mail servers (domain-only check) — this inbox can receive mail.`);
       } else if (mx === false) {
         setEmailBadge('red', `The domain looks academic but has no active mail server (MX) — the message would bounce.`);
       } else {
@@ -3876,8 +3958,11 @@ Alex Rivera</pre>
     /** P1-2 null-safety wrapper around the tracker's localStorage writer.
         The core saveEntries() already try/catches; this guard additionally
         distinguishes QuotaExceededError so we can tell the user to export
-        their CSV / prune stale entries instead of failing silently. */
+        their CSV / prune stale entries instead of failing silently.
+        §4 Privacy: honours the "Disable auto-save" toggle — when persistence
+        is off nothing is written to localStorage on this page either. */
     function safeSaveTrackerEntries(list) {
+      if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) return false;
       const wrap = document.getElementById('trackerWrap');
       const body = document.getElementById('trackerBody');
       if (!wrap || !body) return false; // elements hidden/absent — skip safely
@@ -3904,6 +3989,18 @@ Alex Rivera</pre>
       profEmailEl._t = setTimeout(verifyEmailField, 600);
     });
     profEmailEl.addEventListener('blur', verifyEmailField);
+
+    // §4 Privacy: wire the opt-in consent checkbox. Off (default) keeps every
+    // lookup domain-only; ticking it re-runs verification with explicit
+    // consent so the proxy may forward the full address to a paid verifier.
+    const fullEmailConsentEl = document.getElementById('fullEmailConsent');
+    if (fullEmailConsentEl) {
+      fullEmailConsentEl.checked = isFullEmailConsentGranted();
+      fullEmailConsentEl.addEventListener('change', () => {
+        setFullEmailConsent(fullEmailConsentEl.checked);
+        if (profEmailEl.value.trim()) verifyEmailField();
+      });
+    }
 
     document.getElementById('clearAuditBtn').addEventListener('click', () => {
       verifiedProfessor = null;
@@ -4745,6 +4842,9 @@ Alex Rivera</pre>
 
       function loadEntries() { try { return JSON.parse(localStorage.getItem(TRACK_KEY)) || []; } catch (e) { return []; } }
       function saveEntries(list) {
+        // §4 Privacy: honour the "Disable auto-save" toggle — when the user
+        // turned persistence off, nothing is written to localStorage here.
+        if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) return false;
         try { localStorage.setItem(TRACK_KEY, JSON.stringify(list)); return true; }
         catch (e) {
           // P2-4: QuotaExceededError gets actionable guidance (export CSV /
@@ -4803,6 +4903,50 @@ Alex Rivera</pre>
       }
       renderTracker();
 
+      /* §4 Privacy: storage controls — "Disable auto-save" toggle and
+         "Erase saved data" button. Defined here so erase can call the real
+         renderTracker() closure above; window.ldAutoSaveDisabled() (set in
+         the consent block) is consulted by every localStorage writer on
+         this page: tracker saveEntries(), roadmap persistence, the audit
+         checklist (saveAuditLog), safeSaveTrackerEntries() and js/app.js
+         form auto-save. */
+      (function wireStorageControls() {
+        const toggle = document.getElementById('autoSaveToggle');
+        const eraseBtn = document.getElementById('eraseSavedBtn');
+        const eraseInfo = document.getElementById('eraseSavedInfo');
+        if (toggle) {
+          toggle.checked = window.ldAutoSaveDisabled();
+          toggle.addEventListener('change', () => {
+            try {
+              if (toggle.checked) sessionStorage.setItem(AUTOSAVE_OFF_KEY, '1');
+              else sessionStorage.removeItem(AUTOSAVE_OFF_KEY);
+            } catch (e) { /* storage unavailable — nothing to persist anyway */ }
+            showToast(toggle.checked
+              ? 'Auto-save disabled — nothing new will be stored in this browser until you re-enable it.'
+              : 'Auto-save re-enabled — your tracker and preferences will be remembered in this browser.',
+              'info');
+          });
+        }
+        if (eraseBtn) {
+          eraseBtn.addEventListener('click', () => {
+            // Everything LetterDesk persists locally, plus this tab's consents.
+            const KEYS = ['letterdesk-form-v1', 'letterdesk.tracker.v1',
+                          'letterdesk.roadmap.v1', 'letterdesk.audit.v1'];
+            let removed = 0;
+            try { KEYS.forEach(k => { if (localStorage.getItem(k) !== null) removed++; localStorage.removeItem(k); }); } catch (e) {}
+            try { sessionStorage.removeItem(FULL_EMAIL_CONSENT_KEY); sessionStorage.removeItem(AUTOSAVE_OFF_KEY); } catch (e) {}
+            if (toggle) toggle.checked = false;
+            const consentEl = document.getElementById('fullEmailConsent');
+            if (consentEl) consentEl.checked = false;
+            renderTracker(); // refresh the table from (now-empty) storage
+            if (eraseInfo) eraseInfo.textContent = 'Saved data erased. Re-enter details or import fresh data as needed.';
+            showToast(removed
+              ? `Erase complete — ${removed} saved item${removed > 1 ? 's are' : ' is'} gone from this browser.`
+              : 'Nothing was saved in this browser — there was no data to erase.', 'success');
+          });
+        }
+      })();
+
       // Roadmap checklist persistence
       const boxes = Array.from(document.querySelectorAll('[data-roadmap-step]'));
       let savedSteps = {};
@@ -4811,6 +4955,8 @@ Alex Rivera</pre>
         const k = b.getAttribute('data-roadmap-step');
         if (savedSteps[k]) b.checked = true;
         b.addEventListener('change', () => {
+          // §4 Privacy: "Disable auto-save" toggle blocks this write too.
+          if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) return;
           let cur = {}; try { cur = JSON.parse(localStorage.getItem(ROAD_KEY)) || {}; } catch (e) {}
           cur[k] = b.checked;
           try { localStorage.setItem(ROAD_KEY, JSON.stringify(cur)); }

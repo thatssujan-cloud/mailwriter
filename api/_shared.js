@@ -9,14 +9,38 @@
 /* ------------------------------ Logging -------------------------------- */
 // Structured JSON log line (Vercel/Netlify ship these to their log drains,
 // where you can build alerts on event names like `rate-limit` or `cap`).
+// PRIVACY (§4): every value passes through redact() first, so full email
+// addresses and anything that looks like an API key NEVER reach the logs.
+// Emails are masked to "j***@university.edu" (local part hidden); keys are
+// replaced with "[redacted]".
+const EMAIL_RE = /([A-Za-z0-9._%+\-]+)@([A-Za-z0-9.\-]+\.[A-Za-z]{2,})/g;
+const KEY_RE   = /\b(?:sk|key|hunter|zx)[-_][A-Za-z0-9]{12,}\b/g;
+
+function maskEmail(local, domain) {
+  const head = String(local).slice(0, 1);
+  return `${head}***@${domain}`;
+}
+
+function redact(v) {
+  if (typeof v !== 'string') return v;
+  return v.replace(EMAIL_RE, (_, l, d) => maskEmail(l, d))
+          .replace(KEY_RE, '[redacted]');
+}
+
+function redactFields(fields) {
+  const out = {};
+  for (const k of Object.keys(fields || {})) out[k] = redact(fields[k]);
+  return out;
+}
+
 function log(event, fields) {
   try {
-    console.log(JSON.stringify({ ts: new Date().toISOString(), level: 'info', event, ...fields }));
+    console.log(JSON.stringify({ ts: new Date().toISOString(), level: 'info', event, ...redactFields(fields) }));
   } catch (e) { /* logging must never throw */ }
 }
 function logWarn(event, fields) {
   try {
-    console.warn(JSON.stringify({ ts: new Date().toISOString(), level: 'warn', event, ...fields }));
+    console.warn(JSON.stringify({ ts: new Date().toISOString(), level: 'warn', event, ...redactFields(fields) }));
   } catch (e) { /* noop */ }
 }
 
@@ -233,7 +257,7 @@ function noteAbuse(ip, reason) {
 }
 
 module.exports = {
-  log, logWarn,
+  log, logWarn, redact, maskEmail,
   corsHeaders,
   LIMITS, cleanText, cleanPerPage, cleanAuthorId, cleanEmail,
   safeFetch,
