@@ -1243,7 +1243,7 @@
     // Official academic domains: .edu (US), .edu.xx / .ac.xx (country variants),
     // plus well-known university ccTLD domains that skip the .edu pattern
     // (Canadian universities use *.ca, e.g. umontreal.ca, utoronto.ca).
-    const ACADEMIC_DOMAIN_RE = /@(?:[a-z0-9.\-]*\.)?(?:edu|ac\.[a-z]{2}|edu\.[a-z]{2}|uni-[a-z0-9.\-]+\.de|[a-z0-9\-]+\.uni-[a-z0-9.\-]+|(?:umontreal|utoronto|mcgill|ubc|ualberta|ucalgary|usask|mcmaster|uottawa|queens|uwaterloo|western|达尔housie|unb|uleth|ulethbridge|yorku|concordia|usherbrooke|etsmtl|polymtl)[a-z0-9\-]*\.ca|cam\.ac\.uk|ox\.ac\.uk|(?:kth|chalmers|lu|uu|dtu|ethz|epfl|psi|inria|ki|su|gu)(?:\.se)?|tuhh\.de|tum\.de|lmu\.de|hu\.berlin|fu-berlin\.de|kit\.edu)$/i;
+    const ACADEMIC_DOMAIN_RE = /@(?:[a-z0-9.\-]*\.)?(?:edu|ac\.[a-z]{2}|edu\.[a-z]{2}|uni-[a-z0-9.\-]+\.de|[a-z0-9\-]+\.uni-[a-z0-9.\-]+|(?:umontreal|utoronto|mcgill|ubc|ualberta|ucalgary|usask|mcmaster|uottawa|queens|uwaterloo|western|dalhousie|unb|uleth|ulethbridge|yorku|concordia|usherbrooke|etsmtl|polymtl)[a-z0-9\-]*\.ca|cam\.ac\.uk|ox\.ac\.uk|(?:kth|chalmers|lu|uu|dtu|ethz|epfl|psi|inria|ki|su|gu)(?:\.se)?|tuhh\.de|tum\.de|lmu\.de|hu\.berlin|fu-berlin\.de|kit\.edu)$/i;
 
     function isAcademicDomain(email) {
       const domain = (email.split('@')[1] || '').toLowerCase();
