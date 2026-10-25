@@ -126,3 +126,40 @@ vercel env add ALLOWED_ORIGINS production   # https://<origin>
 vercel --prod
 curl -si https://<origin>/api/search | head -5   # must be JSON 400
 ```
+
+## Validation evidence (reproducible, run from repo root)
+
+| Item | Command | Expected result | Last run |
+|------|---------|-----------------|----------|
+| §1 Proxy controls | `node tests/api-search.test.js` | `18 checks passed` (CSP CORS, rate limits, SSRF, caps, methods, sanitized errors) | 2026-10-25 ✅ |
+| §2 XSS sinks | grep audit: `innerHTML\|insertAdjacentHTML\|document.write\|eval(` across `index.html js/*.js api/*.js` | only the sanitized `tpl.innerHTML = sanitizeHtml(...)` bridge remains; app.js routes through `window.ldSafeSetHtml` | 2026-10-25 ✅ |
+| §3 CSV injection | behavioral test with `=HYPERLINK(...)`, `+2+3`, `-@payload`, hidden `  =cmd` | every payload gains a leading `'`; normal text untouched | 2026-10-25 ✅ |
+| §4 Storage controls | toggle `letterdesk.autosave.off` in sessionStorage shim | writers blocked while on; erase clears all four keys | 2026-10-25 ✅ |
+| §5 Resilience | `switchStep(-5 / NaN / undefined / 99)` | clamps to step 0, no TypeError; `4` still opens tracker view | 2026-10-25 ✅ |
+| §6 Secrets | pattern scan of working tree **and full git history** (`gsk_*`, `sk-*`, `ghp_*`) | 0 findings — no credentials to rotate | 2026-10-25 ✅ |
+| Live endpoint (§7/§8) | `curl -i https://<origin>/api/search` after deploy | HTTP 400 + JSON body `{"error":...}` — **not** raw JS source (silent GitHub-Pages fallback). Also confirm the client banner shows "proxy online" (probe in `js/backend.js`). | pending first cloud deploy |
+| Live XSS repro (§8) | search a name, inject `<img src=x onerror=alert(1)>` via devtools into the result renderer path | no dialog fires; markup rendered as inert text by `setSafeHtml` | staging (post-deploy) |
+
+## Owner maintenance notes (out-of-scope for bounty reporting)
+
+These are standard platform characteristics or owner responsibilities, not
+vulnerabilities, and should be documented as such per §8 scope review:
+
+1. **GitHub Pages cannot execute server-side code.** A static-hosted
+   `api/search.js` is served as plain text. This is why Vercel/Netlify are the
+   supported backends and why the client probes proxy availability instead of
+   silently falling back. Not an exploitable flaw in itself.
+2. **A wildcard-CORS misconfiguration alone is not an exploit** — F-01 was
+   resolved by removing the wildcard AND proving the live endpoint's behavior
+   with controlled requests (see table above).
+3. **Tailwind Play CDN is unpinned by design** during development; production
+   owners should swap it for a locally built static stylesheet (see
+   ASSET-INVENTORY.md row 1). SRI is impossible on that mutable artifact, so
+   CSP allow-listing is the compensating control.
+4. **Groq/Hunter/ZeroBounce quota & billing alerts** must be enabled in each
+   provider dashboard by the project owner; the proxy enforces soft caps and
+   emits `groq-usage-alert` logs, but cannot configure vendor billing pages.
+5. **localStorage content is visible to anyone with the user's unlocked PC.**
+   The portal now minimizes what it stores (no PII), offers auto-save disable
+   and one-click erase, and warns about shared devices — residual risk on a
+   compromised machine belongs to the user/environment, not the app.

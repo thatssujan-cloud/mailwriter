@@ -2691,7 +2691,10 @@ Alex Rivera</pre>
     }
 
     /** Safe innerHTML sink: parses sanitized markup into a DocumentFragment
-        (inert — scripts never execute) and replaces the container's content. */
+        (inert — scripts never execute) and replaces the container's content.
+        Exposed on window (§2 sink audit) so the external UX layer (js/app.js)
+        routes its static-template innerHTML writes through the same
+        DOMPurify-backed path instead of raw innerHTML. */
     function setSafeHtml(el, html) {
       if (!el) return;
       el.textContent = '';
@@ -2699,6 +2702,7 @@ Alex Rivera</pre>
       tpl.innerHTML = sanitizeHtml(html);
       el.appendChild(tpl.content.cloneNode(true));
     }
+    window.ldSafeSetHtml = setSafeHtml;
 
     /** Click event → auto-fill Professor Name, Lab Focus, Paper Topic, Email. */
     function selectProfessor(c) {
