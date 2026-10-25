@@ -224,7 +224,7 @@
         <div id="howItWorksPanel" hidden class="mt-4 max-w-2xl rounded-lg bg-white/5 ring-1 ring-white/10 p-4 text-xs md:text-sm text-slate-300 leading-relaxed space-y-2">
           <p><strong class="text-slate-100">1 · Supervisor discovery.</strong> Searches run live against public scholarly APIs — OpenAlex, Semantic Scholar, and Crossref — restricted to geoscience topic areas. Results are merged and de-duplicated by author identifier.</p>
           <p><strong class="text-slate-100">2 · Drafting &amp; review.</strong> Templates assemble only the facts you enter plus publication metadata returned by those APIs. A deterministic style pass ("Natural Language Polish") and a rule-based pre-send reviewer run entirely in your browser.</p>
-          <p><strong class="text-slate-100">3 · Privacy.</strong> Your name, profile text, and drafts never leave this page. Your search query and the recipient's email domain (via Google DNS-over-HTTPS) are sent to external services to power discovery and deliverability checks. Tracker data is saved in this browser's local storage only — it does not sync across devices.</p>
+          <p><strong class="text-slate-100">3 · Privacy.</strong> Your name, profile text, and drafts are assembled and reviewed entirely in your browser — they are never uploaded anywhere. Three kinds of requests do leave this page: your search query goes to the public scholarly APIs (OpenAlex, Semantic Scholar, Crossref), an address's email domain goes to Google DNS-over-HTTPS for the MX deliverability check, and when you choose "Open in Email Client" the finished draft is handed to your own mail application via a mailto: link. Everything else — polish, review, tracker — stays local. Tracker data is saved in this browser's local storage only; use CSV export before clearing cookies or switching devices, because it does not sync.</p>
           <p><strong class="text-slate-100">4 · Honest limits.</strong> Affiliations come from publication metadata ("last known"), not official HR records — always verify on the department's faculty page before sending. LetterDesk never predicts admission or funding outcomes.</p>
         </div>
         <div class="mt-5 flex flex-wrap gap-2 text-[11px] md:text-xs font-medium">
@@ -252,9 +252,9 @@
           <div class="border-b border-ink-200 bg-slate-50 px-5 py-4 sm:px-6">
             <h2 id="formHeading" class="font-display text-base font-bold text-ink-900 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-              Your Details
+              Step 1 · Your Details
             </h2>
-            <p class="text-xs text-ink-500 mt-1">Fill what you know — blanks use smart fallback defaults.</p>
+            <p class="text-xs text-ink-500 mt-1">Start with the professor search — it auto-fills most fields. Fill in only what you know; blanks use smart fallback defaults.</p>
           </div>
 
           <form id="assistantForm" class="px-5 py-5 sm:px-6 space-y-4" novalidate>
@@ -285,7 +285,7 @@
                    requests resolve) -->
               <div id="searchResults" class="hidden absolute z-30 mt-1.5 w-full max-h-80 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Geoscience faculty search results"></div>
               <p id="searchHint" class="mt-1.5 text-[11px] text-ink-400 leading-relaxed">
-                Searches three free engines at once — <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">OpenAlex</a>, <a href="https://api.semanticscholar.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Semantic Scholar</a> (TLDRs), and <a href="https://api.crossref.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Crossref</a> (DOIs) — restricted to <strong class="text-ink-600">Geology &amp; Earth Sciences</strong> authors, with live university filtering (try "volcanology at Durham"). Then verifies the mail server via Google DNS-over-HTTPS. Click a result to auto-fill everything.
+                <strong class="text-ink-600">How to start:</strong> type a research topic, a professor's name, or both with a university — then press Enter or click Search. Good first queries: <em>"seismology at Cornell"</em>, <em>"Marcia Bjornerud"</em>, <em>"isotope geochemistry"</em>. Results come from three free engines — <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">OpenAlex</a>, <a href="https://api.semanticscholar.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Semantic Scholar</a> (TLDRs), and <a href="https://api.crossref.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Crossref</a> (DOIs) — restricted to <strong class="text-ink-600">Geology &amp; Earth Sciences</strong> authors, with live university filtering. Clicking a result auto-fills the form below, including an email pattern verified against the university's mail server (Google DNS-over-HTTPS). No professor yet? You can still fill every field by hand.
               </p>
             </div>
 
@@ -312,6 +312,7 @@
               </label>
               <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Geology / Earth Sciences"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
+              <p class="mt-1 text-[11px] text-ink-400 leading-relaxed">The program you intend to apply to, e.g. "M.S. in Geology" or "Ph.D. in Earth Sciences". Auto-filled from the selected professor's publication scope — override any time.</p>
             </div>
 
             <!-- Input 3: Target Term/Year — computed from open application windows -->
@@ -324,6 +325,7 @@
               </label>
               <input id="termYear" name="termYear" type="text" placeholder="e.g., Fall 2027"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
+              <p class="mt-1 text-[11px] text-ink-400 leading-relaxed">The intake you want to join. LetterDesk suggests the next realistic window from typical departmental deadlines — always confirm exact dates on the university's official page.</p>
             </div>
 
             <!-- Input 4: Previous University / Background — defaults to Tribhuvan University -->
@@ -359,13 +361,14 @@
                         class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition resize-y"></textarea>
             </div>
 
-            <!-- Input 6b: Tool/Skill You Use — paired with the professor's paper topic in the email body -->
+            <!-- Input 6b: Relevant technical skills or methods — paired with the professor's paper topic in the email body -->
             <div>
               <label for="toolSkill" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
-                Tool/Skill You Use <span class="text-ink-400 normal-case font-normal tracking-normal">(e.g., PyTorch, Matlab, Lab Technique)</span>
+                Relevant technical skills or methods
               </label>
-              <input id="toolSkill" name="toolSkill" type="text" placeholder="e.g., PyTorch, Matlab, Western Blotting, mass spectrometry"
+              <input id="toolSkill" name="toolSkill" type="text" placeholder="e.g., Python, GIS mapping, mass spectrometry, field sampling"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
+              <p class="mt-1 text-[11px] text-ink-400 leading-relaxed">Software, lab techniques, or field methods you actually use. The draft pairs these directly with the professor's research topic — the strongest fit signal in the email.</p>
             </div>
 
             <!-- Select 7: Assistantship Type -->
@@ -380,6 +383,7 @@
                   <option value="TA">Teaching Assistantship — TA</option>
                   <option value="EITHER">Either / General Inquiry</option>
                 </select>
+                <p class="mt-1 text-[11px] text-ink-400 leading-relaxed">Which funded role you are asking about: lab research (RA), teaching support (TA), or leave it open to either.</p>
               </div>
 
               <!-- Select 8b: Structured outreach format picker -->
@@ -395,6 +399,7 @@
                   <option value="ta">Teaching Assistantship Pitch</option>
                   <option value="short">Ultra-Short Mobile Pitch (&lt;90 words)</option>
                 </select>
+                <p class="mt-1 text-[11px] text-ink-400 leading-relaxed">The structure of the message. "Classic" writes a three-paragraph letter in your chosen tone; the other options swap in a purpose-built layout — skill-matched RA pitch, grant-capacity pitch, TA pitch, or a skimmable mobile-length note.</p>
               </div>
 
             <!-- Select 8: Email Tone -->
@@ -408,6 +413,7 @@
                   <option value="academic">Expressive &amp; Academic</option>
                   <option value="formal">Formal &amp; Concise</option>
                 </select>
+                <p class="mt-1 text-[11px] text-ink-400 leading-relaxed">How the sentences read — re-applied instantly by the Quick re-tone buttons under the draft.</p>
               </div>
             </div>
 
@@ -3630,7 +3636,7 @@
 
       if (skill && lower.includes(skill.toLowerCase().split(/\s+/)[0]))
         good.push(`Pairs your tool/skill (${skill}) with the professor's topic — the strongest fit signal.`);
-      else bad.push({ t: 'No specific tool/method mentioned alongside their research.', fix: 'Fill the Tool/Skill field (PyTorch, Western blotting, etc.).' });
+      else bad.push({ t: 'No specific tool/method mentioned alongside their research.', fix: 'Fill the "Relevant technical skills or methods" field (Python, GIS mapping, mass spectrometry, etc.).' });
 
       if (/\b(your|you)\b/.test(lower) && /\b(my|i)\b/.test(lower)) {
         const youCount = (lower.match(/\byour?\b/g) || []).length;
