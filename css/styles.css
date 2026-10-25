@@ -1,0 +1,256 @@
+/* ==========================================================================
+   LetterDesk — css/styles.css
+   Interaction & accessibility layer. Tailwind (CDN) handles layout/colors;
+   this file adds the "feel": sticky nav, scroll reveals, focus states,
+   keyboard-hint chips, back-to-top button, toasts and loading indicators.
+   ========================================================================== */
+
+/* ---------- Design tokens (mirror the Tailwind config palette) ---------- */
+:root {
+  --ld-brand: #bc6238;
+  --ld-brand-dark: #9a4d2a;
+  --ld-ink-900: #0f172a;
+  --ld-ink-500: #64748b;
+  --ld-forest: #10b981;
+  --ld-sticky-h: 64px;
+  --ld-shadow: 0 8px 24px -8px rgba(15, 23, 42, .25);
+}
+
+/* Offset anchored sections so the sticky bar never covers headings */
+html { scroll-padding-top: calc(var(--ld-sticky-h) + 16px); }
+
+/* ---------- Sticky compact navigation bar (injected by js/app.js) -------- */
+#ldStickyNav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  height: var(--ld-sticky-h);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 0 clamp(.75rem, 4vw, 2rem);
+  background: rgba(2, 6, 23, .88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  color: #e2e8f0;
+  transform: translateY(-110%);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+#ldStickyNav.ld-visible {
+  transform: translateY(0);
+  box-shadow: var(--ld-shadow);
+}
+#ldStickyNav .ld-brand {
+  font-weight: 800;
+  letter-spacing: -.02em;
+  margin-right: auto;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+#ldStickyNav .ld-brand-dot {
+  width: .65rem;
+  height: .65rem;
+  border-radius: 9999px;
+  background: var(--ld-brand);
+  box-shadow: 0 0 0 3px rgba(188, 98, 56, .25);
+}
+#ldStickyNav a,
+#ldStickyNav button {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .4rem .7rem;
+  border-radius: .5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: color .15s ease, background-color .15s ease;
+  white-space: nowrap;
+}
+#ldStickyNav a:hover,
+#ldStickyNav button:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+}
+#ldStickyNav a:focus-visible,
+#ldStickyNav button:focus-visible {
+  outline: 2px solid var(--ld-brand);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  #ldStickyNav .ld-nav-link { display: none; }
+}
+
+/* ---------- Scroll-progress bar under the sticky nav ---------- */
+#ldScrollProgress {
+  position: fixed;
+  top: var(--ld-sticky-h);
+  left: 0;
+  height: 3px;
+  width: 0;
+  z-index: 61;
+  background: linear-gradient(90deg, var(--ld-brand), var(--ld-forest));
+  border-radius: 0 9999px 9999px 0;
+  transition: width .1s linear;
+  pointer-events: none;
+}
+
+/* ---------- Back-to-top floating button ---------- */
+#ldBackToTop {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 55;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(15, 23, 42, .1);
+  background: #fff;
+  color: var(--ld-ink-900);
+  box-shadow: var(--ld-shadow);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(12px) scale(.95);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease, background-color .2s ease;
+}
+#ldBackToTop.ld-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+#ldBackToTop:hover { background: var(--ld-brand); color: #fff; }
+#ldBackToTop:focus-visible { outline: 2px solid var(--ld-brand); outline-offset: 3px; }
+
+/* ---------- Scroll-reveal animation (JS adds .ld-in when visible) ------- */
+.ld-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.ld-reveal.ld-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Accessible focus ring for every interactive element --------- */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ld-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Nicer, consistent focus glow on form fields */
+.field:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(188, 98, 56, .15);
+}
+
+/* ---------- Hover affordances for cards / buttons ------------------------ */
+button:not(:disabled):hover,
+[role="listbox"] > * {
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+main section > div:hover { box-shadow: 0 12px 32px -12px rgba(15, 23, 42, .22); }
+main section > div { transition: box-shadow .3s ease; }
+
+/* Search-result rows get a clear hover/active state */
+#searchResults > * { cursor: pointer; }
+#searchResults > *:hover { background: #f8fafc; }
+
+/* ---------- Keyboard shortcut hint chips (rendered by js/app.js) --------- */
+.kbd {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: .08em .45em;
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: .68rem;
+  line-height: 1.4;
+  color: #334155;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-bottom-width: 2px;
+  border-radius: .35rem;
+  text-align: center;
+}
+
+#ldShortcutHelp {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 23, .55);
+  backdrop-filter: blur(3px);
+}
+#ldShortcutHelp.ld-open { display: flex; }
+#ldShortcutHelp .ld-modal {
+  background: #fff;
+  color: var(--ld-ink-900);
+  border-radius: 1rem;
+  padding: 1.5rem 1.75rem;
+  max-width: 26rem;
+  width: calc(100% - 2rem);
+  box-shadow: var(--ld-shadow);
+  animation: ld-pop .2s ease-out;
+}
+@keyframes ld-pop {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Inline loading spinner utility ------------------------------- */
+.ld-spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  display: inline-block;
+  animation: ld-spin .7s linear infinite;
+  vertical-align: -0.125em;
+}
+@keyframes ld-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Toast polish (complements the existing toast keyframes) ------ */
+#toastContainer > * { pointer-events: auto; }
+
+/* ---------- Skip link (added by js/app.js, visible on keyboard focus) ---- */
+#ldSkipLink {
+  position: fixed;
+  top: -60px;
+  left: 1rem;
+  z-index: 80;
+  background: var(--ld-brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: .85rem;
+  padding: .55rem .9rem;
+  border-radius: .5rem;
+  transition: top .2s ease;
+}
+#ldSkipLink:focus { top: 1rem; }
+
+/* ---------- Reduced motion: keep everything usable ---------------------- */
+@media (prefers-reduced-motion: reduce) {
+  #ldStickyNav, #ldBackToTop, .ld-reveal, main section > div { transition: none !important; }
+  .ld-reveal { opacity: 1; transform: none; }
+  #ldShortcutHelp .ld-modal { animation: none; }
+  .ld-spinner { animation-duration: 1.6s; }
+}

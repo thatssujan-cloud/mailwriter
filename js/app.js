@@ -1,0 +1,343 @@
+/* ==========================================================================
+   LetterDesk — js/app.js
+   UX enhancement layer: sticky navigation, scroll progress, reveal
+   animations, back-to-top button, keyboard shortcuts (with a "?" help
+   modal), focus management and graceful form auto-save.
+
+   This file is ADDITIVE — it never overrides the core generator logic that
+   lives inline in index.html. All hooks degrade safely if an element is
+   missing, so the page keeps working even when loaded partially.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var doc = document;
+  function $(id) { return doc.getElementById(id); }
+  function on(el, evt, fn, opts) { if (el) el.addEventListener(evt, fn, opts || false); }
+  var prefersReducedMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ------------------------------------------------------------------
+     1. Skip link — instant keyboard access to the generator
+  ------------------------------------------------------------------ */
+  function buildSkipLink() {
+    if ($('ldSkipLink')) return;
+    var a = doc.createElement('a');
+    a.id = 'ldSkipLink';
+    a.href = '#generator';
+    a.textContent = 'Skip to generator';
+    doc.body.insertBefore(a, doc.body.firstChild);
+    on(a, 'click', function () {
+      var first = $('studentName');
+      if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 300);
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     2. Sticky compact nav + scroll-progress bar
+        Appears once the user scrolls past the hero masthead.
+  ------------------------------------------------------------------ */
+  function buildStickyNav() {
+    if ($('ldStickyNav')) return;
+
+    var nav = doc.createElement('nav');
+    nav.id = 'ldStickyNav';
+    nav.setAttribute('aria-label', 'Quick navigation');
+    nav.innerHTML =
+      '<span class="ld-brand"><span class="ld-brand-dot" aria-hidden="true"></span>LetterDesk</span>' +
+      '<a class="ld-nav-link" href="#generator" data-ld-scroll>Generator</a>' +
+      '<button type="button" class="ld-nav-link" data-ld-action="tips">Contact Tips</button>' +
+      '<button type="button" class="ld-nav-link" data-ld-action="humanize">Humanize</button>' +
+      '<button type="button" data-ld-action="copy" title="Copy email body">Copy</button>' +
+      '<button type="button" data-ld-action="help" title="Keyboard shortcuts (?)">?</button>';
+
+    var bar = doc.createElement('div');
+    bar.id = 'ldScrollProgress';
+    bar.setAttribute('aria-hidden', 'true');
+
+    doc.body.appendChild(nav);
+    doc.body.appendChild(bar);
+
+    var header = doc.querySelector('header');
+    var backToTop = null; // created below; guarded reference
+
+    function updateOnScroll() {
+      var y = window.scrollY || doc.documentElement.scrollTop || 0;
+      var trigger = header ? Math.max(120, header.offsetHeight - 80) : 300;
+      nav.classList.toggle('ld-visible', y > trigger);
+      var h = doc.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (h > 0 ? Math.min(100, (y / h) * 100) : 0) + '%';
+      if (!backToTop) backToTop = $('ldBackToTop');
+      if (backToTop) backToTop.classList.toggle('ld-visible', y > 500);
+    }
+    window.addEventListener('scroll', updateOnScroll, { passive: true });
+    window.addEventListener('resize', updateOnScroll);
+    updateOnScroll();
+
+    /* Nav actions route to the same elements the page already wires up */
+    on(nav, 'click', function (e) {
+      var link = e.target.closest('a[data-ld-scroll]');
+      if (link) {
+        e.preventDefault();
+        var target = $(link.getAttribute('href').slice(1));
+        if (target) target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+        return;
+      }
+      var btn = e.target.closest('button[data-ld-action]');
+      if (!btn) return;
+      switch (btn.getAttribute('data-ld-action')) {
+        case 'tips': {
+          var tipsToggle = $('tipsToggle'), tipsPanel = $('tipsPanel');
+          if (tipsToggle && tipsPanel) {
+            tipsPanel.classList.add('open');
+            tipsToggle.setAttribute('aria-expanded', 'true');
+            tipsToggle.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'center' });
+          }
+          break;
+        }
+        case 'humanize': {
+          var hb = $('humanizeBtn');
+          if (hb) { hb.click(); hb.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+          break;
+        }
+        case 'copy': {
+          var cb = $('copyBodyBtn');
+          if (cb) cb.click();
+          break;
+        }
+        case 'help': openHelp(true); break;
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     3. Back-to-top button
+  ------------------------------------------------------------------ */
+  function buildBackToTop() {
+    if ($('ldBackToTop')) return;
+    var b = doc.createElement('button');
+    b.id = 'ldBackToTop';
+    b.type = 'button';
+    b.setAttribute('aria-label', 'Back to top');
+    b.title = 'Back to top';
+    b.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>';
+    doc.body.appendChild(b);
+    on(b, 'click', function () {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+      var logo = doc.querySelector('header a[aria-label]');
+      if (logo) logo.focus({ preventScroll: true });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     4. Scroll-reveal for cards & sections (IntersectionObserver)
+  ------------------------------------------------------------------ */
+  function buildReveals() {
+    if (!('IntersectionObserver' in window) || prefersReducedMotion) return;
+    var targets = doc.querySelectorAll('main section > div, #tipsPanel > div');
+    Array.prototype.forEach.call(targets, function (el) { el.classList.add('ld-reveal'); });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          en.target.classList.add('ld-in');
+          io.unobserve(en.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+    Array.prototype.forEach.call(targets, function (el) { io.observe(el); });
+  }
+
+  /* ------------------------------------------------------------------
+     5. Keyboard shortcuts + help modal
+        G  → generate email      H  → humanize
+        C  → copy body           M  → mailto handoff
+        R  → reset form          /  → focus professor search
+        ?  → toggle this help    Esc → close help / search results
+     (Shortcuts are ignored while typing in inputs/textareas.)
+  ------------------------------------------------------------------ */
+  var HELP_ROWS = [
+    ['G', 'Generate the email draft'],
+    ['H', 'Run the Humanizer on the draft'],
+    ['C', 'Copy the email body to clipboard'],
+    ['M', 'Open the mailto: send-to-outlook handoff'],
+    ['R', 'Reset the form to defaults'],
+    ['/', 'Jump to the professor search box'],
+    ['?', 'Show / hide this shortcut list'],
+    ['Esc', 'Close overlays']
+  ];
+
+  function buildHelpModal() {
+    if ($('ldShortcutHelp')) return;
+    var wrap = doc.createElement('div');
+    wrap.id = 'ldShortcutHelp';
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-modal', 'true');
+    wrap.setAttribute('aria-label', 'Keyboard shortcuts');
+    var rows = HELP_ROWS.map(function (r) {
+      return '<li class="flex items-center justify-between gap-4 py-1.5 border-b border-slate-100 last:border-0">' +
+             '<span class="text-sm text-slate-600">' + r[1] + '</span><span class="kbd">' + r[0] + '</span></li>';
+    }).join('');
+    wrap.innerHTML =
+      '<div class="ld-modal">' +
+      '<div class="flex items-center justify-between mb-3">' +
+      '<h3 style="font-weight:800;font-size:1.05rem;">Keyboard shortcuts</h3>' +
+      '<button type="button" id="ldHelpClose" aria-label="Close" style="cursor:pointer;border:none;background:#f1f5f9;border-radius:.5rem;width:2rem;height:2rem;font-weight:700;">✕</button>' +
+      '</div><ul style="list-style:none;padding:0;margin:0;">' + rows + '</ul>' +
+      '<p style="margin:.9rem 0 0;font-size:.72rem;color:#64748b;">Tip: press <span class="kbd">?</span> anywhere to toggle this panel.</p>' +
+      '</div>';
+    doc.body.appendChild(wrap);
+    on(wrap, 'click', function (e) {
+      if (e.target === wrap || e.target.id === 'ldHelpClose') openHelp(false);
+    });
+  }
+
+  function openHelp(show) {
+    buildHelpModal();
+    var m = $('ldShortcutHelp');
+    if (!m) return;
+    m.classList.toggle('ld-open', !!show);
+    if (show) {
+      var c = $('ldHelpClose');
+      if (c) c.focus();
+    }
+  }
+
+  function bindShortcuts() {
+    doc.addEventListener('keydown', function (e) {
+      var t = e.target;
+      var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' ||
+                         t.tagName === 'SELECT' || t.isContentEditable);
+
+      if (e.key === 'Escape') {
+        openHelp(false);
+        var sr = $('searchResults');
+        if (sr) sr.classList.add('hidden');
+        return;
+      }
+      if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+
+      var map = {
+        g: 'assistantForm',       // submit via requestSubmit → uses existing handler
+        h: 'humanizeBtn',
+        c: 'copyBodyBtn',
+        m: 'mailtoBtn',
+        r: 'resetBtn'
+      };
+      var key = e.key.toLowerCase();
+
+      if (key === '?' || (e.shiftKey && key === '/')) { e.preventDefault(); openHelp(true); return; }
+      if (key === '/') {
+        var ps = $('profSearch');
+        if (ps) { e.preventDefault(); ps.focus(); ps.select(); }
+        return;
+      }
+      var id = map[key];
+      if (!id) return;
+      e.preventDefault();
+      if (key === 'g') {
+        var form = $('assistantForm');
+        if (form) {
+          if (typeof form.requestSubmit === 'function') form.requestSubmit();
+          else form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+        return;
+      }
+      var btn = $(id);
+      if (btn && !btn.disabled) btn.click();
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     6. Auto-save the form (localStorage) so returning users keep context
+  ------------------------------------------------------------------ */
+  var STORE_KEY = 'letterdesk-form-v1';
+  var SAVE_FIELDS = ['studentName', 'degreeMajor', 'termYear', 'background',
+                     'profName', 'researchFocus', 'toolSkill', 'profEmail',
+                     'assistType', 'emailFormat', 'tone'];
+
+  function restoreForm() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      SAVE_FIELDS.forEach(function (id) {
+        var el = $(id);
+        if (el && typeof saved[id] === 'string' && !el.value.trim()) el.value = saved[id];
+      });
+    } catch (err) { /* storage unavailable or corrupt — ignore */ }
+  }
+
+  function saveFormDebounced() {
+    clearTimeout(saveFormDebounced._t);
+    saveFormDebounced._t = setTimeout(function () {
+      try {
+        var data = {};
+        SAVE_FIELDS.forEach(function (id) {
+          var el = $(id);
+          if (el) data[id] = el.value;
+        });
+        localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      } catch (err) { /* private mode etc. — silently skip */ }
+    }, 400);
+  }
+
+  function bindAutoSave() {
+    var form = $('assistantForm');
+    if (!form) return;
+    restoreForm();
+    on(form, 'input', saveFormDebounced);
+    on(form, 'change', saveFormDebounced);
+    on($('resetBtn'), 'click', function () {
+      try { localStorage.removeItem(STORE_KEY); } catch (err) {}
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     7. Small touches: enter-to-search hint & button busy spinner
+  ------------------------------------------------------------------ */
+  function polishButtons() {
+    // Show a spinner inside the generate button while it's disabled/loading.
+    var gen = $('generateBtn');
+    if (!gen) return;
+    var mo = new MutationObserver(function () {
+      var busy = gen.disabled;
+      var sp = gen.querySelector('.ld-spinner');
+      if (busy && !sp) {
+        var s = doc.createElement('span');
+        s.className = 'ld-spinner';
+        s.setAttribute('aria-hidden', 'true');
+        gen.insertBefore(s, gen.firstChild);
+        gen.appendChild(doc.createTextNode(' '));
+      } else if (!busy && sp) {
+        sp.remove();
+        if (gen.firstChild && gen.firstChild.nodeType === 3 && !gen.firstChild.textContent.trim()) {
+          gen.firstChild.remove();
+        }
+      }
+    });
+    mo.observe(gen, { attributes: true, attributeFilter: ['disabled'] });
+  }
+
+  /* ------------------------------------------------------------------
+     Init
+  ------------------------------------------------------------------ */
+  function init() {
+    buildSkipLink();
+    buildStickyNav();
+    buildBackToTop();
+    buildReveals();
+    buildHelpModal();
+    bindShortcuts();
+    bindAutoSave();
+    polishButtons();
+  }
+
+  if (doc.readyState === 'loading') {
+    doc.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
