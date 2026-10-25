@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GradAssist Mailer — Academic Assistantship Email Generator</title>
+  <meta name="description" content="Craft polished, tailored outreach emails to professors for TA and RA assistantship opportunities." />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Inline Tailwind configuration — academic SaaS palette
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              50:  '#f4f7fb',
+              100: '#e8eef7',
+              200: '#cfdcec',
+              300: '#a6bfda',
+              400: '#779cc4',
+              500: '#547fb0',
+              600: '#3f6594',
+              700: '#345279',
+              800: '#2d4565',
+              900: '#1e3049',
+              950: '#111e30'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif']
+          },
+          boxShadow: {
+            panel: '0 1px 2px rgba(17,30,48,0.06), 0 8px 24px -12px rgba(17,30,48,0.18)',
+            lift: '0 12px 32px -12px rgba(79,70,229,0.35)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* ---------- Custom styles (kept light; Tailwind does the heavy lifting) ---------- */
+    :root { color-scheme: light; }
+
+    body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+    /* Subtle academic grid backdrop for the header */
+    .hero-grid {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 36px 36px;
+    }
+
+    /* Output textarea keeps monospace-ish email formatting */
+    #emailBody {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      line-height: 1.65;
+      tab-size: 4;
+      resize: vertical;
+    }
+
+    /* Toast animation */
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes toast-out {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to   { opacity: 0; transform: translateY(12px) scale(0.98); }
+    }
+    .toast-enter { animation: toast-in 0.22s ease-out forwards; }
+    .toast-exit  { animation: toast-out 0.25s ease-in forwards; }
+
+    /* Accordion transition */
+    .accordion-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.3s ease;
+    }
+    .accordion-panel.open { grid-template-rows: 1fr; }
+    .accordion-panel > div { overflow: hidden; }
+
+    /* Chevron rotation */
+    .accordion-trigger svg { transition: transform 0.3s ease; }
+    .accordion-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+    /* Gentle pulse used when regenerating output */
+    @keyframes soft-flash {
+      0%   { box-shadow: 0 0 0 0 rgba(99,102,241,0.35); }
+      100% { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+    }
+    .flash { animation: soft-flash 0.7s ease-out; }
+
+    /* Focus rings consistent across inputs */
+    .field:focus { outline: none; }
+
+    /* Word-count bar */
+    #countBar { transition: width 0.35s ease, background-color 0.35s ease; }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+
+<body class="bg-zinc-100 font-sans text-navy-900 min-h-screen flex flex-col">
+
+  <!-- ============================ NAVBAR / HEADER ============================ -->
+  <header class="bg-navy-950 text-white hero-grid">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 md:pt-8 md:pb-14">
+      <div class="flex items-center justify-between">
+        <a href="#" class="flex items-center gap-3 group" aria-label="GradAssist Mailer home">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lift ring-1 ring-white/20">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 7 13.5 12.8a2 2 0 0 1-2.3 0L2 7"/>
+              <rect x="2" y="4" width="20" height="16" rx="3"/>
+            </svg>
+          </span>
+          <span>
+            <span class="block text-lg sm:text-xl font-bold tracking-tight leading-tight">GradAssist Mailer</span>
+            <span class="block text-[11px] uppercase tracking-[0.2em] text-indigo-300 font-semibold">Assistantship Outreach Studio</span>
+          </span>
+        </a>
+
+        <div class="hidden md:flex items-center gap-6 text-sm text-navy-200">
+          <button type="button" data-scroll-tips class="hover:text-white transition cursor-pointer">Contact Tips</button>
+          <a href="#generator" class="hover:text-white transition">Generator</a>
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium ring-1 ring-white/15">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            100% in-browser · no data leaves your device
+          </span>
+        </div>
+      </div>
+
+      <div class="mt-8 md:mt-12 max-w-3xl">
+        <h1 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
+          Write professor outreach emails that get <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">replies</span>.
+        </h1>
+        <p class="mt-3 md:mt-5 text-sm md:text-base text-navy-200 leading-relaxed">
+          GradAssist Mailer helps prospective and current graduate students draft professional, tailored
+          inquiries about <strong class="text-white font-semibold">Teaching</strong> and
+          <strong class="text-white font-semibold">Research Assistantships</strong> for Master's and Ph.D. programs —
+          in seconds, with the right tone, every time.
+        </p>
+        <div class="mt-5 flex flex-wrap gap-2 text-[11px] md:text-xs font-medium">
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">RA &amp; TA templates</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">3 tone variations</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">mailto: handoff</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-250-word guardrail</span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ============================ MAIN TWO-COLUMN LAYOUT ============================ -->
+  <main id="generator" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 -mt-4 md:-mt-6 pb-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+      <!-- ---------------- LEFT COLUMN: FORM INPUT PANEL ---------------- -->
+      <section aria-labelledby="formHeading" class="lg:col-span-5 xl:col-span-4">
+        <div class="bg-white rounded-2xl shadow-panel ring-1 ring-zinc-200 overflow-hidden">
+          <div class="border-b border-zinc-200 bg-gradient-to-r from-navy-50 to-white px-5 py-4 sm:px-6">
+            <h2 id="formHeading" class="text-base font-bold text-navy-900 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              Your Details
+            </h2>
+            <p class="text-xs text-zinc-500 mt-1">Fill what you know — blanks use smart fallback defaults.</p>
+          </div>
+
+          <form id="assistantForm" class="px-5 py-5 sm:px-6 space-y-4" novalidate>
+
+            <!-- Input 1: Student Full Name -->
+            <div>
+              <label for="studentName" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Student Full Name <span class="text-zinc-400 normal-case font-normal tracking-normal">(your signature)</span>
+              </label>
+              <input id="studentName" name="studentName" type="text" autocomplete="name" placeholder="e.g., Alex Rivera"
+                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+            </div>
+
+            <!-- Input 2: Target Degree & Major -->
+            <div>
+              <label for="degreeMajor" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Target Degree &amp; Major
+              </label>
+              <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Computer Science"
+                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+            </div>
+
+            <!-- Input 3: Target Term/Year -->
+            <div>
+              <label for="termYear" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Target Term / Year
+              </label>
+              <input id="termYear" name="termYear" type="text" placeholder="e.g., Fall 2027"
+                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+            </div>
+
+            <!-- Input 4: Previous University / Background -->
+            <div>
+              <label for="background" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Previous University / Current Background
+              </label>
+              <input id="background" name="background" type="text" placeholder="e.g., B.Tech in Electrical Engineering, Pune Institute of Technology"
+                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+            </div>
+
+            <div class="border-t border-dashed border-zinc-200 pt-4">
+              <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-indigo-600">Recipient</p>
+            </div>
+
+            <!-- Input 5: Professor's Full Name -->
+            <div>
+              <label for="profName" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Professor's Full Name
+              </label>
+              <input id="profName" name="profName" type="text" placeholder="e.g., Dr. Jane Smith"
+                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+            </div>
+
+            <!-- Input 6: Research Focus / Lab / Paper Topic -->
+            <div>
+              <label for="researchFocus" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Research Focus / Lab Name / Specific Paper Topic
+              </label>
+              <textarea id="researchFocus" name="researchFocus" rows="2"
+                        placeholder="e.g., the RoboNLP Lab's work on sample-efficient reinforcement learning, or your paper on low-resource machine translation"
+                        class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition resize-y"></textarea>
+            </div>
+
+            <!-- Select 7: Assistantship Type -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="assistType" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                  Assistantship Type
+                </label>
+                <select id="assistType" name="assistType"
+                        class="field w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                  <option value="RA">Research Assistantship — RA</option>
+                  <option value="TA">Teaching Assistantship — TA</option>
+                  <option value="EITHER">Either / General Inquiry</option>
+                </select>
+              </div>
+
+              <!-- Select 8: Email Tone -->
+              <div>
+                <label for="tone" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                  Email Tone
+                </label>
+                <select id="tone" name="tone"
+                        class="field w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                  <option value="direct">Professional &amp; Direct</option>
+                  <option value="academic">Expressive &amp; Academic</option>
+                  <option value="formal">Formal &amp; Concise</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Optional: professor email for mailto -->
+            <div>
+              <label for="profEmail" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Professor Email <span class="text-zinc-400 normal-case font-normal tracking-normal">(optional — enables mailto prefill)</span>
+              </label>
+              <input id="profEmail" name="profEmail" type="email" autocomplete="off" placeholder="e.g., j.smith@university.edu"
+                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+              <button type="submit" id="generateBtn"
+                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lift hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 active:scale-[0.98] transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                Generate Email
+              </button>
+              <button type="button" id="resetBtn"
+                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-navy-800 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-400/40 active:scale-[0.98] transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Reset Form
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ---------- TIPS ACCORDION ---------- -->
+        <div class="mt-6 bg-white rounded-2xl shadow-panel ring-1 ring-zinc-200 overflow-hidden">
+          <button type="button" id="tipsToggle" aria-expanded="false" aria-controls="tipsPanel"
+                  class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-zinc-50 transition sm:px-6">
+            <span class="flex items-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>
+              <span class="text-sm font-bold text-navy-900">Tips for Contacting Professors</span>
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="tipsPanel" class="accordion-panel">
+            <div>
+              <ul class="px-5 pb-5 sm:px-6 space-y-3 text-sm text-zinc-600 leading-relaxed list-none">
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">1</span><span><strong class="text-navy-800">Time it right.</strong> Send emails Tue–Thu, 8–10 a.m. in the professor's time zone. Avoid holidays and the two weeks before admission deadlines, when inboxes overflow.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">2</span><span><strong class="text-navy-800">Read one real paper first.</strong> Cite a specific paper or project (paste its topic into the form). Generic flattery reads as spam; specificity reads as scholarship.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">3</span><span><strong class="text-navy-800">Attach a CV &amp; unofficial transcript</strong> as PDFs, named <code class="rounded bg-zinc-100 px-1 py-0.5 text-[12px]">Lastname_CV.pdf</code>. Mention the attachments so they aren't overlooked.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">4</span><span><strong class="text-navy-800">Keep it under 250 words.</strong> Professors skim. One ask, one paragraph of fit, one line of logistics — then stop. The live counter below watches this for you.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">5</span><span><strong class="text-navy-800">Follow up once after 7–10 days.</strong> Reply to your original message with a short, polite bump. No reply after that? Move on gracefully.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">6</span><span><strong class="text-navy-800">Use your institutional email if possible,</strong> and double-check the professor's title (Dr./Prof.) and spelling before sending. Personalize one email at a time — never BCC a cohort.</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- RIGHT COLUMN: OUTPUT PANEL ---------------- -->
+      <section aria-labelledby="outputHeading" class="lg:col-span-7 xl:col-span-8">
+        <div class="bg-white rounded-2xl shadow-panel ring-1 ring-zinc-200 overflow-hidden flex flex-col">
+          <div class="border-b border-zinc-200 bg-gradient-to-r from-navy-50 to-white px-5 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+            <h2 id="outputHeading" class="text-base font-bold text-navy-900 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v-3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v3"/><path d="M2 19h20"/><path d="M8 19V8"/><path d="M16 19V8"/><rect x="2" y="8" width="20" height="11" rx="2"/></svg>
+              Generated Email
+            </h2>
+            <span id="templateBadge" class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-indigo-50 ring-1 ring-indigo-200 px-3 py-1 text-[11px] font-semibold text-indigo-700">
+              RA · Professional &amp; Direct
+            </span>
+          </div>
+
+          <div class="px-5 py-5 sm:px-6 space-y-5">
+
+            <!-- Subject line + copy button -->
+            <div>
+              <label for="subjectLine" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">Subject Line</label>
+              <div class="flex gap-2">
+                <input id="subjectLine" type="text" readonly spellcheck="false"
+                       placeholder="Generate an email to see a tailored subject line…"
+                       class="field w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3.5 py-2.5 text-sm text-navy-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                <button type="button" id="copySubjectBtn"
+                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-navy-800 hover:border-indigo-400 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 active:scale-[0.97] transition"
+                        title="Copy the subject line">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span class="hidden sm:inline">Copy Subject</span><span class="sm:hidden">Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Email body textarea -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="emailBody" class="block text-xs font-semibold uppercase tracking-wide text-navy-700">Email Body</label>
+                <span class="text-[11px] text-zinc-400">Editable — tweak wording before sending</span>
+              </div>
+              <textarea id="emailBody" rows="16" spellcheck="true"
+                        placeholder="Your generated assistantship email will appear here, formatted and ready to personalize…"
+                        class="field w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3.5 text-[13px] sm:text-sm text-navy-900 placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition"></textarea>
+
+              <!-- Character & word counter -->
+              <div class="mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div class="flex items-center gap-3 text-xs font-medium" id="counterWrap">
+                  <span id="wordCount" class="rounded-md bg-zinc-100 px-2 py-1 text-zinc-600">0 words</span>
+                  <span id="charCount" class="rounded-md bg-zinc-100 px-2 py-1 text-zinc-600">0 characters</span>
+                  <span id="wordVerdict" class="text-zinc-400"></span>
+                </div>
+                <div class="flex-1 min-w-[120px]" title="Target: under 250 words">
+                  <div class="h-1.5 w-full rounded-full bg-zinc-200 overflow-hidden">
+                    <div id="countBar" class="h-full w-0 rounded-full bg-emerald-500"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick action toolbar -->
+            <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-3 sm:p-4 space-y-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" id="copyBodyBtn"
+                        class="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-navy-500/50 active:scale-[0.97] transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  Copy Email Body
+                </button>
+                <button type="button" id="mailtoBtn"
+                        class="inline-flex items-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 active:scale-[0.97] transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.994 5.7a2 2 0 0 1-2.006 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="3"/></svg>
+                  Open in Email Client (mailto:)
+                </button>
+              </div>
+
+              <!-- Tone quick-toggle buttons -->
+              <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-zinc-200/80">
+                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-500 mr-1">Quick re-tone:</span>
+                <div class="inline-flex rounded-lg border border-zinc-300 bg-white p-1 gap-1" role="group" aria-label="Quick tone toggle">
+                  <button type="button" data-tone="direct"   class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Direct</button>
+                  <button type="button" data-tone="academic" class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Academic</button>
+                  <button type="button" data-tone="formal"   class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Formal</button>
+                </div>
+                <span class="text-[11px] text-zinc-400">instantly reformats the last generated email</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compliance mini-card -->
+        <div class="mt-4 flex flex-col sm:flex-row gap-3 text-xs text-zinc-500">
+          <p class="flex-1 bg-white rounded-xl ring-1 ring-zinc-200 px-4 py-3 leading-relaxed">
+            <strong class="text-navy-800">Before you send:</strong> verify the professor's name spelling and title, confirm their current lab page,
+            attach your CV/transcript as PDFs, and replace any bracketed placeholders. This tool drafts — you own the final read-through.
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ============================ FOOTER ============================ -->
+  <footer class="bg-navy-950 text-navy-200 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <p>© <span id="year"></span> GradAssist Mailer · Built for graduate applicants everywhere.</p>
+      <p class="text-navy-300">All generation happens locally in your browser.</p>
+    </div>
+  </footer>
+
+  <!-- ============================ TOAST CONTAINER ============================ -->
+  <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-[calc(100%-2rem)] max-w-sm" aria-live="polite"></div>
+
+  <!-- ============================================================= -->
+  <!-- ===================== JAVASCRIPT LOGIC ====================== -->
+  <!-- ============================================================= -->
+  <script>
+    'use strict';
+
+    /* ------------------------------------------------------------------
+       Smart fallback defaults — applied per-field when left blank
+    ------------------------------------------------------------------ */
+    const FALLBACKS = {
+      studentName:   'Jordan Avery',
+      degreeMajor:   "Master's program in my field",
+      termYear:      'the upcoming term',
+      background:    'my undergraduate studies',
+      profName:      'Professor',
+      researchFocus: 'your current research',
+      profEmail:     ''
+    };
+
+    /** Normalize a raw input value against its fallback. */
+    function val(id) {
+      const raw = document.getElementById(id).value.trim();
+      return raw.length ? raw : FALLBACKS[id];
+    }
+
+    /* ------------------------------------------------------------------
+       Greeting helper — keeps "Dr. Jane Smith" style names intact
+    ------------------------------------------------------------------ */
+    function greeting(profName) {
+      const n = profName.replace(/\s+/g, ' ');
+      const hasTitle = /^(dr|prof|professor)\.?/i.test(n);
+      if (hasTitle) return `Dear ${n},`;
+      return `Dear Prof. ${n},`;
+    }
+
+    /* ------------------------------------------------------------------
+       Template engine
+       Each assistantship template returns { subject, bodyParts(toneFn) }
+       where toneFn selects tone-specific phrasing blocks.
+    ------------------------------------------------------------------ */
+
+    /* ------------------------------------------------------------------
+       Polished academic phrasing helpers
+       - stripTrailingPunct: avoids double punctuation when interpolated
+         values ("your current research.") already end in . ; : , ! ?
+       - trimClause: drops empty conditional clauses cleanly
+    ------------------------------------------------------------------ */
+    const stripTrailingPunct = s => String(s).replace(/[.\u2014\u2013;:,!?]+$/, '').trim();
+    const trimClause = s => String(s).replace(/\s+/g, ' ').trim();
+
+    // Shared tone-flavored opening lines expressing interest
+    const OPENERS = {
+      direct: (p, rawFocus, term) => {
+        const focus = stripTrailingPunct(rawFocus);
+        return trimClause(
+          `I am writing to inquire about possible assistantship opportunities in your group` +
+          `${term && term !== 'the upcoming term' ? `, particularly for ${term}` : ''}. ` +
+          `Your work on ${focus} aligns closely with the direction I intend to pursue in graduate study, ` +
+          `and I would value the chance to contribute to it.`
+        );
+      },
+      academic: (p, rawFocus, term) => {
+        const focus = stripTrailingPunct(rawFocus);
+        return trimClause(
+          `I am writing because your research on ${focus} speaks directly to the questions I hope to ` +
+          `pursue as a graduate student${term && term !== 'the upcoming term' ? ` beginning in ${term}` : ''}. ` +
+          `Studying your group's recent work has only strengthened my conviction that your lab is the right ` +
+          `environment for my development as a scholar, and I would be grateful to learn whether you expect ` +
+          `to welcome new students.`
+        );
+      },
+      formal: (p, rawFocus, term) => {
+        const focus = stripTrailingPunct(rawFocus);
+        return trimClause(
+          `I write to inquire whether you anticipate admitting new graduate students` +
+          `${term && term !== 'the upcoming term' ? ` for ${term}` : ''}. ` +
+          `Your research concerning ${focus} corresponds closely with my academic preparation and ` +
+          `interests, and I wish to be considered should an opportunity arise within your group.`
+        );
+      }
+    };
+
+    // Tone-flavored "fit" paragraphs emphasizing different strengths
+    const FIT_RA = {
+      direct: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My time ${bg} gave me substantive research experience — formulating questions, running ` +
+          `experiments, and iterating on results — that I am eager to apply to problems in ${major}. ` +
+          `I would welcome the opportunity to join your laboratory as a Research Assistant and begin ` +
+          `contributing to ongoing projects early in the term.`
+        );
+      },
+      academic: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My studies ${bg} taught me to treat research as a disciplined practice: reading widely, ` +
+          `asking precise questions, and following evidence where it leads. Those habits drew me to ${major}, ` +
+          `and it is precisely this kind of sustained inquiry I hope to deepen under your guidance as a ` +
+          `Research Assistant in your laboratory.`
+        );
+      },
+      formal: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My academic training ${bg} has provided a sound foundation for advanced research in ${major}. ` +
+          `I would be honored to contribute to your laboratory's work as a Research Assistant and am ` +
+          `prepared to meet the expectations such a position carries.`
+        );
+      }
+    };
+
+    const FIT_TA = {
+      direct: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My studies ${bg} gave me a firm command of the fundamentals, and I have consistently ` +
+          `enjoyed helping peers work through difficult material. I would be glad to serve as a Teaching ` +
+          `Assistant for courses in ${major} — leading discussion sections, holding office hours, and ` +
+          `assisting with grading as your department requires.`
+        );
+      },
+      academic: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `Teaching and learning reinforce one another, and few ideas become truly mine until I have ` +
+          `explained them to someone else. My formation ${bg} sharpened both my understanding and my ` +
+          `patience as a mentor, and I would consider it a privilege to support instruction in ${major} ` +
+          `as a Teaching Assistant.`
+        );
+      },
+      formal: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My academic preparation ${bg} qualifies me to provide dependable instructional support in ` +
+          `${major}. I would be grateful to be considered for a Teaching Assistantship within your ` +
+          `department and am willing to serve in whatever capacity best aids your faculty.`
+        );
+      }
+    };
+
+    const FIT_EITHER = {
+      direct: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My formation ${bg} has prepared me for both research and instructional responsibilities in ` +
+          `${major}. I am genuinely flexible between a Research and a Teaching Assistantship and would ` +
+          `prefer to be placed wherever your department's needs are greatest.`
+        );
+      },
+      academic: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My journey ${bg} cultivated both a researcher's patience and a teacher's satisfaction in ` +
+          `making difficult ideas click for others. Whether advancing ${major} through benchwork in the lab ` +
+          `or through mentorship in the classroom, I hope to contribute wherever my efforts would be most ` +
+          `useful to your group.`
+        );
+      },
+      formal: (rawBg, major) => {
+        const bg = stripTrailingPunct(rawBg);
+        return trimClause(
+          `My preparation ${bg} supports my candidacy for either a Research or Teaching Assistantship in ` +
+          `${major}. I remain open to whichever arrangement best serves your department and would ` +
+          `readily adapt to its requirements.`
+        );
+      }
+    };
+
+    // Thank-you lines by tone (rendered before the sign-off)
+    const THANKS = {
+      direct:  'Thank you for your time and consideration.',
+      academic:'With gratitude for your time and your contributions to the field,',
+      formal:  'Respectfully yours,'
+    };
+
+    // Closings by tone
+    const CLOSINGS = {
+      direct: () =>
+        `If my qualifications appear relevant to your plans, I would welcome a brief meeting or email ` +
+        `exchange. My CV and transcript are available upon request.`,
+      academic: () =>
+        `Should you see a possible fit, I would be grateful for even a short conversation about your ` +
+        `group's direction. I am glad to share my CV, transcript, or writing samples whenever useful.`,
+      formal: () =>
+        `I would welcome the opportunity for a brief discussion at your convenience, and my curriculum ` +
+        `vitae is available upon request.`
+    };
+
+    const SIGNOFF = { direct: 'Best regards,', academic: 'Warm regards,', formal: 'Sincerely,' };
+
+    const SUBJECTS = {
+      RA: {
+        direct:   (p, term) => `Prospective Graduate Student (${term}) — Research Assistantship Inquiry`,
+        academic: (p, term) => `Interest in Your Research Group — Prospective Graduate Student (${term})`,
+        formal:   (p, term) => `Inquiry Regarding Research Assistantship Opportunities — ${term}`
+      },
+      TA: {
+        direct:   (p, term) => `Prospective Graduate Student (${term}) — Teaching Assistantship Inquiry`,
+        academic: (p, term) => `Interest in Supporting Instruction in Your Department (${term})`,
+        formal:   (p, term) => `Inquiry Regarding Teaching Assistantship Opportunities — ${term}`
+      },
+      EITHER: {
+        direct:   (p, term) => `Prospective Graduate Student (${term}) — Assistantship Inquiry`,
+        academic: (p, term) => `Prospective Graduate Student — General Inquiry Regarding Your Group (${term})`,
+        formal:   (p, term) => `General Inquiry: Graduate Assistantship Opportunities — ${term}`
+      }
+    };
+
+    /* Background phrasing helpers — avoid awkward "in at State University":
+       institution names get "at X"; degree/program phrases drop a redundant
+       leading preposition since templates already say "in/during/through". */
+    function stripLeadingPrep(s) {
+      return s.replace(/^(at|in|from|during|through)\s+/i, '').trim();
+    }
+    function bgPhrase(bg) {
+      let bare = stripTrailingPunct(bg);
+      // collapse redundant "X studies studies"-style endings before composing
+      bare = bare.replace(/\b(studies|study)\s+\1\b/i, '$1');
+      if (/^(at|in|from|during|through)\s+/i.test(bare)) return bare;   // user supplied own preposition
+      if (/\b(studies|study|coursework|program(me)?|degree|training|education)\b/i.test(bare)) {
+        return 'during my ' + stripLeadingPrep(bare).replace(/^my\s+/i, '');  // "during my undergraduate studies"
+      }
+      if (/universit|college|institute|academy|polytechnic|\bschool\b/i.test(bare)) return 'at ' + bare;
+      if (/(?:^|\s)(?:b\.?s|b\.?a|b\.?tech|b\.?eng|m\.?s|m\.?sc|ma|m\.?tech|m\.?eng|ph\.?d|bsc|msc)\b/i.test(bare)) {
+        const tail = /\b(studies|study|coursework|program(me)?|degree|diploma)\b\.?$/i.test(bare) ? '' : ' degree work';
+        return 'during my ' + stripLeadingPrep(bare) + tail;             // "during my B.Tech in EE from IIT Delhi degree work"
+      }
+      return 'during ' + stripLeadingPrep(bare);                         // generic fallback phrase
+    }
+    /* Major phrasing helper — "M.S. in Computer Science" reads naturally
+       after "research in ..."; strip trailing punctuation only. */
+
+    /* Build the complete email from current form state + chosen tone */
+    function buildEmail(tone) {
+      const student = val('studentName');
+      const major   = stripTrailingPunct(val('degreeMajor'));
+      const term    = val('termYear');
+      const bg      = val('background');
+      const prof    = val('profName');
+      const focus   = val('researchFocus');
+      const type    = document.getElementById('assistType').value; // RA | TA | EITHER
+
+      const ctx = { prof, major, term, bg, focus };
+
+      const fitMap = { RA: FIT_RA, TA: FIT_TA, EITHER: FIT_EITHER };
+      const typeLabel = { RA: 'Research Assistantship (RA)', TA: 'Teaching Assistantship (TA)', EITHER: 'graduate assistantship' }[type];
+
+      const subject = SUBJECTS[type][tone](ctx, term);
+
+      const signoffBlock = tone === 'formal'
+        ? `${THANKS[tone]}\n${student}`          // "Respectfully yours," doubles as the sign-off
+        : `${THANKS[tone]}\n\n${SIGNOFF[tone]}\n${student}`;
+
+      const body = [
+        greeting(prof),
+        '',
+        OPENERS[tone](prof, focus, term),
+        '',
+        fitMap[type][tone](bgPhrase(bg), major),
+        '',
+        CLOSINGS[tone](),
+        '',
+        signoffBlock,
+        '',
+        `[Applicant for ${typeLabel}${term && term !== 'the upcoming term' ? ', ' + term : ''}]`
+      ].join('\n');
+
+      return { subject, body };
+    }
+
+    /* ------------------------------------------------------------------
+       State + rendering
+    ------------------------------------------------------------------ */
+    const els = {
+      form:        document.getElementById('assistantForm'),
+      subject:     document.getElementById('subjectLine'),
+      body:        document.getElementById('emailBody'),
+      badge:       document.getElementById('templateBadge'),
+      wordCount:   document.getElementById('wordCount'),
+      charCount:   document.getElementById('charCount'),
+      verdict:     document.getElementById('wordVerdict'),
+      countBar:    document.getElementById('countBar'),
+      toneSelect:  document.getElementById('tone'),
+      assistSelect:document.getElementById('assistType')
+    };
+
+    let lastGenerated = null; // remembers inputs were valid; stores {subject, body}
+
+    const TONE_LABELS = { direct: 'Professional & Direct', academic: 'Expressive & Academic', formal: 'Formal & Concise' };
+    const TYPE_LABELS = { RA: 'RA', TA: 'TA', EITHER: 'General' };
+
+    function renderOutput(subject, body, flash = true) {
+      els.subject.value = subject;
+      els.body.value = body;
+      lastGenerated = { subject, body };
+      updateCounts();
+      updateToneChips(els.toneSelect.value);
+      const type = els.assistSelect.value;
+      els.badge.textContent = `${TYPE_LABELS[type]} · ${TONE_LABELS[els.toneSelect.value]}`;
+      els.badge.classList.remove('hidden');
+      if (flash) {
+        els.body.classList.remove('flash'); void els.body.offsetWidth; els.body.classList.add('flash');
+      }
+    }
+
+    /* Live-editing keeps lastGenerated in sync */
+    els.body.addEventListener('input', () => {
+      if (lastGenerated) lastGenerated.body = els.body.value;
+      updateCounts();
+    });
+    els.subject.addEventListener('input', () => {
+      if (lastGenerated) lastGenerated.subject = els.subject.value;
+    });
+
+    /* ------------------------------------------------------------------
+       Word / character counters with 250-word guardrail
+    ------------------------------------------------------------------ */
+    function updateCounts() {
+      const text = els.body.value;
+      const chars = text.length;
+      const words = (text.match(/\S+/g) || []).length;
+
+      els.charCount.textContent = `${chars.toLocaleString()} character${chars === 1 ? '' : 's'}`;
+      els.wordCount.textContent = `${words.toLocaleString()} word${words === 1 ? '' : 's'}`;
+
+      const pct = Math.min(100, Math.round((words / 250) * 100));
+      els.countBar.style.width = pct + '%';
+
+      if (words === 0) {
+        els.verdict.textContent = '';
+        els.countBar.className = 'h-full w-0 rounded-full bg-emerald-500';
+      } else if (words <= 180) {
+        els.verdict.textContent = 'Nicely concise ✓';
+        els.countBar.className = 'h-full rounded-full bg-emerald-500';
+      } else if (words <= 250) {
+        els.verdict.textContent = 'Getting long — trim if you can';
+        els.countBar.className = 'h-full rounded-full bg-amber-500';
+      } else {
+        els.verdict.textContent = `Over the 250-word target by ${words - 250} — professors skim!`;
+        els.countBar.className = 'h-full rounded-full bg-rose-500';
+      }
+      els.verdict.className = words > 250 ? 'font-semibold text-rose-600'
+                          : words > 180   ? 'font-medium text-amber-600'
+                                          : 'text-emerald-600';
+    }
+
+    /* ------------------------------------------------------------------
+       Toast notifications
+    ------------------------------------------------------------------ */
+    function showToast(message, variant = 'success') {
+      const colors = {
+        success: 'bg-emerald-600',
+        info:    'bg-navy-800',
+        error:   'bg-rose-600'
+      };
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto toast-enter ${colors[variant] || colors.info} text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-lg ring-1 ring-white/20 flex items-center gap-2`;
+      toast.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`;
+      toast.querySelector('span').textContent = message;
+      document.getElementById('toastContainer').appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('toast-enter');
+        toast.classList.add('toast-exit');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        setTimeout(() => toast.remove(), 400); // safety net
+      }, 2400);
+    }
+
+    /* Clipboard helper with legacy fallback */
+    async function copyText(text, okMsg) {
+      if (!text.trim()) { showToast('Nothing to copy yet — generate an email first.', 'error'); return; }
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(okMsg, 'success');
+      } catch (err) {
+        // Fallback: hidden textarea + execCommand
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); showToast(okMsg, 'success'); }
+        catch (e2) { showToast('Copy failed — please select and copy manually.', 'error'); }
+        ta.remove();
+      }
+    }
+
+    /* ------------------------------------------------------------------
+       Tone chips (quick re-format toggles)
+    ------------------------------------------------------------------ */
+    function updateToneChips(activeTone) {
+      document.querySelectorAll('.tone-chip').forEach(chip => {
+        const active = chip.dataset.tone === activeTone;
+        chip.classList.toggle('bg-indigo-600', active);
+        chip.classList.toggle('text-white', active);
+        chip.classList.toggle('shadow', active);
+        chip.classList.toggle('text-zinc-600', !active);
+        chip.classList.toggle('hover:bg-zinc-100', !active);
+      });
+    }
+
+    document.querySelectorAll('.tone-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const tone = chip.dataset.tone;
+        els.toneSelect.value = tone;               // keep the select in sync
+        if (lastGenerated) {
+          const rebuilt = buildEmail(tone);        // pure-JS reformat, no API
+          renderOutput(rebuilt.subject, rebuilt.body);
+          showToast(`Reformatted in "${TONE_LABELS[tone]}" tone`, 'info');
+        } else {
+          showToast('Generate an email first, then quick-tone will apply instantly.', 'error');
+        }
+      });
+    });
+
+    els.toneSelect.addEventListener('change', () => {
+      if (lastGenerated) {
+        const rebuilt = buildEmail(els.toneSelect.value);
+        renderOutput(rebuilt.subject, rebuilt.body);
+      } else {
+        updateToneChips(els.toneSelect.value);
+      }
+    });
+
+    /* ------------------------------------------------------------------
+       Generate / Reset handlers
+    ------------------------------------------------------------------ */
+    els.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const { subject, body } = buildEmail(els.toneSelect.value);
+      renderOutput(subject, body);
+      showToast('Email generated — review, personalize, and send!', 'success');
+      // On small screens, scroll output into view
+      if (window.innerWidth < 1024) {
+        document.getElementById('outputHeading').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      els.form.reset();
+      els.subject.value = '';
+      els.body.value = '';
+      els.badge.classList.add('hidden');
+      lastGenerated = null;
+      updateCounts();
+      updateToneChips(els.toneSelect.value);
+      showToast('Form and output cleared', 'info');
+    });
+
+    /* ------------------------------------------------------------------
+       Copy buttons & mailto
+    ------------------------------------------------------------------ */
+    document.getElementById('copySubjectBtn').addEventListener('click', () => {
+      copyText(els.subject.value, 'Subject line copied to clipboard');
+    });
+
+    document.getElementById('copyBodyBtn').addEventListener('click', () => {
+      copyText(els.body.value, 'Email body copied — paste into your client');
+    });
+
+    document.getElementById('mailtoBtn').addEventListener('click', () => {
+      if (!lastGenerated) { showToast('Generate an email before opening your mail client.', 'error'); return; }
+      const emailRaw = document.getElementById('profEmail').value.trim();
+      const subject  = encodeURIComponent(els.subject.value || 'Graduate Assistantship Inquiry');
+      const body     = encodeURIComponent(els.body.value);
+      const addr     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw) ? emailRaw : '';
+      window.location.href = `mailto:${addr}?subject=${subject}&body=${body}`;
+      showToast(addr ? 'Opening your email client…' : 'Opening mail client — add the professor\'s address in your draft', 'info');
+    });
+
+    /* ------------------------------------------------------------------
+       Tips accordion
+    ------------------------------------------------------------------ */
+    const tipsToggle = document.getElementById('tipsToggle');
+    const tipsPanel  = document.getElementById('tipsPanel');
+    tipsToggle.addEventListener('click', () => {
+      const open = tipsPanel.classList.toggle('open');
+      tipsToggle.setAttribute('aria-expanded', String(open));
+    });
+    document.querySelectorAll('[data-scroll-tips]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        tipsPanel.classList.add('open');
+        tipsToggle.setAttribute('aria-expanded', 'true');
+        tipsToggle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+
+    /* ------------------------------------------------------------------
+       Init
+    ------------------------------------------------------------------ */
+    document.getElementById('year').textContent = new Date().getFullYear();
+    updateToneChips(els.toneSelect.value);
+    updateCounts();
+  </script>
+</body>
+</html>
