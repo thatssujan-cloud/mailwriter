@@ -38,3 +38,22 @@ async function dataFetch(target, params) {
   }
   return null; // caller performs its own direct fetch
 }
+
+/* POST variant used by the AI generation mode (Groq / Llama 3). Sends the
+   draft brief to the serverless proxy — the GROQ_API_KEY lives only in the
+   hosting environment and never ships in client code. Resolves null when
+   the proxy is absent or the key is not configured, so callers can fall
+   back to the local template engine without breaking the UX. */
+async function dataPost(target, payload) {
+  if (!BACKEND.USE_SERVER_PROXY) return null;
+  try {
+    const r = await fetch(`${BACKEND.proxyUrl}?target=${encodeURIComponent(target)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {})
+    });
+    if (!r.ok) return null;
+    const json = await r.json();
+    return (json && json.text) ? json : null;
+  } catch (e) { return null; }
+}

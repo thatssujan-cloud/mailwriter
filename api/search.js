@@ -10,19 +10,32 @@
  *    Supported variables (all optional — each feature degrades gracefully):
  *      OPENALEX_API_KEY   free key at https://openalex.org/settings/api
  *      OPENALEX_MAILTO    your email (polite pool → higher rate limits)
+ *      SEMANTIC_SCHOLAR_API_KEY  optional, raises S2 rate limits to 1 rps
+ *                                 https://www.semanticscholar.org/product/api
  *      HUNTER_API_KEY     https://hunter.io/api/keys         (email verify v2)
  *      ABSTRACT_API_KEY   https://docs.abstractapi.com/email (email validation)
  *      ZEROBOUNCE_API_KEY https://www.zerobounce.net         (email validation)
+ *      GROQ_API_KEY       https://console.groq.com/keys      (free Llama 3.3 70B
+ *                                 drafts — never ship this key in client code)
  *
  * ROUTES (query-string based so one file works on both platforms)
  *  GET /api/search?target=openalex-authors&search=Yoshua+Bengio
  *      → proxied OpenAlex author search (adds api_key + mailto server-side)
  *  GET /api/search?target=openalex-works&authorId=A5086198262
  *      → most recent publications for an OpenAlex author id
+ *  GET /api/search?target=semantic-authors&search=Yoshua+Bengio
+ *      → proxied Semantic Scholar author search (server-side API key when set)
+ *  GET /api/search?target=crossref-works&query.author=Yoshua+Bengio
+ *      → proxied Crossref recent-work lookup (polite-pool mailto server-side)
  *  GET /api/search?target=email-verify&email=j.smith@university.edu
  *      → { mx_active, deliverable, quality, provider } using whichever
  *        verification key is configured (Hunter → Abstract → ZeroBounce →
  *        plain DNS MX check via dns.google as a last resort)
+ *  POST /api/search?target=groq-draft   body: { prompt }
+ *      → streams a high-converting RA/TA outreach draft from the free Groq
+ *        endpoint running Llama 3.3 70B Versatile. Returns
+ *        { text, model, words }. 404 "not-configured" when no key is set —
+ *        the client then falls back to its built-in template engine.
  *
  * DEPLOYMENT QUICK START
  *  Vercel:  `npm i -g vercel && vercel` from this folder — /api/*.js files
@@ -73,6 +86,93 @@ async function openalexWorks(params) {
   const res = await fetch(`https://api.openalex.org/works?${usp}`);
   if (!res.ok) return bad(`OpenAlex upstream error ${res.status}`, 502);
   return ok(await res.json());
+}
+
+/* --------------------- Semantic Scholar (engine 2) ---------------------- */
+async function semanticAuthors(params) {
+  const q = String(params.get('search') || '').trim();
+  if (!q) return bad('Missing "search" parameter.');
+  const fields = 'name,paperCount,citationCount,hIndex,affiliations,papers.title,papers.year,papers.tldr,papers.citationCount,papers.externalIds.DOI';
+  const url = `https://api.semanticscholar.org/graph/v1/author/search?query=${encodeURIComponent(q)}` +
+              `&limit=5&fields=${encodeURIComponent(fields)}`;
+  const headers = {};
+  if (process.env.SEMANTIC_SCHOLAR_API_KEY) headers['x-api-key'] = process.env.SEMANTIC_SCHOLAR_API_KEY;
+  try {
+    const res = await fetch(url, { headers });
+    if (!res.ok) return bad(`Semantic Scholar upstream error ${res.status}`, 502);
+    return ok(await res.json());
+  } catch (e) {
+    return bad('Semantic Scholar unreachable.', 502);
+  }
+}
+
+/* ------------------------- Crossref (engine 3) -------------------------- */
+async function crossrefWorks(params) {
+  const q = String(params.get('query.author') || params.get('search') || '').trim();
+  if (!q) return bad('Missing "query.author" parameter.');
+  const usp = new URLSearchParams({
+    'query.author': q,
+    rows: '8', sort: 'published', order: 'desc',
+    filter: 'type:journal-article,from-pub-date:2024-01-01',
+    select: 'title,DOI,issued,author,is-referenced-by-count,container-title'
+  });
+  usp.set('mailto', process.env.OPENALEX_MAILTO || 'letterdesk@users.noreply.github.com');
+  try {
+    const res = await fetch(`https://api.crossref.org/works?${usp}`);
+    if (!res.ok) return bad(`Crossref upstream error ${res.status}`, 502);
+    return ok(await res.json());
+  } catch (e) {
+    return bad('Crossref unreachable.', 502);
+  }
+}
+
+/* -------------------- Groq / Llama 3 AI draft generation ---------------- */
+// Free tier: https://console.groq.com — model llama-3.3-70b-versatile.
+// The API key lives ONLY in server env vars; the client sends a prompt and
+// receives finished text. On any failure the client falls back to its local
+// template engine, so this route can never break the app.
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const CLICHE_LIST = 'delve, delve into, testament, pivotal, profound, I hope this email finds you well, ' +
+  'I am writing to express my interest, esteemed, passionate about, harnessing, landscape, ' +
+  'furthermore, moreover, additionally, in today\'s world, unlock, elevate, showcase, leverage';
+
+async function groqDraft(req) {
+  if (!process.env.GROQ_API_KEY) return bad('not-configured', 404);
+  let prompt = '';
+  try {
+    const body = await req.json();
+    prompt = String((body && body.prompt) || '').slice(0, 6000);
+  } catch (e) { return bad('Expected a JSON body with a "prompt" string.'); }
+  if (prompt.trim().length < 20) return bad('Prompt too short to generate from.');
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        temperature: 0.6,
+        max_tokens: 700,
+        messages: [
+          { role: 'system', content:
+            'You are an admissions-outreach editor for international graduate students applying for funded ' +
+            'RA/TA positions. Rewrite the supplied brief as a plain, human email. HARD RULES: under 150 words; ' +
+            'no subject line unless asked; never invent credentials, grades, or publications; banned phrases: ' +
+            CLICHE_LIST + '. Output only the email text.' },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+    if (!res.ok) return bad(`Groq upstream error ${res.status}`, 502);
+    const j = await res.json();
+    const text = (((j.choices || [])[0] || {}).message || {}).content || '';
+    if (!text.trim()) return bad('Groq returned an empty completion.', 502);
+    return ok({ text: text.trim(), model: j.model || GROQ_MODEL, words: text.trim().split(/\s+/).length });
+  } catch (e) {
+    return bad('Groq request failed.', 502);
+  }
 }
 
 /* -------------------------- Email verification ------------------------- */
@@ -143,12 +243,15 @@ async function emailVerify(params) {
 }
 
 /* ------------------------------- Router -------------------------------- */
-async function route(params) {
+async function route(params, req) {
   switch (params.get('target')) {
-    case 'openalex-authors': return openalexAuthors(params);
-    case 'openalex-works':   return openalexWorks(params);
-    case 'email-verify':     return emailVerify(params);
-    default: return bad('Unknown target. Use openalex-authors | openalex-works | email-verify.');
+    case 'openalex-authors':  return openalexAuthors(params);
+    case 'openalex-works':    return openalexWorks(params);
+    case 'semantic-authors':  return semanticAuthors(params);
+    case 'crossref-works':    return crossrefWorks(params);
+    case 'email-verify':      return emailVerify(params);
+    case 'groq-draft':        return groqDraft(req);
+    default: return bad('Unknown target. Use openalex-authors | openalex-works | semantic-authors | crossref-works | email-verify | groq-draft.');
   }
 }
 
@@ -162,8 +265,11 @@ export default async function vercelHandler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: JSON_HEADERS });
   }
-  const params = new URL(req.url).searchParams;
-  return toResponse(await route(params));
+  const url = new URL(req.url);
+  const params = url.searchParams;
+  // POST bodies (e.g. groq-draft prompt) are read from the Request itself.
+  if (req.method === 'POST' && !params.get('target')) params.set('target', 'groq-draft');
+  return toResponse(await route(params, req));
 }
 
 // Netlify Functions (CommonJS event format). The block below is only used
@@ -173,7 +279,12 @@ try {
     module.exports.handler = async (event) => {
       if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: JSON_HEADERS, body: '' };
       const params = new URLSearchParams(event.queryStringParameters || {});
-      return route(params);
+      if (event.httpMethod === 'POST' && !params.get('target')) params.set('target', 'groq-draft');
+      // Wrap the Lambda event in a Web-standard Request so shared routes work.
+      const fakeReq = {
+        json: async () => JSON.parse(event.body || '{}')
+      };
+      return route(params, fakeReq);
     };
   }
 } catch (e) { /* non-CJS environment — ignore */ }
