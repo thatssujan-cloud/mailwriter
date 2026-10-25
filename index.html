@@ -184,15 +184,70 @@
 
     /* Inline field-help bubble (the small ℹ️ buttons next to labels) */
     .ld-tip { position: relative; border: 0; background: transparent; cursor: help; padding: 0; line-height: 1; }
+    /* The bubble is a fixed-position pseudo-element so it escapes any
+       ancestor with overflow:hidden (the accordion panels clipped the
+       absolutely-positioned tooltip — text was cut off and unreachable).
+       bottom/left/top are set per instance by JS via CSS custom properties
+       (--ld-tip-bottom / --ld-tip-left / --ld-tip-top) so the bubble is
+       always clamped inside the viewport, near screen edges or when there
+       is no room above the button. */
     .ld-tip::after {
       content: attr(data-tip);
-      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      position: fixed; top: var(--ld-tip-top, auto); bottom: var(--ld-tip-bottom, calc(100% + 8px));
+      left: var(--ld-tip-left, 50%); transform: translateX(-50%);
       width: min(260px, 72vw); background: #2b2926; color: #f8fafc; font-size: var(--fs-sm);
       font-weight: 500; line-height: 1.45; text-align: left; letter-spacing: normal; text-transform: none;
-      padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .15s ease; z-index: 60;
+      padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .15s ease; z-index: 90;
     }
     .ld-tip:hover::after, .ld-tip:focus-visible::after { opacity: 1; }
+  </style>
 
+  <script>
+    /* ---------- Keep ℹ️ tooltips inside the viewport ----------------------
+       Positions each bubble above its trigger (flipping below when there is
+       no room), clamped horizontally so it never lands off-screen. Runs on
+       hover/focus before the CSS ::after becomes visible. */
+    (function () {
+      var GAP = 8, EDGE = 8;
+      function place(tip) {
+        var r = tip.getBoundingClientRect();
+        // measure the bubble via an offscreen clone (pseudo-elements can't be measured directly)
+        var probe = document.createElement('span');
+        probe.className = 'ld-tip';
+        probe.setAttribute('data-tip', tip.getAttribute('data-tip') || '');
+        probe.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:1;pointer-events:none';
+        document.body.appendChild(probe);
+        var after = window.getComputedStyle ? window.getComputedStyle(probe, '::after') : null;
+        var bh = after ? parseFloat(after.height) || probe.offsetHeight : 80;
+        var bw = after ? parseFloat(after.width) || 260 : 260;
+        document.body.removeChild(probe);
+
+        var spaceAbove = r.top - GAP;
+        var spaceBelow = window.innerHeight - r.bottom - GAP;
+        var below = spaceAbove < bh && spaceBelow >= spaceAbove;
+
+        if (below) {
+          tip.style.setProperty('--ld-tip-top', Math.min(window.innerHeight - bh - EDGE, r.bottom + GAP) + 'px');
+          tip.style.setProperty('--ld-tip-bottom', 'auto');
+        } else {
+          tip.style.setProperty('--ld-tip-bottom', Math.max(EDGE, window.innerHeight - r.top + GAP) + 'px');
+          tip.style.setProperty('--ld-tip-top', 'auto');
+        }
+        var half = bw / 2;
+        var cx = r.left + r.width / 2;
+        var left = Math.min(Math.max(cx, EDGE + half), Math.max(EDGE + half, window.innerWidth - EDGE - half));
+        tip.style.setProperty('--ld-tip-left', left + 'px');
+      }
+      function show(e) {
+        var t = e.target && e.target.closest ? e.target.closest('.ld-tip') : null;
+        if (t && t.hasAttribute('data-tip')) place(t);
+      }
+      document.addEventListener('mouseover', show, true);
+      document.addEventListener('focusin', show, true);
+    })();
+  </script>
+
+  <style>
     /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -248,13 +303,28 @@
     .ld-step-arrow { font-size: var(--fs-sm); color: var(--text-3); }
 
     /* ---------- One step at a time (Write flow) ----------
-       IMPORTANT: use opacity/visibility — never display — so we don't
-       clash with Tailwind's `hidden` utility that core JS toggles. */
-    .ld-step { opacity: 0; visibility: hidden; height: 0; overflow: visible; margin: 0; }
-    .ld-step.is-active { opacity: 1; visibility: visible; height: auto; }
+       Inactive steps must be fully removed from layout AND hit-testing:
+       they used to keep rendering under/behind the active panel, which made
+       their content overlap the visible step and pushed everything below it
+       out of view / unreachable. switchStep() (core + app.js) toggles both
+       .is-active and the `hidden` attribute; display:none via [hidden] is
+       the real removal, and the opacity/visibility pair stays as a graceful
+       fallback for the no-JS case. pointer-events:none guards against any
+       invisible layer swallowing clicks. */
+    .ld-step { opacity: 0; visibility: hidden; height: 0; overflow: hidden; margin: 0;
+               pointer-events: none; }
+    .ld-step[hidden] { display: none !important; }
+    .ld-step.is-active { opacity: 1; visibility: visible; height: auto; pointer-events: auto; }
 
     /* ---------- Panels: borders, no shadows ---------- */
     .ld-panel { background: var(--panel-bg); border: 1px solid var(--line-1); border-radius: 8px; box-shadow: none !important; }
+    /* The `overflow-hidden` utility on these panels existed only to clip the
+       square header strip against the rounded corners. It also clipped and
+       hid other content (ℹ️ tooltips, focus rings, dropdowns) — so instead of
+       clipping everything, round just the first/last child so it follows the
+       panel's radius. Content is now fully visible and reachable. */
+    .ld-panel > :first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
+    .ld-panel > :last-child  { border-end-start-radius: inherit; border-end-end-radius: inherit; }
     main section > div:hover { box-shadow: none !important; }
     .shadow-card, .shadow-lift { box-shadow: none !important; }
     .bg-ink-950 { background-color: #2b2926 !important; }
@@ -319,8 +389,35 @@
                  font-size: var(--fs-md); cursor: pointer; }
     #ldHelpFab:hover { border-color: var(--accent); color: var(--accent-dark); }
 
-    /* ---------- "Show all panels" escape hatch ---------- */
-    body.ld-show-all .ld-step { opacity: 1; visibility: visible; height: auto; }
+    /* ---------- "Show all panels" escape hatch ----------
+       Reveals every write step at once; the `hidden` attribute set by
+       switchStep must not keep them collapsed in this mode. */
+    body.ld-show-all .ld-step { opacity: 1; visibility: visible; height: auto; pointer-events: auto; }
+    body.ld-show-all .ld-step[hidden] { display: block !important; }
+
+    /* ---------- Wire the "Show all panels" toggle (the class had no JS) --- */
+    <script>
+    (function () {
+      function bind() {
+        var link = document.getElementById('showAllPanelsLink');
+        if (!link || link.dataset.ldBound === '1') return;
+        link.dataset.ldBound = '1';
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          var on = document.body.classList.toggle('ld-show-all');
+          // When showing all, un-hide every step so [hidden] doesn't clip it;
+          // when returning to one-at-a-time, let switchStep re-assert state.
+          document.querySelectorAll('.ld-step').forEach(function (sec) {
+            if (on) sec.hidden = false;
+            else sec.hidden = !sec.classList.contains('is-active');
+          });
+          link.textContent = on ? 'Show one step at a time' : 'Show all panels';
+        });
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+      else bind();
+    })();
+    </script>
 
     /* ---------- Mobile usability ---------- */
     @media (max-width: 640px) {
@@ -338,16 +435,21 @@
   <header class="bg-ink-950 text-slate-100 hero-rule">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 md:pt-8 md:pb-14 relative z-10">
       <div class="flex items-center justify-between">
-        <a href="#" class="flex items-center gap-3 group" aria-label="LetterDesk home">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 ring-2 ring-slate-100/25 shadow-lift">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Logo lockup: fixed-size mark + vertically centered wordmark. The
+             mark is capped (h-9/w-9) and the subtitle line-height is tightened
+             so neither can overlap neighbouring nav items or clip on small
+             screens; flex-wrap lets the tagline drop below instead of
+             colliding with the links at narrow widths. -->
+        <a href="#" class="flex flex-wrap items-center gap-2.5 group min-w-0" aria-label="LetterDesk home">
+          <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 ring-2 ring-slate-100/25 shadow-lift">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M22 7 13.5 12.8a2 2 0 0 1-2.3 0L2 7"/>
               <rect x="2" y="4" width="20" height="16" rx="3"/>
             </svg>
           </span>
-          <span>
-            <span class="block text-lg sm:text-xl font-display font-bold tracking-tight leading-tight">LetterDesk</span>
-            <span class="block text-[11px] uppercase tracking-[0.2em] text-brand-300 font-semibold">Geoscience Outreach Studio</span>
+          <span class="leading-none">
+            <span class="block font-display font-bold tracking-tight leading-none" style="font-size:var(--fs-lg)">LetterDesk</span>
+            <span class="mt-1 block uppercase tracking-[0.16em] text-brand-300 font-semibold leading-none whitespace-nowrap" style="font-size:var(--fs-sm)">Geoscience Outreach Studio</span>
           </span>
         </a>
 
@@ -486,7 +588,7 @@
 
       <!-- ======================= STEP 2 · DETAILS ======================= -->
       <section id="stepDetails" class="ld-step" aria-labelledby="formHeading">
-        <div class="ld-panel overflow-hidden">
+        <div class="ld-panel">
           <div class="border-b border-ink-200 bg-slate-50 px-4 py-4">
             <h2 id="formHeading" class="font-display font-bold text-ink-900 flex items-center gap-2" style="font-size:var(--fs-lg)">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -816,7 +918,7 @@ Alex Rivera</pre>
            tone chips, copy/mailto) previously in the right column; audit/funding/reviewer cards
            moved to Step 4; roadmap+tracker moved to Track mode. All ids preserved. -->
       <section id="stepDraft" class="ld-step" aria-labelledby="outputHeading">
-        <div class="ld-panel overflow-hidden">
+        <div class="ld-panel">
           <div class="border-b border-ink-200 bg-slate-50 px-4 py-4 flex flex-wrap items-center justify-between gap-3">
             <h2 id="outputHeading" class="font-display font-bold text-ink-900" style="font-size:var(--fs-lg)">Step 3 · Draft</h2>
             <span id="templateBadge" class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-brand-100 ring-1 ring-brand-200 px-3 py-1 text-xs font-semibold text-brand-800">
@@ -995,7 +1097,7 @@ Alex Rivera</pre>
 
       <!-- ======================= STEP 4 · VERIFY ======================= -->
       <section id="stepVerify" class="ld-step" aria-labelledby="verifyHeading">
-        <div class="ld-panel overflow-hidden">
+        <div class="ld-panel">
           <div class="border-b border-ink-200 bg-slate-50 px-4 py-4 flex flex-wrap items-center justify-between gap-3">
             <h2 id="verifyHeading" class="font-display font-bold text-ink-900" style="font-size:var(--fs-lg)">Step 4 · Verify before sending</h2>
             <a href="#" id="ldBackToDraft" class="font-semibold underline decoration-dotted text-ink-500 hover:text-ink-800" style="font-size:var(--fs-sm)">← Back to draft</a>
@@ -1152,7 +1254,7 @@ Alex Rivera</pre>
     <!-- ==================== TRACK MODE ==================== -->
     <div id="trackModePanel" data-mode-panel hidden class="mx-auto max-w-[800px] space-y-8">
       <section aria-labelledby="trackHeading">
-        <div class="ld-panel overflow-hidden">
+        <div class="ld-panel">
           <div class="border-b border-ink-200 bg-slate-50 px-4 py-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 id="trackHeading" class="font-display font-bold text-ink-900" style="font-size:var(--fs-lg)">Outreach Tracker</h2>
