@@ -265,8 +265,10 @@
                   <span class="sr-only sm:not-sr-only">Search</span>
                 </button>
               </div>
-              <!-- Dropdown results container -->
-              <div id="searchResults" class="hidden absolute z-30 mt-1.5 w-full max-h-72 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Faculty search results"></div>
+              <!-- Dropdown results container (interactive live-search menu;
+                   shows a pulsing skeleton while OpenAlex / Semantic Scholar
+                   requests resolve) -->
+              <div id="searchResults" class="hidden absolute z-30 mt-1.5 w-full max-h-80 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Faculty search results"></div>
               <p id="searchHint" class="mt-1.5 text-[11px] text-ink-400 leading-relaxed">
                 Searches three free engines at once — <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">OpenAlex</a>, <a href="https://api.semanticscholar.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Semantic Scholar</a> (TLDRs), and <a href="https://api.crossref.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Crossref</a> (DOIs) — then verifies the mail server via Google DNS-over-HTTPS. Click a result to auto-fill everything.
               </p>
@@ -290,6 +292,8 @@
               <label for="degreeMajor" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Target Degree &amp; Major
                 <span id="degreeAutoNote" class="hidden normal-case font-normal tracking-normal text-forest-700"></span>
+                <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Target Degree and Major"
+                        data-tip="Pick the degree you are applying for plus your major. LetterDesk auto-fills this from the professor's publication scope once you click a search result — doctoral labs suggest Ph.D., applied/tool-focused labs suggest a Master's. Override it any time.">ℹ️</button>
               </label>
               <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Computer Science"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
@@ -300,6 +304,8 @@
               <label for="termYear" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Target Term / Year
                 <span id="termAutoNote" class="hidden normal-case font-normal tracking-normal text-forest-700"></span>
+                <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Target Term and Year"
+                        data-tip="The intake you want to join (e.g., Fall 2027). LetterDesk computes the next realistic window from the target university's real departmental deadlines — international applicants should allow 6+ months for visa paperwork after an offer.">ℹ️</button>
               </label>
               <input id="termYear" name="termYear" type="text" placeholder="e.g., Fall 2027"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
@@ -548,7 +554,10 @@
                 <!-- a) Acceptance rate + b) assistantships row -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div class="rounded-lg border border-ink-200 bg-white p-3.5">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Target University Acceptance Rate</p>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Target University Acceptance Rate
+                      <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Acceptance Rate"
+                              data-tip="Typical graduate admission rate for this university (planning estimate, not your personal odds). International applicants should target 4–6 labs: funded seats are supervisor-dependent, so research fit matters more than the headline rate.">ℹ️</button>
+                    </p>
                     <p class="font-display text-2xl font-extrabold text-ink-900"><span id="fundingAcceptPct">—</span><span id="fundingAcceptTier" class="ml-2 align-middle rounded-full px-2 py-0.5 text-[10px] font-bold text-white bg-ink-300"></span></p>
                     <div class="mt-2 h-2 rounded-full bg-ink-100 overflow-hidden">
                       <div id="fundingAcceptBar" class="h-full w-0 rounded-full bg-brand-500 transition-all duration-500"></div>
@@ -620,7 +629,10 @@
               </p>
 
               <div class="flex items-center gap-3">
-                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500 shrink-0">Naturalness score</span>
+                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500 shrink-0">Naturalness score
+                  <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Humanizer Naturalness Score"
+                          data-tip="How human the draft reads (0–100): LetterDesk measures sentence-length variety, machine phrases, contractions and hedge words — the same statistical signals AI detectors look for. Above 80 usually passes detector heuristics; always re-read before sending.">ℹ️</button>
+                </span>
                 <div class="flex-1 h-2 rounded-full bg-ink-100 overflow-hidden">
                   <div id="humanBar" class="h-full w-0 rounded-full bg-ink-300"></div>
                 </div>
@@ -1621,7 +1633,9 @@
       if (proxied && Array.isArray(proxied.data)) {
         results = proxied.data;
       } else {
-        const url = `${SEMANTIC_BASE}/author/search?query=${encodeURIComponent(query)}` +
+        // NOTE: use the per-query string `q` (name + topic refinement), not
+        // the outer `query`, so cross-field disambiguation actually happens.
+        const url = `${SEMANTIC_BASE}/author/search?query=${encodeURIComponent(q)}` +
                     `&limit=5&fields=name,paperCount,citationCount,hIndex,affiliations,papers.title,papers.year,papers.tldr,papers.citationCount,papers.externalIds.DOI`;
         try {
           const json = await fetchJson(url, s2Cache, { timeout: 10000 });
@@ -1741,6 +1755,30 @@
       els.profSearch.setAttribute('aria-expanded', 'true');
     }
 
+    /** Render the pulsing skeleton placeholder inside the dropdown while
+        external API requests (OpenAlex / Semantic Scholar / Crossref) are
+        still resolving. */
+    function showSearchSkeleton() {
+      const row = () =>
+        '<div class="px-4 py-3 space-y-2">' +
+          '<div class="flex items-center gap-3">' +
+            '<div class="skeleton-block h-8 w-8 rounded-full"></div>' +
+            '<div class="flex-1 space-y-1.5">' +
+              '<div class="skeleton-block h-3 w-1/2 rounded"></div>' +
+              '<div class="skeleton-block h-2.5 w-3/4 rounded"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="skeleton-block h-2.5 w-2/3 rounded"></div>' +
+        '</div>';
+      els.searchResults.innerHTML =
+        `<p class="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-brand-700 flex items-center gap-2">` +
+        `<svg class="animate-spin h-3.5 w-3.5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>` +
+        `Querying OpenAlex + Semantic Scholar + Crossref…</p>` +
+        row() + row() + row();
+      els.searchResults.classList.remove('hidden');
+      els.profSearch.setAttribute('aria-expanded', 'true');
+    }
+
     function hideSearchResults() {
       els.searchResults.classList.add('hidden');
       els.searchResults.innerHTML = '';
@@ -1754,11 +1792,33 @@
       return `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-forest-800 ring-1 ring-forest-300 px-2 py-0.5 text-[10px] font-bold">✓ Verified by ${escapeHtml(names)}</span>`;
     }
 
-    function renderSearchResults(candidates, query) {
+    /** Keyboard navigation for the live-search dropdown (↑/↓/Enter/Esc). */
+    let activeResultIdx = -1;
+    function resultItems() {
+      return Array.from(els.searchResults.querySelectorAll('[role="option"]'));
+    }
+    function highlightResult(idx) {
+      const items = resultItems();
+      if (!items.length) return;
+      activeResultIdx = (idx + items.length) % items.length;
+      items.forEach((it, i) => it.classList.toggle('bg-slate-100', i === activeResultIdx));
+      items[activeResultIdx].focus({ preventScroll: true });
+      items[activeResultIdx].scrollIntoView({ block: 'nearest' });
+    }
+
+    function renderSearchResults(candidates, query, engineStatus) {
+      activeResultIdx = -1;
       els.searchResults.innerHTML = '';
       if (!candidates.length) {
         showSearchMessage(`No faculty matched <strong>${escapeHtml(query)}</strong>. Try the full name as published (e.g., "Yoshua Bengio"), or type it into the form manually.`);
         return;
+      }
+      // Small footer note when an engine failed but the search survived
+      if (engineStatus && (!engineStatus.s2Ok || !engineStatus.crOk)) {
+        const why = [];
+        if (!engineStatus.s2Ok) why.push('Semantic Scholar');
+        if (!engineStatus.crOk) why.push('Crossref');
+        showSearchMessage(`Partial results — ${why.join(' and ')} did not respond (rate limit/offline). OpenAlex coverage shown below.`);
       }
       candidates.forEach((c, idx) => {
         const item = document.createElement('button');
@@ -1766,15 +1826,17 @@
         item.setAttribute('role', 'option');
         item.className = 'w-full text-left px-4 py-3 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none transition group leading-relaxed';
         const metaBits = [];
-        if (c.institution) metaBits.push(escapeHtml(c.institution));
-        if (c.hIndex) metaBits.push(`h-index ${c.hIndex}`);
-        if (c.worksCount) metaBits.push(`${c.worksCount.toLocaleString()} papers`);
+        // Null-safe rendering: missing fields fall back to defaults instead
+        // of blank strings or thrown errors (see profileView/safeText).
+        metaBits.push(escapeHtml(safeText(c.institution, DEFAULT_INSTITUTION)));
+        if (c.hIndex != null) metaBits.push(`h-index ${safeMetric(c.hIndex)}`);
+        if (c.worksCount) metaBits.push(`${Number(c.worksCount).toLocaleString()} papers`);
         if (c.s2 && c.s2Citations != null && c.s2Citations > 0) metaBits.push(`S² cites ${c.s2Citations.toLocaleString()}`);
         item.innerHTML =
-          `<span class="block text-sm font-semibold text-ink-900 group-hover:text-brand-800">${escapeHtml(c.displayName)}</span>` +
+          `<span class="block text-sm font-semibold text-ink-900 group-hover:text-brand-800">${escapeHtml(safeText(c.displayName, 'Unnamed Researcher'))}</span>` +
           `<span class="block text-[11px] text-ink-500 mt-0.5 truncate">${metaBits.join(' · ') || 'OpenAlex author record'}</span>` +
           `<span class="mt-1 block empty:hidden" data-src-line>${sourceChipHtml(c.sources)}</span>` +
-          `<span class="block text-[11px] text-forest-700 mt-0.5 truncate" data-topic-line>${c.topics.length ? 'Topics: ' + escapeHtml(c.topics.join(', ')) : ''}</span>` +
+          `<span class="block text-[11px] text-forest-700 mt-0.5 truncate" data-topic-line>${(c.topics && c.topics.length) ? 'Topics: ' + escapeHtml(c.topics.filter(Boolean).join(', ')) : ''}</span>` +
           `<span class="block text-[11px] text-ink-400 italic mt-0.5 truncate" data-paper-line>Merging OpenAlex / Semantic Scholar / Crossref records…</span>` +
           (c.tldr ? `<span class="block text-[11px] text-ink-600 mt-0.5 line-clamp-2" data-tldr-line><span class="font-bold not-italic text-brand-700">TLDR:</span> ${escapeHtml(c.tldr)}</span>` : '');
         item.addEventListener('click', () => selectProfessor(c));
@@ -1880,7 +1942,40 @@
        deadline warning computed from the smart application-window logic.
        Figures are curated planning estimates per institution/country —
        clearly labeled so students always confirm official numbers.
+
+       NOTE: every API-derived field passes through a safe fallback so a
+       missing institution name, h-index or topic list never breaks the
+       script (defaults like "Institution Not Listed" are shown instead).
     ================================================================== */
+
+    /* ---------- Null-safe display helpers (graceful degradation) -------
+       OpenAlex/ORCID records are often partial: no last_known_institution,
+       no summary_stats.h_index, no topics. These helpers guarantee the UI
+       renders sensible defaults instead of "null"/"undefined" or throwing. */
+    const DEFAULT_INSTITUTION = 'Institution Not Listed';
+    const DEFAULT_METRIC      = 'Not Available';
+    const DEFAULT_TOPICS      = 'Research Topics Pending';
+    function safeText(v, fallback) { return (v == null || String(v).trim() === '') ? (fallback || DEFAULT_METRIC) : String(v); }
+    function safeMetric(v, fallback) { return (v == null || isNaN(Number(v))) ? (fallback || DEFAULT_METRIC) : Number(v).toLocaleString(); }
+    /** Candidate fields with guaranteed non-null display values for any renderer. */
+    function profileView(c) {
+      const topics = Array.isArray(c.topics) ? c.topics.filter(Boolean) : [];
+      return {
+        displayName:  safeText(c.displayName, 'Unnamed Researcher'),
+        title:        c.title || 'Dr.',
+        institution:  safeText(c.institution, DEFAULT_INSTITUTION),
+        department:   safeText(c.department, 'Department Not Listed'),
+        country:      c.country || null,
+        hIndex:       (c.hIndex != null && !isNaN(Number(c.hIndex))) ? Number(c.hIndex) : null,
+        worksCount:   Number(c.worksCount) || 0,
+        citedBy:      Number(c.citedBy) || 0,
+        topics:       topics,
+        topicLabel:   topics.length ? topics.join(' · ') : DEFAULT_TOPICS,
+        paperTitle:   c.paperTitle || null,
+        paperYear:    c.paperYear || null,
+        raw:          c
+      };
+    }
 
     const GRAD_FUNDING_BY_COUNTRY = {
       US: [
@@ -1971,6 +2066,137 @@
       return '';
     }
 
+    /* ---------- Live University Filtering --------------------------------
+       When the search box contains a university name ("Cornell University",
+       "MIT", "Oxford …"), results are filtered by matching the author's
+       last_known_institution.display_name BEFORE rendering. The remaining
+       tokens are treated as the person/topic query so cross-field searches
+       like "fluid dynamics Cornell University" keep working for every
+       academic domain (Engineering, Business, Medicine, Social Sciences,
+       Natural Sciences). */
+    const UNIV_KEYWORDS = new Set([
+      'university','universite','université','universitat','universidad','universita',
+      'universiteit','univerzita','college','institute','institut','school','academy',
+      'polytechnic','polytechnique','university-system','campus'
+    ]);
+    const UNIV_STOPWORDS = new Set(['the','of','and','for','at','on','de','du','la','le','das','der','national','federal','state']);
+
+    /** Academic-title honorifics that precede a professor's name. */
+    const HONORIFIC_RE = /^(dr\.?|prof\.?|professor|associate professor|assistant professor|adjunct)\s+/i;
+
+    /** Derive the display title for a profile card header ("Prof." for
+        senior records, "Dr." otherwise). Null-safe. */
+    function deriveTitle(candidate) {
+      if (candidate.title) return candidate.title;
+      const h = Number(candidate.hIndex) || 0;
+      const w = Number(candidate.worksCount) || 0;
+      if (h >= 25 || w >= 150) return 'Prof.';
+      return 'Dr.';
+    }
+
+    /** Infer a department label from OpenAlex topics (null-safe fallback). */
+    function inferDepartment(topics) {
+      const joined = (topics || []).join(' ').toLowerCase();
+      if (!joined.trim()) return null;
+      const map = [
+        [/computer science|artificial intelligence|machine learning/, 'Computer Science'],
+        [/electrical|electronic|signal processing|telecommunication/, 'Electrical Engineering'],
+        [/robot|mechanical|aerospace|fluid|manufactur/, 'Mechanical & Aerospace Engineering'],
+        [/civil|structural|construction/, 'Civil Engineering'],
+        [/business|management|marketing|finance|accounting|entrepreneurship|supply chain/, 'Business Administration'],
+        [/econom/, 'Economics'],
+        [/medicine|clinical|cancer|immunolog|pharmac|public health/, 'Medicine & Health Sciences'],
+        [/neuro|psycholog|cognitive|behavioral|behavioural/, 'Psychology & Neuroscience'],
+        [/biolog|genomic|molecular|ecolog|cell/, 'Biological Sciences'],
+        [/chemi|chemical|polymer|catalys|catalyz|materials/, 'Chemistry & Materials Science'],
+        [/physic|quantum|astronom|cosmo/, 'Physics'],
+        [/mathemat|statistic|optimi/, 'Mathematics & Statistics'],
+        [/history|philosophy|literature|linguist|art|archaeolog/, 'Humanities'],
+        [/sociolog|political|education|law|anthropolog|geograph|demograph/, 'Social Sciences'],
+        [/environment|climate|geoscience|hydrolog|atmospheric/, 'Environmental & Earth Sciences']
+      ];
+      for (const [re, name] of map) if (re.test(joined)) return name;
+      const first = (topics || []).filter(Boolean)[0] || '';
+      return first ? first.replace(/\b\w/g, c => c.toUpperCase()) : null;
+    }
+
+    /**
+     * Split a raw query into { personQuery, uniTokens }.
+     * A trailing/leading run of tokens containing at least one university
+     * keyword ("cornell university", "mit", "ucl") becomes the institution
+     * filter; everything else stays the author/topic query.
+     */
+    function splitUniversityQuery(raw) {
+      const cleaned = String(raw || '').replace(/\s+/g, ' ').trim();
+      if (!cleaned) return { personQuery: '', uniTokens: [], uniPhrase: '' };
+      const tokens = cleaned.split(' ');
+      // Explicit abbreviation forms that always mean an institution
+      const abbrRe = /^(mit|caltech|ucl|kth|eth|epfl|nus|ntu|kaist|iit|iisc|tu|ku|ucb|berkeley)$/i;
+      let uniIdx = -1;
+      for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i].toLowerCase().replace(/[^a-zà-ÿ0-9&'-]/g, '');
+        if (UNIV_KEYWORDS.has(t) || abbrRe.test(t)) { uniIdx = i; break; }
+      }
+      if (uniIdx === -1) return { personQuery: cleaned, uniTokens: [], uniPhrase: '' };
+      // Collect all tokens belonging to the institution phrase: walk left
+      // from the anchor while words look like institution qualifiers.
+      let start = uniIdx;
+      let end = uniIdx;
+      if (UNIV_KEYWORDS.has(tokens[uniIdx].toLowerCase().replace(/[^a-zà-ÿ0-9&'-]/g, ''))) {
+        while (start > 0) {
+          const prev = tokens[start - 1].toLowerCase().replace(/[^a-zà-ÿ0-9&'-]/g, '');
+          if (!prev || UNIV_STOPWORDS.has(prev) || UNIV_KEYWORDS.has(prev)) { start--; continue; }
+          // Include a distinctive qualifier only if another keyword follows
+          // or the qualifier itself is a known short form (e.g. "cornell")
+          if (looksInstitutionQualifier(prev, tokens.slice(start, uniIdx + 1))) { start--; continue; }
+          break;
+        }
+        // also absorb trailing keywords ("university of texas" style handled
+        // because "of" is a stopword inside the phrase)
+        while (end + 1 < tokens.length) {
+          const nx = tokens[end + 1].toLowerCase().replace(/[^a-zà-ÿ0-9&'-]/g, '');
+          if (UNIV_KEYWORDS.has(nx) || UNIV_STOPWORDS.has(nx)) { end++; continue; }
+          break;
+        }
+      }
+      const uniPhraseTokens = tokens.slice(start, end + 1);
+      const rest = tokens.slice(0, start).concat(tokens.slice(end + 1));
+      const uniTokens = uniPhraseTokens
+        .map(t => t.toLowerCase().replace(/[^a-zà-ÿ0-9&'-]/g, ''))
+        .filter(Boolean);
+      return {
+        personQuery: rest.join(' ').trim(),
+        uniTokens,
+        uniPhrase: uniPhraseTokens.join(' ')
+      };
+    }
+
+    /** Heuristic: is this word a plausible institution name qualifier? */
+    function looksInstitutionQualifier(tok, phraseSoFar) {
+      if (tok.length < 3) return false;
+      // Known standalone institution names / city-school forms
+      const known = /^(cornell|harvard|stanford|princeton|yale|duke|mit|berkeley|ucla|nyu|columbia|chicago|michigan|toronto|mcgill|waterloo|edinburgh|oxford|cambridge|melbourne|sydney|tokyo|kathmandu|tribhuvan|montreal|massachusetts|california|texas|pennsylvania|northwestern|hopkins|carnegie|imperial|queens|western|dalhousie|concordia|buffalo|boston|georgia|florida|ohio|purdue|rutgers|colorado|washington|cornell-tech)$/;
+      if (known.test(tok)) return true;
+      // If the phrase already contains ≥2 keywords, be permissive
+      return phraseSoFar.some(t => UNIV_KEYWORDS.has(t.toLowerCase().replace(/[^a-zà-ÿ0-9&'-]/g, '')));
+    }
+
+    /** Match a candidate's last_known_institution.display_name against uni tokens. */
+    function institutionMatches(candidate, uniTokens) {
+      if (!uniTokens || !uniTokens.length) return true;
+      const inst = normTitle(candidate.institution || '');
+      if (!inst) return false;   // no institution info → cannot confirm the filter
+      const core = uniTokens.filter(t => !UNIV_KEYWORDS.has(t) && !UNIV_STOPWORDS.has(t));
+      const keys = core.length ? core : uniTokens;
+      return keys.every(t => inst.includes(t));
+    }
+
+    /** Keep candidates whose institution display_name matches the filter. */
+    function filterByUniversity(candidates, uniTokens) {
+      if (!uniTokens || !uniTokens.length) return candidates;
+      return (candidates || []).filter(c => institutionMatches(c, uniTokens));
+    }
+
     let currentTermInfo = null; // last computed deadline info (for the card)
 
     function renderFundingCard(candidate, termInfo) {
@@ -2050,13 +2276,22 @@
     // Official academic domains: .edu (US), .edu.xx / .ac.xx (country variants),
     // plus well-known university ccTLD domains that skip the .edu pattern
     // (Canadian universities use *.ca, e.g. umontreal.ca, utoronto.ca).
-    const ACADEMIC_DOMAIN_RE = /@(?:[a-z0-9.\-]*\.)?(?:edu|ac\.[a-z]{2}|edu\.[a-z]{2}|uni-[a-z0-9.\-]+\.de|[a-z0-9\-]+\.uni-[a-z0-9.\-]+|(?:umontreal|utoronto|mcgill|ubc|ualberta|ucalgary|usask|mcmaster|uottawa|queens|uwaterloo|western|dalhousie|unb|uleth|ulethbridge|yorku|concordia|usherbrooke|etsmtl|polymtl)[a-z0-9\-]*\.ca|(?:tu|ku|pu)\.edu\.np|cam\.ac\.uk|ox\.ac\.uk|(?:kth|chalmers|lu|uu|dtu|ethz|epfl|psi|inria|ki|su|gu)(?:\.se)?|tuhh\.de|tum\.de|lmu\.de|hu\.berlin|fu-berlin\.de|kit\.edu)$/i;
+    const ACADEMIC_DOMAIN_RE = /@(?:[a-z0-9.\-]*\.)?(?:edu|edu\.[a-z]{2}|ac\.[a-z]{2}|uni-[a-z0-9.\-]+\.de|[a-z0-9\-]+\.uni-[a-z0-9.\-]+|(?:umontreal|utoronto|mcgill|ubc|ualberta|ucalgary|usask|mcmaster|uottawa|queens|uwaterloo|western|dalhousie|unb|uleth|ulethbridge|yorku|concordia|usherbrooke|etsmtl|polymtl)[a-z0-9\-]*\.ca|(?:tu|ku|pu)\.edu\.np|cam\.ac\.uk|ox\.ac\.uk|(?:kth|chalmers|lu|uu|dtu|ethz|epfl|psi|inria|ki|su|gu)(?:\.se)?|tuhh\.de|tum\.de|lmu\.de|hu\.berlin|fu-berlin\.de|kit\.edu)$/i;
+
+    // Global academic TLD suffixes recognised by the resolver, per spec:
+    //   .edu (US) · .ca (Canada) · .ac.uk (UK) · .edu.au (Australia) · .ac.in (India)
+    // plus the common country variants (.edu.xx / .ac.xx) already covered above.
+    const ACADEMIC_TLD_SUFFIXES = ['.edu', '.ca', '.ac.uk', '.edu.au', '.ac.in'];
 
     function isAcademicDomain(email) {
       const domain = (email.split('@')[1] || '').toLowerCase();
       if (!domain) return false;
       if (/(gmail|yahoo|hotmail|outlook|icloud|proton(mail)?|aol|mail\.com|gmx|qq\.com|163\.com|yandex)/i.test(domain)) return false;
-      return ACADEMIC_DOMAIN_RE.test('@' + domain);
+      if (ACADEMIC_DOMAIN_RE.test('@' + domain)) return true;
+      // Broader global coverage: any institutional subdomain of the five
+      // official academic suffixes (e.g. cs.cornell.edu, york.ac.uk,
+      // iitm.ac.in, unimelb.edu.au, utoronto.ca).
+      return ACADEMIC_TLD_SUFFIXES.some(sfx => domain === sfx.slice(1) || domain.endsWith(sfx));
     }
 
     /** Derive an institutional domain from a university display name. */
