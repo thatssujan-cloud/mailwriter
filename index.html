@@ -166,6 +166,17 @@
     /* Polish progress meter */
     #humanBar { transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s ease; }
 
+    /* Inline field-help bubble (the small ℹ️ buttons next to labels) */
+    .ld-tip { position: relative; border: 0; background: transparent; cursor: help; padding: 0; line-height: 1; }
+    .ld-tip::after {
+      content: attr(data-tip);
+      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      width: min(260px, 72vw); background: #2b2926; color: #f8fafc; font-size: var(--fs-sm);
+      font-weight: 500; line-height: 1.45; text-align: left; letter-spacing: normal; text-transform: none;
+      padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .15s ease; z-index: 60;
+    }
+    .ld-tip:hover::after, .ld-tip:focus-visible::after { opacity: 1; }
+
     /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -219,7 +230,50 @@
     .bg-ink-950 { background-color: #2b2926 !important; }
     header.bg-ink-950 { background-image: none; }
     .hero-rule { background-image: none; }
-    #emailBody { background-color: #ffffff; line-height: 1.65; }
+    #emailBody { background-color: #ffffff; line-height: 1.65; font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; }
+
+    /* ---------- Single accent enforcement (muted blue everywhere) ---------- */
+    :root {
+      --brand-50:#eef4fa;  --brand-100:#dbe8f3; --brand-200:#b9d0e7; --brand-300:#8fb4d6;
+      --brand-400:#6b9ac5; --brand-500:var(--accent); --brand-600:var(--accent-dark); --brand-700:#31567c; --brand-800:#284766;
+      --forest-50:#eef4fa; --forest-100:#dbe8f3; --forest-200:#b9d0e7; --forest-500:var(--accent);
+      --forest-600:var(--accent-dark); --forest-700:#31567c;
+      --amber-50:#faf6ec;  --amber-100:#f3ecd9;  --amber-300:#ddd0a8;  --amber-400:#c9b877;
+      --amber-500:#b3a05c; --amber-700:#8a7a45;  --amber-800:#6f6238;
+      --rose-50:#fdf1f1;   --rose-200:#f3caca;   --rose-600:#c05555;   --rose-700:#a34848;
+      --clay-500:var(--accent); --clay-600:var(--accent-dark);
+    }
+    [class*="bg-brand"], [class*="text-brand"], [class*="ring-brand"], [class*="border-brand"] {
+      background-color: unset; color: unset; border-color: unset; box-shadow: unset;
+    }
+    [class*="bg-brand"]   { background-color: var(--brand-100) !important; }
+    [class*="text-brand"] { color: var(--brand-700) !important; }
+    [class*="border-brand"] { border-color: var(--brand-200) !important; }
+    button[class*="bg-brand"], a[class*="bg-brand"] { background-color: var(--accent) !important; }
+    button[class*="text-brand"], a[class*="text-brand"] { color: var(--brand-700) !important; }
+    [class*="bg-forest"]   { background-color: var(--brand-100) !important; }
+    [class*="text-forest"] { color: var(--brand-700) !important; }
+    [class*="border-forest"] { border-color: var(--brand-200) !important; }
+    button[class*="bg-forest"] { background-color: var(--accent) !important; }
+    [class*="bg-amber"]   { background-color: var(--amber-50) !important; }
+    [class*="text-amber"] { color: var(--amber-800) !important; }
+    [class*="border-amber"] { border-color: var(--amber-300) !important; }
+    .bg-amber-400 { background-color: var(--amber-400) !important; }
+    [class*="bg-rose"]   { background-color: var(--rose-50) !important; }
+    [class*="text-rose"] { color: var(--rose-700) !important; }
+    [class*="border-rose"] { border-color: var(--rose-200) !important; }
+    #reviewGrade[class*="bg-forest"], #reviewGrade[class*="bg-amber"], #reviewGrade[class*="bg-rose"] {
+      background-color: var(--accent) !important; color: #fff !important;
+    }
+    #countBar { background-color: var(--accent) !important; }
+    .accent-emerald-500, .accent-clay-600 { accent-color: var(--accent) !important; }
+    /* Secondary buttons: neutral — the accent is reserved for the primary action */
+    button[class*="border-brand"][class*="bg-white"], a[class*="border-brand"][class*="bg-white"] {
+      background-color: #fff !important; color: var(--text-2) !important; border-color: var(--line-2) !important;
+    }
+    /* Dark ink buttons (search / copy) → neutral charcoal, not accent */
+    button[class*="bg-ink-900"] { background-color: #2b2926 !important; }
+    /* Generate pill + review bar use inline style="background:var(--accent)" already */
 
     /* ---------- Typography tokens on key surfaces ---------- */
     h1, .font-display { letter-spacing: -0.01em; }
