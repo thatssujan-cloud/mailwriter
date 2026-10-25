@@ -430,6 +430,18 @@
           <p class="mt-2 text-ink-400 leading-relaxed" style="font-size:var(--fs-sm)">
             Examples: <em>"seismology at Cornell"</em> · <em>"Marcia Bjornerud"</em> · <em>"isotope geochemistry"</em>
           </p>
+          <!-- Interactive professor profile-card grid — rendered by the
+               multi-engine search (OpenAlex + Semantic Scholar + Crossref)
+               below the quick-pick dropdown. Each card carries h-index,
+               citation stats, verified paper DOIs, MX-checked email status,
+               a stipend-band chip and an acceptance-feasibility score. -->
+          <div id="professorGrid" class="hidden mt-4 pt-4 border-t border-ink-200 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500">Professor profiles</h3>
+              <button type="button" id="professorGridClose" class="text-[11px] font-semibold text-ink-400 hover:text-ink-700 underline decoration-dotted focus:outline-none">hide</button>
+            </div>
+            <div id="professorCards" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
           <!-- ASSUMPTION: "How it works" (privacy / engine details) moved here from the
                hero so Step 1 stays minimal; #searchHint keeps its id for core JS refs. -->
           <details id="searchHint" class="mt-2 text-ink-500" style="font-size:var(--fs-sm)">
@@ -666,6 +678,43 @@ Alex Rivera</pre>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               <span id="draftModeLabel">Draft mode: Initial inquiry — click to switch to 10-day follow-up bump</span>
             </button>
+
+            <!-- Generation engine: three modes share the same 150-word
+                 guardrail and AI-cliché filter. (1) Local template engine —
+                 instant, offline, zero setup; (2) Groq · Llama 3 — free AI
+                 rewrite through the serverless proxy when GROQ_API_KEY is
+                 deployed, with automatic fallback to mode 1; (3) ChatGPT
+                 prompt builder — copies a self-contained brief for any
+                 external chat model. -->
+            <div class="rounded-lg border border-ink-200 bg-slate-50 p-3.5 space-y-2.5" role="group" aria-label="Generation engine">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <label for="genEngine" class="font-semibold uppercase tracking-wide text-ink-700" style="font-size:var(--fs-sm)">Generation engine</label>
+                <span id="genEngineChip" class="rounded-full bg-forest-100 text-forest-800 ring-1 ring-forest-200 px-2 py-0.5 text-[10px] font-bold">Local · instant · private</span>
+              </div>
+              <select id="genEngine" class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition">
+                <option value="local">⚡ Fast local template engine (offline, no key)</option>
+                <option value="groq">🤖 Free AI rewrite — Groq · Llama 3.3 70B (via /api proxy)</option>
+                <option value="gpt">💬 ChatGPT prompt builder (copy a ready-made brief)</option>
+              </select>
+              <p id="genEngineHelp" class="text-[11px] text-ink-500 leading-relaxed">
+                Templates run entirely in your browser. The AI mode sends only your draft brief to your own deployed
+                <code class="rounded bg-slate-200 px-1">/api/search?target=groq-draft</code> proxy (key stays server-side)
+                and falls back automatically if unavailable. Every output passes the same under-150-word check and cliché filter.
+              </p>
+              <div id="gptPromptWrap" class="hidden space-y-2 pt-1 border-t border-ink-200">
+                <textarea id="gptPromptBox" rows="7" readonly spellcheck="false" aria-label="ChatGPT prompt, ready to paste"
+                          class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-[11px] font-mono text-ink-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition"></textarea>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" id="copyGptPromptBtn"
+                          class="inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink-800 hover:border-brand-400 hover:text-brand-700 focus:outline-none focus:ring-2 focus:brand-500/40 active:scale-[0.97] transition">
+                    📋 Copy prompt → paste into ChatGPT / Claude / Gemini
+                  </button>
+                  <a href="https://chat.openai.com/compose/" target="_blank" rel="noopener noreferrer"
+                     class="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-500 hover:text-ink-800 underline decoration-dotted">Open ChatGPT ↗</a>
+                </div>
+                <p class="text-[10px] text-ink-400">Nothing leaves this page in this mode — the brief is built locally and you paste it yourself.</p>
+              </div>
+            </div>
           </form>
         </div>
 
@@ -978,6 +1027,18 @@ Alex Rivera</pre>
                       <p class="text-[11px] text-ink-500 mt-1 leading-relaxed" id="fundingDeadlineSub"></p>
                     </div>
                   </div>
+                </div>
+                <!-- f) Departmental stipend insight — curated planning bands
+                      per country/funding-scheme, each with an explicit
+                      "Needs Confirmation" marker. Never invented per-university
+                      numbers; students record official figures in the checklist. -->
+                <div class="rounded-lg border border-ink-200 bg-white p-3.5">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Departmental Stipend Insight <span class="normal-case font-semibold tracking-normal text-amber-700">(Planning Bands · Needs Confirmation)</span>
+                    <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Stipend Insight"
+                            data-tip="Typical assistantship funding structures and published national scheme rates for the target country. These are planning bands, not offers: actual RA/TA amounts are set by each department and change yearly. Record the official figure you find on the university's fees/funding page.">ℹ️</button>
+                  </p>
+                  <ul id="stipendInsightList" class="space-y-2"></ul>
+                  <p class="mt-2 text-[10px] text-ink-400">Band = typical all-in package (tuition coverage + living allowance). Cost of living differs sharply between cities — a “low” band in a small town can stretch further than a “high” band in a capital.</p>
                 </div>
                 <p class="text-[10px] text-ink-400 italic leading-relaxed">LetterDesk does not publish estimated acceptance rates or admission probabilities — such numbers are institution- and cohort-specific and change yearly. Deadlines shown are generic planning heuristics by intake season; always confirm exact dates, eligibility, tuition, and stipends on the university's official graduate admissions page before relying on them.</p>
               </div>
@@ -1621,6 +1682,110 @@ Alex Rivera</pre>
         formal:   (p, term) => `General Inquiry: Graduate Assistantship Opportunities — ${term}`
       }
     };
+
+    /* ------------------------------------------------------------------
+       AI-CLICHÉ FILTER — shared by every generation mode and by Smart
+       Review. Machine-tell phrases that flag an email as LLM-written or
+       mass-mailed. The local template engine never emits them; the Groq
+       route is instructed to avoid them and any survivor is stripped in
+       post-processing; Smart Review flags anything the user types in.
+    ------------------------------------------------------------------ */
+    const CLICHE_PATTERNS = [
+      'I hope this email finds you well',
+      'I hope this message finds you well',
+      'delve into', 'delves into', 'delving', 'delve',
+      'a testament to', 'testament',
+      'pivotal role', 'pivotal',
+      'profound enthusiasm', 'profound',
+      'I am writing to express my interest',
+      'I am writing to express',
+      'esteemed professor', 'esteemed',
+      'passionate about',
+      'harnessing', 'leverage', 'leveraging',
+      'ever-evolving landscape', 'landscape of',
+      'furthermore', 'moreover', 'additionally,',
+      'in today\u2019s world', "in today's world",
+      'unlock', 'unleash', 'elevate', 'showcase',
+      'I would be honored', 'deep dive', 'game-changer'
+    ];
+    function findCliches(text) {
+      const t = String(text || '').toLowerCase();
+      return CLICHE_PATTERNS.filter(p => t.includes(p.toLowerCase()));
+    }
+    /** Deterministic cliché scrub for AI output: drop filler openers,
+        swap machine tells for plain equivalents. Never touches names,
+        tools, dates, or facts. */
+    function stripCliches(text) {
+      let out = String(text || '');
+      out = out.replace(/^(Dear [^\n]+,\s*)?\s*(I\s+hope\s+(this\s+)?(email|message)\s+finds\s+you\s+well[.!]?\s*)+/i, '$1\n');
+      const swaps = [
+        [/\bdelve(?:s|d)? into\b/gi, 'dig into'],
+        [/\bis a testament to\b/gi, 'shows'],
+        [/\bpivotal\b/gi, 'important'],
+        [/\bprofound(ly)?\b/gi, 'genuinely'],
+        [/\bI am writing to express my (strong )?interest in\b/gi, 'I want to work on'],
+        [/\besteemed\b/gi, 'your'],
+        [/\bis passionate about\b/gi, 'works on'],
+        [/\bharness(?:ing|es)?\b/gi, 'using'],
+        [/\bleverag(?:e|ing|es)\b/gi, 'using'],
+        [/\bunlock(?:ing|s)?\b/gi, 'open up'],
+        [/\belevat(?:e|ing|es)\b/gi, 'raise'],
+        [/\bshowcas(?:e|ing|es)\b/gi, 'show'],
+        [/\bfurthermore,\s*/gi, 'Also, '],
+        [/\bmoreover,\s*/gi, 'Besides that, '],
+        [/\badditionally,\s*/gi, 'Also, ']
+      ];
+      swaps.forEach(([re, sub]) => { out = out.replace(re, sub); });
+      return out.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    /* ---------- Draft brief — the single source of truth fed to every
+       generation mode (local templates, Groq proxy, ChatGPT builder).
+       Also used by buildEmail() so all three modes see identical inputs. */
+    function currentCtx(tone) {
+      return {
+        student: val('studentName'),
+        major:   stripTrailingPunct(val('degreeMajor')),
+        term:    val('termYear'),
+        bg:      val('background'),
+        prof:    val('profName'),
+        focus:   val('researchFocus'),
+        skill:   stripTrailingPunct(val('toolSkill')),
+        type:    document.getElementById('assistType').value,
+        format:  document.getElementById('emailFormat').value,
+        tone:    tone || els.toneSelect ? (tone || els.toneSelect.value) : 'direct'
+      };
+    }
+    function buildBrief(ctx) {
+      const typeLabel = { RA: 'Research Assistantship (RA)', TA: 'Teaching Assistantship (TA)', EITHER: 'graduate assistantship (RA or TA)' }[ctx.type];
+      return [
+        `Recipient: ${ctx.prof}${verifiedProfessor && verifiedProfessor.institution ? ' at ' + verifiedProfessor.institution : ''}.`,
+        verifiedProfessor && verifiedProfessor.paperTitle
+          ? `Their recent verified paper: \u201C${verifiedProfessor.paperTitle}\u201D${verifiedProfessor.paperYear ? ' (' + verifiedProfessor.paperYear + ')' : ''}${verifiedProfessor.paperDoi ? ' DOI ' + verifiedProfessor.paperDoi : ''}.`
+          : `Their research focus (as entered): ${ctx.focus}.`,
+        `Sender: ${ctx.student}, ${ctx.major} applicant from ${ctx.bg}, targeting ${ctx.term}.`,
+        `Ask: a funded ${typeLabel} in their group starting ${ctx.term}.`,
+        `Core strength to feature: hands-on experience with ${ctx.skill}, tied directly to the methods in their work on ${shortTopic(stripTrailingPunct(ctx.focus))}.`,
+        `Tone: ${{ direct: 'professional and direct', academic: 'expressive academic', formal: 'formal and concise' }[ctx.tone] || ctx.tone}.`
+      ].join('\n');
+    }
+    /** Self-contained ChatGPT/Claude/Gemini brief — Mode 3 output. Built
+        locally; the user pastes it themselves, nothing is transmitted. */
+    function buildGptPrompt(ctx) {
+      return [
+        'Rewrite the brief below as ONE outreach email from an international graduate applicant asking a professor about a funded RA/TA position.',
+        '',
+        'HARD RULES:',
+        '- Under 150 words total (count them before replying).',
+        '- Plain human voice. Banned phrases: delve, testament, pivotal, profound, esteemed, passionate about, leverage, harness, furthermore, moreover, additionally, "I hope this email finds you well", "I am writing to express my interest".',
+        '- No invented credentials, grades, or publications. Use only what the brief states.',
+        '- Structure: greeting / one sentence citing their specific paper / one sentence pairing my skill with their methods / one logistics ask / CV-attached line / sign-off.',
+        '- Output ONLY the email text, then a second line: WORDS: <count>.',
+        '',
+        'BRIEF:',
+        buildBrief(ctx)
+      ].join('\n');
+    }
 
     /* Background phrasing helpers — avoid awkward "in at State University":
        institution names get "at X"; degree/program phrases drop a redundant
