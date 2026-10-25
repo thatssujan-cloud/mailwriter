@@ -1,0 +1,301 @@
+/* ==========================================================================
+   LetterDesk — css/theme-ocean.css
+   "Ocean Academic" visual theme (v2 redesign).
+
+   A complete restyle of the studio: deep teal-slate surfaces, a calm
+   cerulean accent, elevated cards with real depth shadows and hairline
+   top highlights, rounded-2xl geometry, and smooth micro-interactions.
+
+   Loading order matters: this file is included AFTER Tailwind's CDN
+   runtime <style> injection so its rules win over utility classes, and
+   AFTER css/styles.css so the interaction layer picks up the new tokens.
+   All selectors target stable class names / ids only — no markup or JS
+   changes were required, and every user-facing string is untouched.
+   ========================================================================== */
+
+/* ---------- Design tokens — mirrored from the Tailwind palette below ---- */
+:root {
+  --accent: #0e7490;              /* cerulean 600 — primary accent        */
+  --accent-dark: #155e75;         /* cerulean 700 — hover / pressed       */
+  --page-bg: #f3f6fa;             /* cool paper background                */
+  --panel-bg: #ffffff;            /* card surface                         */
+  --line-1: #dfe6ee;              /* hairline border (light)              */
+  --line-2: #c3cfdd;              /* stronger border                      */
+  --text-1: #102033;              /* near-navy body ink                   */
+  --text-2: #46586e;              /* secondary ink                        */
+  --text-3: #7b8ba1;              /* muted ink                            */
+  --ld-brand: var(--accent);      /* keep styles.css interaction layer in sync */
+  --ld-brand-dark: var(--accent-dark);
+  --ld-ink-900: var(--text-1);
+  --ld-ink-500: var(--text-2);
+  --ld-forest: var(--accent);
+  --ld-shadow: 0 20px 44px -18px rgba(16, 32, 51, .32);
+}
+
+/* ---------- Typography refresh: literary serif display + humanist UI ---- */
+body {
+  font-family: "Source Sans 3", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.font-display,
+h1, h2, h3,
+#stepSearchHeading, #stepDetailsHeading, #stepDraftHeading, #stepVerifyHeading {
+  font-family: "Source Serif 4", Georgia, "Times New Roman", ui-serif, serif;
+  letter-spacing: -0.011em;
+}
+#emailBody {
+  font-family: "Source Serif 4", Georgia, "Times New Roman", ui-serif, serif !important;
+  line-height: 1.75 !important;
+  background-color: #fffdf8 !important;          /* warm reading-paper feel */
+}
+
+/* ---------- Page canvas + slim sticky bar height ---------- */
+body.bg-slate-50 { background-color: var(--page-bg) !important; }
+#ldStickyNav { height: 56px; }
+:root { --ld-sticky-h: 56px; }
+
+/* ---------- Deep surfaces: header, modal bars, footer ---------- */
+header.bg-ink-950 {
+  background-image: linear-gradient(155deg, #081a2e 0%, #0c2c48 55%, #0a3a52 100%) !important;
+}
+footer.bg-ink-950,
+.bg-ink-950 {
+  background-color: #081a2e !important;
+}
+button[class*="bg-ink-900"] { background-color: #16324f !important; }
+button[class*="bg-ink-900"]:hover { background-color: #1d4066 !important; }
+.bg-ink-800 { background-color: #16324f !important; }
+.bg-ink-700 { background-color: #22405f !important; }
+.bg-ink-300 { background-color: #9fb1c6 !important; }   /* meter tracks */
+.ld-tip::after { background: #102033; }                /* tooltip bubbles match ink */
+
+/* ---------- Accent utilities → cerulean ramp ---------- */
+[class*="bg-brand"], [class*="text-brand"], [class*="border-brand"], [class*="ring-brand"] {
+  background-color: unset; color: unset; border-color: unset; box-shadow: unset;
+}
+[class*="bg-brand"]     { background-color: #d6ecf6 !important; }
+[class*="text-brand"]   { color: #0b5f79 !important; }
+[class*="border-brand"] { border-color: #a8d8ea !important; }
+[class*="ring-brand"]   { --tw-ring-color: #57a6c4 !important; }
+button[class*="bg-brand"], a[class*="bg-brand"] { background-color: var(--accent) !important; }
+button[class*="bg-brand"]:hover:not(:disabled), a[class*="bg-brand"]:hover { background-color: var(--accent-dark) !important; }
+button[class*="text-brand"], a[class*="text-brand"] { color: #0b5f79 !important; }
+.text-brand-300 { color: #7fc4de !important; }         /* wordmark kicker on dark */
+.text-brand-400 { color: #a5d9ee !important; }
+
+/* Status semantics stay meaningful but adopt the cooler palette */
+[class*="bg-forest"]     { background-color: #d9efe6 !important; }
+[class*="text-forest"]   { color: #0f6b52 !important; }
+[class*="border-forest"] { border-color: #9fd6bf !important; }
+[class*="ring-forest"]   { --tw-ring-color: #6cc4a4 !important; }
+button[class*="bg-forest"] { background-color: #0f9d76 !important; }
+button[class*="bg-forest"]:hover:not(:disabled) { background-color: #0b7a5c !important; }
+
+[class*="bg-amber"]     { background-color: #fdf3d8 !important; }
+[class*="text-amber"]   { color: #8a6414 !important; }
+[class*="border-amber"] { border-color: #ecd28a !important; }
+[class*="ring-amber"]   { --tw-ring-color: #e3bc55 !important; }
+button[class*="bg-amber"] { background-color: #eab308 !important; }
+.bg-amber-400 { background-color: #fbbf24 !important; }  /* status dot stays vivid on dark */
+
+[class*="bg-rose"]     { background-color: #fbe4e7 !important; }
+[class*="text-rose"]   { color: #a63446 !important; }
+[class*="border-rose"] { border-color: #f0b6be !important; }
+[class*="ring-rose"]   { --tw-ring-color: #e88fa0 !important; }
+button[class*="bg-rose"] { background-color: #d94f68 !important; }
+button[class*="bg-rose"]:hover:not(:disabled) { background-color: #b93a52 !important; }
+
+/* Solid status fills (bars / grade pills rendered by JS) */
+[class*="bg-forest-500"], [class*="bg-emerald"] { background-color: #0f9d76 !important; color: #fff !important; }
+[class*="bg-amber-500"]   { background-color: #eab308 !important; color: #fff !important; }
+[class*="bg-rose-500"]    { background-color: #d94f68 !important; color: #fff !important; }
+[class*="bg-rose-600"]    { background-color: #c43c55 !important; color: #fff !important; }
+#reviewGrade[class*="bg-forest"], #reviewGrade[class*="bg-amber"], #reviewGrade[class*="bg-rose"] {
+  background-color: var(--accent) !important; color: #fff !important;
+}
+#countBar { background-color: var(--accent) !important; }
+.accent-emerald-500, .accent-clay-600 { accent-color: var(--accent) !important; }
+
+/* Neutralize legacy overrides that flattened panels and killed elevation */
+.shadow-card, .shadow-lift { box-shadow: none !important; }
+main section > div:hover { box-shadow: none !important; }
+
+/* ---------- Elevated card system ---------- */
+.ld-panel,
+main section > div,
+[class~="rounded-xl"][class~="border"],
+[class~="rounded-xl"][class~="ring-1"],
+#searchResults {
+  background: var(--panel-bg);
+  border: 1px solid var(--line-1) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 2px rgba(16, 32, 51, .05), 0 14px 34px -16px rgba(16, 32, 51, .16) !important;
+  transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+main section > div:hover {
+  box-shadow: 0 2px 4px rgba(16, 32, 51, .06), 0 22px 48px -20px rgba(16, 32, 51, .24) !important;
+  border-color: var(--line-2) !important;
+}
+
+/* Frosted inner cards (checklist / tracker wrappers) */
+.bg-white\/90 { background-color: #ffffff !important; }
+
+/* ---------- Form fields: soft slate fill, cerulean focus glow ---------- */
+.field {
+  background-color: #f7fafc !important;
+  border-color: var(--line-2) !important;
+  border-radius: 12px !important;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.field:focus {
+  background-color: #ffffff !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 4px rgba(14, 116, 144, .14) !important;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 4px rgba(14, 116, 144, .14) !important;
+}
+.placeholder-ink-300::placeholder { color: #9aa9bd !important; }
+
+/* ---------- Buttons: lift + press micro-interactions ---------- */
+button:not(:disabled), a[href^="#"], .ld-step-chip, .ld-mode-btn {
+  transition: transform .15s ease, box-shadow .2s ease, background-color .2s ease,
+              border-color .2s ease, color .2s ease;
+}
+#generateBtn, button[class*="bg-brand"], a[class*="bg-brand"] {
+  box-shadow: 0 10px 22px -10px rgba(14, 116, 144, .55) !important;
+}
+#generateBtn:hover:not(:disabled), button[class*="bg-brand"]:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px -10px rgba(14, 116, 144, .62) !important;
+}
+#generateBtn:active:not(:disabled), button[class*="bg-brand"]:active {
+  transform: translateY(0) scale(.985);
+}
+
+/* Secondary outlined buttons sit flat until hovered */
+button[class*="border-brand"][class*="bg-white"], a[class*="border-brand"][class*="bg-white"] {
+  background-color: #ffffff !important;
+  color: var(--text-2) !important;
+  border-color: var(--line-2) !important;
+}
+button[class*="border-brand"][class*="bg-white"]:hover, a[class*="border-brand"][class*="bg-white"]:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent-dark) !important;
+  background-color: #f0f9ff !important;
+}
+
+/* ---------- Mode switch: pill segmented control ---------- */
+.ld-mode-switch {
+  border: 1px solid var(--line-2) !important;
+  border-radius: 999px !important;
+  padding: 3px !important;
+  background: #eaf1f7 !important;
+  box-shadow: inset 0 1px 2px rgba(16, 32, 51, .06);
+}
+.ld-mode-btn {
+  border-radius: 999px !important;
+  padding: 7px 20px !important;
+  color: var(--text-2) !important;
+  font-weight: 700;
+}
+.ld-mode-btn[aria-selected="true"] {
+  background: linear-gradient(180deg, #1287a8, var(--accent)) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 14px -6px rgba(14, 116, 144, .55);
+}
+
+/* ---------- Step chips: numbered capsules with active gradient ---------- */
+.ld-step-chip {
+  border: 1px solid var(--line-2) !important;
+  border-radius: 999px !important;
+  background: var(--panel-bg) !important;
+  padding: 7px 15px !important;
+  color: var(--text-3) !important;
+  box-shadow: 0 1px 2px rgba(16, 32, 51, .05);
+}
+.ld-step-chip:hover { border-color: var(--accent) !important; color: var(--accent-dark) !important; }
+.ld-step-chip.is-active {
+  background: linear-gradient(180deg, #1287a8, var(--accent)) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px -8px rgba(14, 116, 144, .6) !important;
+}
+.ld-step-arrow { color: var(--text-3) !important; }
+
+/* ---------- Professor result cards ---------- */
+.ld-prof-card {
+  border-radius: 14px !important;
+  border-color: var(--line-1) !important;
+  box-shadow: 0 1px 2px rgba(16, 32, 51, .05);
+}
+.ld-prof-card:hover {
+  border-color: var(--accent) !important;
+  box-shadow: 0 14px 28px -14px rgba(14, 116, 144, .45) !important;
+  transform: translateY(-2px);
+}
+.ld-prof-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Search dropdown & live rows ---------- */
+#searchResults { border-color: var(--line-2) !important; }
+#searchResults > *:hover { background: #eef6fb !important; }
+
+/* ---------- Progress meters: cerulean gradient fills ---------- */
+#countBar, #humanBar {
+  background-image: linear-gradient(90deg, #22a7c9, var(--accent)) !important;
+  border-radius: 999px;
+}
+#humanBar[class*="bg-forest"], #countBar[class*="bg-forest"] { background-color: transparent !important; }
+
+/* ---------- Floating controls: help FAB & loading overlay ---------- */
+#ldHelpFab {
+  border-radius: 999px !important;
+  border-color: var(--line-2) !important;
+  background: var(--panel-bg) !important;
+  color: var(--text-1) !important;
+  box-shadow: 0 10px 24px -12px rgba(16, 32, 51, .35);
+}
+#ldHelpFab:hover { border-color: var(--accent) !important; color: var(--accent-dark) !important; transform: translateY(-1px); }
+#ldLoadingOverlay { background: rgba(8, 26, 46, .55) !important; }
+.ld-spinner { border-top-color: #7fc4de !important; }
+
+/* ---------- Sticky nav glass tint matches the new deep surface ---------- */
+#ldStickyNav {
+  background: rgba(8, 26, 46, .9);
+  border-bottom-color: rgba(127, 196, 222, .18);
+}
+#ldBackToTop:hover { background: var(--accent); }
+#ldScrollProgress { background: linear-gradient(90deg, #22a7c9, #0f9d76); }
+
+/* ---------- Keyboard hint chips ---------- */
+.kbd {
+  color: #22405f;
+  background: #eaf1f7;
+  border-color: #c3cfdd;
+}
+
+/* ---------- Accessibility: visible focus everywhere ---------- */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---------- Responsive polish ---------- */
+@media (max-width: 640px) {
+  :root { --ld-sticky-h: 48px; }
+  #ldStickyNav { height: 48px; }
+  .ld-panel, main section > div { border-radius: 14px !important; }
+  .ld-step-chip { padding: 6px 11px !important; }
+  #emailBody { min-height: 300px; }
+}
+
+/* ---------- Reduced motion: honor the setting ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
