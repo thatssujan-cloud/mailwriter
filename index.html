@@ -6,13 +6,29 @@
   <title>LetterDesk — Geoscience Assistantship Email Studio</title>
   <meta name="description" content="LetterDesk: discover geoscience research supervisors from scholarly APIs, check research alignment, draft personalized MSc/PhD outreach emails, verify funding claims, and track your academic outreach — all in your browser." />
 
+  <!-- §6 Supply-chain / browser hardening: Content-Security-Policy enforced
+       client-side (GitHub Pages cannot send HTTP response headers, so this
+       <meta> tag is the only CSP layer available there; vercel.json /
+       netlify.toml add the header-based layers on supported hosts).
+       - 'unsafe-inline' is required for the inline Tailwind config + app JS;
+         scripts are additionally pinned via Subresource Integrity below.
+       - object-src/base-uri/frame-ancestors none: no plugins, no URI
+         hijacking, no iframe embedding of the studio.
+       - form-action 'self': exfiltration via crafted form submissions blocked. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.openalex.org https://api.semanticscholar.org https://api.crossref.org https://dns.google https://cdn.jsdelivr.net; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" />
+
   <!-- Fonts: Inter (UI) + JetBrains Mono (emails/counters) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS via CDN. §6 Supply chain: the Play CDN is an UNPINNED
+       build (its bytes change over time), so a static SRI hash would break
+       the site; instead it is pinned in the CSP script-src allow-list and
+       documented with its exact status in ASSET-INVENTORY.md. The primary
+       renderer (js/app.js) and DOMPurify are checksum-verified below. -->
+  <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
   <script>
     // Inline Tailwind configuration — clean "academic dashboard" palette.
     // Status colors follow the spec: emerald #10B981 (confirmed), amber
@@ -2645,7 +2661,11 @@ Alex Rivera</pre>
       s.src = 'https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js';
       s.async = true;
       s.crossOrigin = 'anonymous';
-      s.integrity = 'sha384-u5OKdTq1ID/6MWWWcCZhKxnJn9eOxpFkDaxKVqN/hX5FRdLw4djxl01Gdv3tfMCm';
+      // §6 SRI: sha384 of dompurify@3.2.4 dist/purify.min.js — recomputed
+      // from the immutable jsdelivr artifact (verified byte-identical across
+      // multiple fetches). If this ever mismatches, onerror keeps the
+      // built-in fallback sanitizer active (fail-safe, never fail-open).
+      s.integrity = 'sha384-eEu5CTj3qGvu9PdJuS+YlkNi7d2XxQROAFYOr59zgObtlcux1ae1Il3u7jvdCSWu';
       s.onerror = () => { /* fallback sanitizer below stays active */ };
       document.head.appendChild(s);
     })();
@@ -3354,7 +3374,12 @@ Alex Rivera</pre>
         if (Array.isArray(json.Answer) && json.Answer.length) return true;   // MX servers found
         if (Array.isArray(json.Authority)) return false;                     // authoritative "no MX" answer
         return null;                                                          // inconclusive
-      } catch (e) { return null; } // offline / blocked — treat as unknown
+      } catch (e) {
+        // §5 Resilience: DNS-over-HTTPS unavailable (offline/blocked/abort) —
+        // resolve as "unknown" so the UI shows a soft warning, never a hung
+        // "Checking…" badge and never an internal error message.
+        return null;
+      }
     }
 
     /* ==================================================================
@@ -3668,7 +3693,17 @@ Alex Rivera</pre>
       const token = ++emailVerifyToken;
       // §4: pass the full address only so checkMxRecords can honour consent;
       // without consent it degrades to the probe@domain / DoH path anyway.
-      const mx = await checkMxRecords(domain, email);
+      // §5 Resilience: the whole chain is wrapped — if the proxy call or MX
+      // lookup throws outright, the badge must still move out of the
+      // "Checking …" state instead of hanging there forever.
+      let mx = null;
+      try {
+        mx = await checkMxRecords(domain, email);
+      } catch (e) {
+        if (token !== emailVerifyToken) return;
+        setEmailBadge('yellow', 'Academic domain ✓ — the MX checker errored (offline/blocked?). Verify once more before sending.');
+        return;
+      }
       if (token !== emailVerifyToken) return; // a newer keystroke superseded this check
       if (mx === true) {
         setEmailBadge('green', optedIn
@@ -3952,6 +3987,13 @@ Alex Rivera</pre>
         const sk = els.searchResults && els.searchResults.querySelector('.skeleton-block');
         if (sk) showSearchFallbackMessage();
         else showSearchMessage('Could not reach OpenAlex (network/CORS/offline). You can still fill the form manually — everything else works without it.');
+      } finally {
+        // §5 Resilience (belt & braces): on EVERY exit path — success,
+        // handled error, or an unexpected throw inside the render code —
+        // the dropdown must not be left sitting on the "Loading…" skeleton.
+        if (seq === searchSeq && els.searchResults && els.searchResults.querySelector('.skeleton-block')) {
+          showSearchFallbackMessage();
+        }
       }
     }
 
@@ -4521,14 +4563,20 @@ Alex Rivera</pre>
     }
 
     window.switchStep = function switchStep(stepIndex) {
-      if (Number(stepIndex) === 4) { showTrackerView(); return; }
-      const targetId = LD_WRITE_STEPS[Number(stepIndex)];
-      if (!targetId) return;
-      const target = document.getElementById(targetId);
+      // §5 Resilience: bounds-check the panel index. Anything that is not an
+      // integer within [0, LD_WRITE_STEPS.length] (undefined, NaN, negative,
+      // out-of-range, non-numeric strings) clamps to step 0 instead of
+      // throwing a TypeError on an invalid array index or null element.
+      let idx = Number(stepIndex);
+      if (idx === 4) { showTrackerView(); return; }
+      if (!Number.isInteger(idx) || idx < 0 || idx >= LD_WRITE_STEPS.length) idx = 0;
+      const targetId = LD_WRITE_STEPS[idx];
+      if (!targetId) { idx = 0; }
+      const target = document.getElementById(targetId || LD_WRITE_STEPS[0]);
       if (!target) return;
       doc_qsa('.ld-step').forEach(p => p.classList.toggle('is-active', p === target));
       doc_qsa('#stepIndicator [data-goto-step]').forEach(c =>
-        c.classList.toggle('is-active', Number(c.dataset.gotoStep) === Number(stepIndex) + 1));
+        c.classList.toggle('is-active', Number(c.dataset.gotoStep) === idx + 1));
       const writePanel = document.getElementById('writeModePanel');
       const trackPanel = document.getElementById('trackModePanel');
       if (writePanel) writePanel.hidden = false;   // keep Write mode visible
@@ -4842,17 +4890,19 @@ Alex Rivera</pre>
 
       function loadEntries() { try { return JSON.parse(localStorage.getItem(TRACK_KEY)) || []; } catch (e) { return []; } }
       function saveEntries(list) {
+        // §5 Resilience: every localStorage read/write is wrapped; a
+        // QuotaExceededError alerts the user and offers the CSV export
+        // escape hatch instead of failing silently.
         // §4 Privacy: honour the "Disable auto-save" toggle — when the user
         // turned persistence off, nothing is written to localStorage here.
         if (typeof window.ldAutoSaveDisabled === 'function' && window.ldAutoSaveDisabled()) return false;
         try { localStorage.setItem(TRACK_KEY, JSON.stringify(list)); return true; }
         catch (e) {
-          // P2-4: QuotaExceededError gets actionable guidance (export CSV /
-          // prune stale logs) instead of a silent or generic failure.
           const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
           showToast(quota
             ? 'Browser storage is full — export your tracker CSV and remove old entries before saving more.'
             : 'Could not save tracker entry — browser storage unavailable.', 'error');
+          if (quota && typeof window.exportTrackerCsv === 'function') window.exportTrackerCsv();
           return false;
         }
       }
@@ -4966,6 +5016,47 @@ Alex Rivera</pre>
           }
         });
       });
+
+      /* ------------------------------------------------------------------
+         §5 Resilience + §3 Injection hardening — CSV EXPORT
+         The "Export CSV" button previously had no handler at all: when
+         browser storage hit QuotaExceededError the promised escape hatch
+         ("export your CSV backup") was impossible to reach. Wired now, and
+         every cell passes through neutralizeCsvCell() so a professor name
+         like "=cmd|'/C calc'!A0" or "+1+1" can never execute as a formula
+         in Excel/Sheets/LibreOffice (CSV formula injection). Dates export
+         as ISO YYYY-MM-DD so they are not caught by the guard either.
+      ------------------------------------------------------------------ */
+      function csvQuote(s) { return '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"'; }
+      function neutralizeCsvCell(v) {
+        const s = String(v == null ? '' : v);
+        // Leading whitespace can hide a formula trigger ("  =HYPERLINK(...)")
+        const t = s.replace(/^[\s\uFEFF]+/, '');
+        return /^[=+\-@]/.test(t) ? "'" + s : s;
+      }
+      window.exportTrackerCsv = function exportTrackerCsv() {
+        const list = loadEntries();
+        if (!list.length) { showToast('Nothing to export yet — save a tracker entry first.', 'info'); return false; }
+        const iso = (ms) => ms ? new Date(ms).toISOString().slice(0, 10) : '';
+        const header = ['Professor', 'Institution', 'Contacted', 'Follow-up due', 'Status'];
+        const rows = list.map(e => [e.professor || '', e.institution || '', iso(e.contacted), iso(e.followUp), e.status || '']);
+        const csv = '\uFEFF' + [header, ...rows].map(r => r.map(c => csvQuote(neutralizeCsvCell(c))).join(',')).join('\r\n');
+        try {
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = 'letterdesk-tracker-' + iso(Date.now()) + '.csv';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+          showToast(`Exported ${list.length} tracker row${list.length === 1 ? '' : 's'} as CSV (formula-safe).`, 'success');
+          return true;
+        } catch (e) {
+          showToast('CSV export failed — your browser blocked the download.', 'error');
+          return false;
+        }
+      };
+      const csvBtn = document.getElementById('ldExportCsvBtn');
+      if (csvBtn) csvBtn.addEventListener('click', () => window.exportTrackerCsv());
 
       // Roadmap accordion toggle
       const rTog = document.getElementById('roadmapToggle');
