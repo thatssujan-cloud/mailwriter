@@ -258,30 +258,71 @@
                      'profName', 'researchFocus', 'toolSkill', 'profEmail',
                      'assistType', 'emailFormat', 'tone'];
 
+  // P1-2 null safeguards: every element lookup is checked before any
+  // property is read or written, so a hidden/not-yet-rendered field can
+  // never throw "Cannot set properties of null" and kill the script.
   function restoreForm() {
     try {
       var raw = localStorage.getItem(STORE_KEY);
       if (!raw) return;
       var saved = JSON.parse(raw);
+      if (!saved || typeof saved !== 'object') return;
       SAVE_FIELDS.forEach(function (id) {
         var el = $(id);
-        if (el && typeof saved[id] === 'string' && !el.value.trim()) el.value = saved[id];
+        if (el && typeof el.value === 'string' &&
+            typeof saved[id] === 'string' && !el.value.trim()) {
+          el.value = saved[id];
+        }
       });
     } catch (err) { /* storage unavailable or corrupt — ignore */ }
   }
 
+  // P1-2 / P2-4 safeguards: every DOM read is null-guarded (an element that
+  // is hidden or not yet rendered must never throw "Cannot read properties
+  // of null" and kill the rest of the script), and setItem is wrapped so a
+  // QuotaExceededError (private mode, full storage) degrades gracefully
+  // instead of breaking subsequent execution.
   function saveFormDebounced() {
     clearTimeout(saveFormDebounced._t);
     saveFormDebounced._t = setTimeout(function () {
-      try {
-        var data = {};
-        SAVE_FIELDS.forEach(function (id) {
-          var el = $(id);
-          if (el) data[id] = el.value;
-        });
-        localStorage.setItem(STORE_KEY, JSON.stringify(data));
-      } catch (err) { /* private mode etc. — silently skip */ }
+      var data = {};
+      SAVE_FIELDS.forEach(function (id) {
+        var el = $(id);
+        if (el && typeof el.value === 'string') data[id] = el.value;
+      });
+      safeSetItem(STORE_KEY, JSON.stringify(data), 'Could not auto-save your form — browser storage is full or unavailable.');
     }, 400);
+  }
+
+  // Shared guarded localStorage writer (used by auto-save here; the core
+  // tracker/checklist writers in index.html carry equivalent try/catch).
+  function safeSetItem(key, value, warnMsg) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (err) {
+      var quota = err && (err.name === 'QuotaExceededError' ||
+                          err.code === 22 || err.code === 1014);
+      try {
+        console.warn('localStorage write failed (' + key + '):', err);
+      } catch (e) { /* no console — ignore */ }
+      if (quota && doc.getElementById('trackModePanel')) {
+        // Storage is running low: nudge the user to export their CSV backup
+        // before more saves fail (P2 remediation guidance).
+        notify(warnMsg + ' Export your tracker CSV and remove stale entries to free space.', 'error');
+      } else {
+        notify(warnMsg, 'error');
+      }
+      return false;
+    }
+  }
+
+  // Fire the page's toast system when present, otherwise log quietly.
+  function notify(msg, variant) {
+    if (typeof window.showToast === 'function') {
+      try { window.showToast(msg, variant || 'info'); return; } catch (e) {}
+    }
+    try { console.info('[LetterDesk]', msg); } catch (e) {}
   }
 
   function bindAutoSave() {

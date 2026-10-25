@@ -2960,7 +2960,12 @@ Alex Rivera</pre>
     }
     function saveAuditLog(log) {
       try { localStorage.setItem(auditStoreKey(), JSON.stringify(log)); }
-      catch (e) { showToast('Could not save checklist status — browser storage unavailable.', 'error'); }
+      catch (e) {
+        const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+        showToast(quota
+          ? 'Browser storage is full — export your tracker CSV and clear stale data before saving more.'
+          : 'Could not save checklist status — browser storage unavailable.', 'error');
+      }
     }
 
     function renderFundingCard(candidate, termInfo) {
@@ -3740,6 +3745,19 @@ Alex Rivera</pre>
       if (!document.getElementById('profSearchWrap').contains(e.target)) hideSearchResults();
     });
 
+    /** P2-3 fallback state for the professor dropdown. Called if a search
+        somehow ends without rendering results (unexpected throw, stalled
+        engine) so the list can never stay stuck on the "Loading geoscience
+        faculty results…" skeleton with no feedback. */
+    function showSearchFallbackMessage() {
+      if (!els || !els.searchResults) return; // null safeguard (P1-2)
+      els.searchResults.classList.remove('hidden');
+      els.searchResults.innerHTML =
+        '<div class="px-4 py-3 text-xs text-ink-500 space-y-1">' +
+        '<p><strong>Search is unavailable right now.</strong> The scholarly APIs may be offline, blocked by CORS, or rate-limited (HTTP 429).</p>' +
+        '<p>Try again in a minute — or skip the search and fill the form manually below. Everything else works without it.</p></div>';
+    }
+
     async function runProfessorSearch(rawQuery) {
       const query = String(rawQuery || '').trim();
       if (query.length < 3) { showToast('Type at least 3 characters (e.g., "seismology at Cornell").', 'error'); return; }
@@ -3812,15 +3830,48 @@ Alex Rivera</pre>
         });
       } catch (err) {
         if (seq !== searchSeq) return;
-        showSearchMessage('Could not reach OpenAlex (network/CORS/offline). You can still fill the form manually — everything else works without it.');
+        // P2-3 fallback: CORS block, offline network, or a hard rate limit on
+        // the primary catalog must NEVER leave the dropdown stuck on the
+        // "Loading geoscience faculty results…" skeleton. Surface a clear,
+        // actionable message and keep the manual path open.
+        console.warn('API fallback triggered:', err);
+        // If the dropdown still shows the loading skeleton, swap in the
+        // dedicated fallback state so it never hangs on "Loading…".
+        const sk = els.searchResults && els.searchResults.querySelector('.skeleton-block');
+        if (sk) showSearchFallbackMessage();
+        else showSearchMessage('Could not reach OpenAlex (network/CORS/offline). You can still fill the form manually — everything else works without it.');
+      }
+    }
+
+    /** P1-2 null-safety wrapper around the tracker's localStorage writer.
+        The core saveEntries() already try/catches; this guard additionally
+        distinguishes QuotaExceededError so we can tell the user to export
+        their CSV / prune stale entries instead of failing silently. */
+    function safeSaveTrackerEntries(list) {
+      const wrap = document.getElementById('trackerWrap');
+      const body = document.getElementById('trackerBody');
+      if (!wrap || !body) return false; // elements hidden/absent — skip safely
+      try {
+        localStorage.setItem('letterdesk.tracker.v1', JSON.stringify(list));
+        return true;
+      } catch (e) {
+        const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+        showToast(quota
+          ? 'Browser storage is full — export your tracker CSV and remove old entries before saving more.'
+          : 'Could not save tracker entry — browser storage unavailable.', 'error');
+        return false;
       }
     }
 
     // Live email verification as the user types/pastes an address
     const profEmailEl = document.getElementById('profEmail');
+    if (!profEmailEl) return; // P1-2 null safeguard — never throw below this line
     profEmailEl.addEventListener('input', () => {
+      // P3 Obs-2: debounced (≥500ms) so the Google DoH MX lookup never runs
+      // synchronously per keystroke; verifyEmailField's emailVerifyToken also
+      // discards superseded in-flight responses, preventing input stutter.
       clearTimeout(profEmailEl._t);
-      profEmailEl._t = setTimeout(verifyEmailField, 500);
+      profEmailEl._t = setTimeout(verifyEmailField, 600);
     });
     profEmailEl.addEventListener('blur', verifyEmailField);
 
@@ -4308,20 +4359,99 @@ Alex Rivera</pre>
     }
     function hideLdOverlay() { if (ldOverlay) ldOverlay.hidden = true; }
 
-    // Slim step indicator: clicking a chip reveals that Write-flow panel.
-    // The ld-step CSS uses opacity/visibility (never display), so toggling
-    // 'is-active' can't clash with Tailwind's hidden utility used elsewhere.
-    document.querySelectorAll('[data-goto-step]').forEach(chip => {
+    /* ---------- Centralized step navigation: switchStep(index) ----------
+       P1-1 fix: previously only the chips had inline listeners and the
+       Write/Track tabs plus "← Edit details" / "← Back to draft" links were
+       dead (href="#" anchors with no handler). Now every navigation entry
+       point routes through one function, so users can always move between
+       steps manually even if auto-advance fails.
+
+       P1-2 fix: every element lookup below is null-guarded before any
+       property read/write — a hidden or not-yet-rendered element can never
+       throw "Cannot set properties of null" and break later script blocks.
+
+       Steps toggle via .ld-step/.is-active (opacity/visibility) — never
+       display — so we don't clash with Tailwind's `hidden` utility used by
+       #searchResults and other dropdowns. */
+    const LD_WRITE_STEPS = ['stepSearch', 'stepDetails', 'stepDraft', 'stepVerify'];
+
+    function setModeTabs(trackActive) {
+      const wBtn = document.getElementById('modeWriteBtn');
+      const tBtn = document.getElementById('modeTrackBtn');
+      if (wBtn) wBtn.setAttribute('aria-selected', String(!trackActive));
+      if (tBtn) tBtn.setAttribute('aria-selected', String(!!trackActive));
+    }
+
+    function showTrackerView() {
+      doc_qsa('.ld-step').forEach(sec => sec.classList.remove('is-active'));
+      const writePanel = document.getElementById('writeModePanel');
+      const trackPanel = document.getElementById('trackModePanel');
+      if (writePanel) writePanel.hidden = true;
+      if (trackPanel) trackPanel.hidden = false;
+      setModeTabs(true);
+      const main = document.querySelector('main');
+      if (main) main.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    window.switchStep = function switchStep(stepIndex) {
+      if (Number(stepIndex) === 4) { showTrackerView(); return; }
+      const targetId = LD_WRITE_STEPS[Number(stepIndex)];
+      if (!targetId) return;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      doc_qsa('.ld-step').forEach(p => p.classList.toggle('is-active', p === target));
+      doc_qsa('#stepIndicator [data-goto-step]').forEach(c =>
+        c.classList.toggle('is-active', Number(c.dataset.gotoStep) === Number(stepIndex) + 1));
+      const writePanel = document.getElementById('writeModePanel');
+      const trackPanel = document.getElementById('trackModePanel');
+      if (writePanel) writePanel.hidden = false;   // keep Write mode visible
+      if (trackPanel) trackPanel.hidden = true;    // Track has its own toggle
+      setModeTabs(false);
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    // Tiny helper so repeated querySelectorAll calls stay null-safe.
+    function doc_qsa(sel) { return Array.from(document.querySelectorAll(sel)); }
+
+    // Step chips (arrows carry no chip and are skipped naturally).
+    doc_qsa('[data-goto-step]').forEach(chip => {
       chip.addEventListener('click', () => {
-        const target = document.getElementById('step' + chip.dataset.gotoStep);
-        if (!target) return;
-        document.querySelectorAll('.ld-step').forEach(p => p.classList.toggle('is-active', p === target));
-        const stepsBar = chip.closest('.ld-steps');
-        if (stepsBar) stepsBar.querySelectorAll('.ld-step-chip').forEach(c => c.classList.toggle('is-active', c === chip));
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.switchStep(Number(chip.dataset.gotoStep) - 1);
       });
     });
 
+    // Mode tabs: Write → Step 1, Track → tracker view.
+    const modeWriteBtnEl = document.getElementById('modeWriteBtn');
+    const modeTrackBtnEl = document.getElementById('modeTrackBtn');
+    if (modeWriteBtnEl) modeWriteBtnEl.addEventListener('click', () => window.switchStep(0));
+    if (modeTrackBtnEl) modeTrackBtnEl.addEventListener('click', showTrackerView);
+
+    // Inline transition links ("← Edit details", "← Back to draft") wired by
+    // ID first, then by text pattern for any future href="#" anchors. Order
+    // matters: verify/pre-send is checked before draft before details.
+    const backToDetailsLink = document.getElementById('ldBackToDetails');
+    if (backToDetailsLink) backToDetailsLink.addEventListener('click', (e) => { e.preventDefault(); window.switchStep(1); });
+    const backToDraftLink = document.getElementById('ldBackToDraft');
+    if (backToDraftLink) backToDraftLink.addEventListener('click', (e) => { e.preventDefault(); window.switchStep(2); });
+    const stepLinkTargets = [
+      { re: /verify|pre-?send/i,   idx: 3 },
+      { re: /\bdraft\b/i,          idx: 2 },
+      { re: /\bdetails\b/i,        idx: 1 }
+    ];
+    doc_qsa("a[href='#']").forEach(link => {
+      // ID-wired links and functional links must not be pattern-matched:
+      // #ldBackToDetails/#ldBackToDraft are handled above, #manualEntryLink
+      // triggers manual entry, and #showAllPanelsLink toggles all panels.
+      if (link.id === 'ldBackToDetails' || link.id === 'ldBackToDraft' ||
+          link.id === 'showAllPanelsLink' || link.id === 'manualEntryLink') return;
+      const text = (link.innerText || link.textContent || '').toLowerCase();
+      for (const t of stepLinkTargets) {
+        if (t.re.test(text)) {
+          link.addEventListener('click', (e) => { e.preventDefault(); window.switchStep(t.idx); });
+          break; // first match wins — prevents "draft" matching a details link
+        }
+      }
+    });
     // Generation-engine selector: chip label + ChatGPT prompt builder wiring.
     const genEngineSel = document.getElementById('genEngine');
     const gptPromptWrap = document.getElementById('gptPromptWrap');
@@ -4580,7 +4710,15 @@ Alex Rivera</pre>
       function loadEntries() { try { return JSON.parse(localStorage.getItem(TRACK_KEY)) || []; } catch (e) { return []; } }
       function saveEntries(list) {
         try { localStorage.setItem(TRACK_KEY, JSON.stringify(list)); return true; }
-        catch (e) { showToast('Could not save tracker entry — browser storage unavailable.', 'error'); return false; }
+        catch (e) {
+          // P2-4: QuotaExceededError gets actionable guidance (export CSV /
+          // prune stale logs) instead of a silent or generic failure.
+          const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+          showToast(quota
+            ? 'Browser storage is full — export your tracker CSV and remove old entries before saving more.'
+            : 'Could not save tracker entry — browser storage unavailable.', 'error');
+          return false;
+        }
       }
       function fmtD(d) { return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
 
@@ -4639,7 +4777,11 @@ Alex Rivera</pre>
         b.addEventListener('change', () => {
           let cur = {}; try { cur = JSON.parse(localStorage.getItem(ROAD_KEY)) || {}; } catch (e) {}
           cur[k] = b.checked;
-          try { localStorage.setItem(ROAD_KEY, JSON.stringify(cur)); } catch (e) {}
+          try { localStorage.setItem(ROAD_KEY, JSON.stringify(cur)); }
+          catch (e) {
+            const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+            if (quota) showToast('Browser storage is full — export your tracker CSV to keep a backup.', 'error');
+          }
         });
       });
 
