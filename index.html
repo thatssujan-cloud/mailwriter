@@ -151,7 +151,7 @@
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">RA &amp; TA templates</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">3 tone variations</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">mailto: handoff</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-250-word guardrail</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-150-word guardrail</span>
         </div>
       </div>
     </nav>
@@ -226,11 +226,20 @@
             <!-- Input 6: Research Focus / Lab / Paper Topic -->
             <div>
               <label for="researchFocus" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
-                Research Focus / Lab Name / Specific Paper Topic
+                Research Interest / Lab Name / Specific Paper Topic
               </label>
               <textarea id="researchFocus" name="researchFocus" rows="2"
                         placeholder="e.g., the RoboNLP Lab's work on sample-efficient reinforcement learning, or your paper on low-resource machine translation"
                         class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition resize-y"></textarea>
+            </div>
+
+            <!-- Input 6b: Tool/Skill You Use — paired with the professor's paper topic in the email body -->
+            <div>
+              <label for="toolSkill" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                Tool/Skill You Use <span class="text-zinc-400 normal-case font-normal tracking-normal">(e.g., PyTorch, Matlab, Lab Technique)</span>
+              </label>
+              <input id="toolSkill" name="toolSkill" type="text" placeholder="e.g., PyTorch, Matlab, Western Blotting, mass spectrometry"
+                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
             </div>
 
             <!-- Select 7: Assistantship Type -->
@@ -302,7 +311,7 @@
                 <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">1</span><span><strong class="text-navy-800">Time it right.</strong> Send emails Tue–Thu, 8–10 a.m. in the professor's time zone. Avoid holidays and the two weeks before admission deadlines, when inboxes overflow.</span></li>
                 <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">2</span><span><strong class="text-navy-800">Read one real paper first.</strong> Cite a specific paper or project (paste its topic into the form). Generic flattery reads as spam; specificity reads as scholarship.</span></li>
                 <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">3</span><span><strong class="text-navy-800">Attach a CV &amp; unofficial transcript</strong> as PDFs, named <code class="rounded bg-zinc-100 px-1 py-0.5 text-[12px]">Lastname_CV.pdf</code>. Mention the attachments so they aren't overlooked.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">4</span><span><strong class="text-navy-800">Keep it under 250 words.</strong> Professors skim. One ask, one paragraph of fit, one line of logistics — then stop. The live counter below watches this for you.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">4</span><span><strong class="text-navy-800">Keep it under 150 words.</strong> Professors skim. One direct opener, one paragraph of fit, one line of logistics — then stop. The live counter below watches this for you.</span></li>
                 <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">5</span><span><strong class="text-navy-800">Follow up once after 7–10 days.</strong> Reply to your original message with a short, polite bump. No reply after that? Move on gracefully.</span></li>
                 <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">6</span><span><strong class="text-navy-800">Use your institutional email if possible,</strong> and double-check the professor's title (Dr./Prof.) and spelling before sending. Personalize one email at a time — never BCC a cohort.</span></li>
               </ul>
@@ -359,7 +368,7 @@
                   <span id="charCount" class="rounded-md bg-zinc-100 px-2 py-1 text-zinc-600">0 characters</span>
                   <span id="wordVerdict" class="text-zinc-400"></span>
                 </div>
-                <div class="flex-1 min-w-[120px]" title="Target: under 250 words">
+                <div class="flex-1 min-w-[120px]" title="Target: under 150 words">
                   <div class="h-1.5 w-full rounded-full bg-zinc-200 overflow-hidden">
                     <div id="countBar" class="h-full w-0 rounded-full bg-emerald-500"></div>
                   </div>
@@ -434,6 +443,7 @@
       background:    'my undergraduate studies',
       profName:      'Professor',
       researchFocus: 'your current research',
+      toolSkill:     'the tools and techniques in your lab',
       profEmail:     ''
     };
 
@@ -468,143 +478,171 @@
     const stripTrailingPunct = s => String(s).replace(/[.\u2014\u2013;:,!?]+$/, '').trim();
     const trimClause = s => String(s).replace(/\s+/g, ' ').trim();
 
-    // Shared tone-flavored opening lines expressing interest
-    const OPENERS = {
-      direct: (p, rawFocus, term) => {
+    /* ------------------------------------------------------------------
+       raTemplates / taTemplates — short, direct, cliché-free template text.
+       No "delve", "testament", "pivotal", "profound enthusiasm", or
+       "I hope this email finds you well" anywhere in the generated output.
+       Each opener uses a direct academic line ("I enjoyed reading your
+       recent work on…" / "I am reaching out regarding your lab's work
+       on…") and its SECOND sentence dynamically pairs the professor's
+       paper topic with the user's specific technical tool/skill.
+    ------------------------------------------------------------------ */
+
+    // Topic phrase helper — keeps interpolated focus short so the pairing
+    // sentence stays natural ("your results in that area", not a re-paste)
+    const topicRef = focus => {
+      const f = stripTrailingPunct(focus);
+      if (/^(your|the)\b/i.test(f) || f.split(/\s+/).length > 6) return 'that area';
+      return `that ${f}`;
+    };
+
+    // Sentence-two helpers — pair the professor's topic with the user's skill
+    // without awkward double topics or "your that X research" collisions.
+    const isGenericFocus = f => /^(your|the)\b/i.test(stripTrailingPunct(f));
+    const shortTopic = rawFocus => {
+      const f = stripTrailingPunct(rawFocus);
+      const m = f.match(/\b(?:work|research|paper|studies|studies on|studies of|thesis)\s+(?:on|in|of|about|toward(s)?)\s+(.+)$/i);
+      if (m && m[1].split(/\s+/).length <= 5) return m[1].replace(/[.]*$/, '');
+      return f;
+    };
+
+    // RA-style openers (also used for general/EITHER inquiries)
+    const raTemplates = {
+      direct: (rawFocus, skill, term) => {
         const focus = stripTrailingPunct(rawFocus);
         return trimClause(
-          `I am writing to inquire about possible assistantship opportunities in your group` +
-          `${term && term !== 'the upcoming term' ? `, particularly for ${term}` : ''}. ` +
-          `Your work on ${focus} aligns closely with the direction I intend to pursue in graduate study, ` +
-          `and I would value the chance to contribute to it.`
+          `I enjoyed reading your recent work on ${focus}. ` +
+          `I would like to apply my experience with ${skill} to that line of research` +
+          `${term && term !== 'the upcoming term' ? `, starting ${term}` : ''}. ` +
+          `I am writing to ask whether you expect to take on new graduate researchers.`
         );
       },
-      academic: (p, rawFocus, term) => {
+      academic: (rawFocus, skill, term) => {
         const focus = stripTrailingPunct(rawFocus);
         return trimClause(
-          `I am writing because your research on ${focus} speaks directly to the questions I hope to ` +
-          `pursue as a graduate student${term && term !== 'the upcoming term' ? ` beginning in ${term}` : ''}. ` +
-          `Studying your group's recent work has only strengthened my conviction that your lab is the right ` +
-          `environment for my development as a scholar, and I would be grateful to learn whether you expect ` +
-          `to welcome new students.`
+          `I enjoyed reading your recent paper on ${focus}. ` +
+          `Your results there are exactly the kind of problem I want to keep working on, ` +
+          `and my hands-on experience with ${skill} would let me contribute quickly to ${topicRef(focus)} work` +
+          `${term && term !== 'the upcoming term' ? ` when I start in ${term}` : ''}. ` +
+          `Are you planning to welcome new students into your group?`
         );
       },
-      formal: (p, rawFocus, term) => {
+      formal: (rawFocus, skill, term) => {
         const focus = stripTrailingPunct(rawFocus);
         return trimClause(
-          `I write to inquire whether you anticipate admitting new graduate students` +
-          `${term && term !== 'the upcoming term' ? ` for ${term}` : ''}. ` +
-          `Your research concerning ${focus} corresponds closely with my academic preparation and ` +
-          `interests, and I wish to be considered should an opportunity arise within your group.`
+          `I am reaching out regarding your lab's work on ${focus}. ` +
+          `My training in ${skill} maps directly onto the methods your group uses for ${topicRef(focus)}, ` +
+          `and I would value the chance to continue that work` +
+          `${term && term !== 'the upcoming term' ? ` beginning ${term}` : ''}. ` +
+          `Please let me know whether you anticipate openings for new graduate students.`
         );
       }
     };
 
-    // Tone-flavored "fit" paragraphs emphasizing different strengths
-    const FIT_RA = {
-      direct: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
+    // TA-style openers — teaching focus, still pairing topic + skill in sentence two
+    const taTemplates = {
+      direct: (rawFocus, skill, term) => {
+        const focus = stripTrailingPunct(rawFocus);
         return trimClause(
-          `My time ${bg} gave me substantive research experience — formulating questions, running ` +
-          `experiments, and iterating on results — that I am eager to apply to problems in ${major}. ` +
-          `I would welcome the opportunity to join your laboratory as a Research Assistant and begin ` +
-          `contributing to ongoing projects early in the term.`
+          `I enjoyed reading your recent work on ${focus}. ` +
+          `My practical experience with ${skill} is exactly what I would bring to students ` +
+          `learning about ${topicRef(focus)} in your department's courses` +
+          `${term && term !== 'the upcoming term' ? ` this coming ${term}` : ''}. ` +
+          `I am writing to ask whether any teaching assistantship positions are open.`
         );
       },
-      academic: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
+      academic: (rawFocus, skill, term) => {
+        const focus = stripTrailingPunct(rawFocus);
+        const topicPair = isGenericFocus(focus)
+          ? `Explaining the ideas behind your recent research to classmates`
+          : `Explaining those ${shortTopic(focus)} concepts to classmates`;
         return trimClause(
-          `My studies ${bg} taught me to treat research as a disciplined practice: reading widely, ` +
-          `asking precise questions, and following evidence where it leads. Those habits drew me to ${major}, ` +
-          `and it is precisely this kind of sustained inquiry I hope to deepen under your guidance as a ` +
-          `Research Assistant in your laboratory.`
+          `I enjoyed reading your recent paper on ${focus}. ` +
+          `${topicPair} is how they became clearest for me, and I can now teach them ` +
+          `alongside tools I use daily, such as ${skill}. ` +
+          `I would be glad to support your department's courses as a teaching assistant.`
         );
       },
-      formal: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
+      formal: (rawFocus, skill, term) => {
+        const focus = stripTrailingPunct(rawFocus);
         return trimClause(
-          `My academic training ${bg} has provided a sound foundation for advanced research in ${major}. ` +
-          `I would be honored to contribute to your laboratory's work as a Research Assistant and am ` +
-          `prepared to meet the expectations such a position carries.`
+          `I am reaching out regarding your lab's work on ${focus}. ` +
+          `My command of ${skill} would let me run labs and discussion sections competently ` +
+          `in ${topicRef(focus)}` +
+          `${term && term !== 'the upcoming term' ? `, starting ${term}` : ''}. ` +
+          `I would like to be considered for a teaching assistantship in your department.`
         );
       }
+    };
+
+    // Tone-flavored "fit" paragraphs — shortened so the whole email stays under ~150 words.
+    // Each takes the RAW background string and builds its own phrasing via bgPhrase().
+    const FIT_RA = {
+      direct: (rawBg, major) => trimClause(
+        `${bgPhrase(rawBg)} I built substantive research experience in ${major} — ` +
+        `framing questions, running experiments, and iterating on results. ` +
+        `I would welcome the chance to join your lab as a Research Assistant and contribute early.`
+      ),
+      academic: (rawBg, major) => trimClause(
+        `My time ${bgPhrase(rawBg)} taught me to treat research as disciplined practice in ${major}: ` +
+        `precise questions, careful methods, and following evidence where it leads. ` +
+        `I would like to deepen that work under your guidance as a Research Assistant.`
+      ),
+      formal: (rawBg, major) => trimClause(
+        `My academic training ${bgPhrase(rawBg)} in ${major} gives me a solid foundation for laboratory research. ` +
+        `I am prepared to meet the expectations of a Research Assistant position and would be glad to contribute.`
+      )
     };
 
     const FIT_TA = {
-      direct: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
-        return trimClause(
-          `My studies ${bg} gave me a firm command of the fundamentals, and I have consistently ` +
-          `enjoyed helping peers work through difficult material. I would be glad to serve as a Teaching ` +
-          `Assistant for courses in ${major} — leading discussion sections, holding office hours, and ` +
-          `assisting with grading as your department requires.`
-        );
-      },
-      academic: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
-        return trimClause(
-          `Teaching and learning reinforce one another, and few ideas become truly mine until I have ` +
-          `explained them to someone else. My formation ${bg} sharpened both my understanding and my ` +
-          `patience as a mentor, and I would consider it a privilege to support instruction in ${major} ` +
-          `as a Teaching Assistant.`
-        );
-      },
-      formal: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
-        return trimClause(
-          `My academic preparation ${bg} qualifies me to provide dependable instructional support in ` +
-          `${major}. I would be grateful to be considered for a Teaching Assistantship within your ` +
-          `department and am willing to serve in whatever capacity best aids your faculty.`
-        );
-      }
+      direct: (rawBg, major) => trimClause(
+        `My studies ${bgPhrase(rawBg)} gave me firm command of the fundamentals in ${major}, and I have ` +
+        `enjoyed helping peers through difficult material. I would be glad to lead discussion ` +
+        `sections, hold office hours, and assist with grading as a Teaching Assistant.`
+      ),
+      academic: (rawBg, major) => trimClause(
+        `Few ideas become truly mine until I explain them to someone else. My formation ${bgPhrase(rawBg)} ` +
+        `sharpened both my understanding and my patience in ${major}, and I would value the chance ` +
+        `to support instruction as a Teaching Assistant.`
+      ),
+      formal: (rawBg, major) => trimClause(
+        `My preparation ${bgPhrase(rawBg)} qualifies me to provide dependable instructional support in ` +
+        `${major}. I would be grateful to be considered for a Teaching Assistantship in your department.`
+      )
     };
 
     const FIT_EITHER = {
-      direct: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
-        return trimClause(
-          `My formation ${bg} has prepared me for both research and instructional responsibilities in ` +
-          `${major}. I am genuinely flexible between a Research and a Teaching Assistantship and would ` +
-          `prefer to be placed wherever your department's needs are greatest.`
-        );
-      },
-      academic: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
-        return trimClause(
-          `My journey ${bg} cultivated both a researcher's patience and a teacher's satisfaction in ` +
-          `making difficult ideas click for others. Whether advancing ${major} through benchwork in the lab ` +
-          `or through mentorship in the classroom, I hope to contribute wherever my efforts would be most ` +
-          `useful to your group.`
-        );
-      },
-      formal: (rawBg, major) => {
-        const bg = stripTrailingPunct(rawBg);
-        return trimClause(
-          `My preparation ${bg} supports my candidacy for either a Research or Teaching Assistantship in ` +
-          `${major}. I remain open to whichever arrangement best serves your department and would ` +
-          `readily adapt to its requirements.`
-        );
-      }
+      direct: (rawBg, major) => trimClause(
+        `My background ${bgPhrase(rawBg)} has prepared me for both research and teaching in ${major}. ` +
+        `I am flexible between an RA and a TA position and would prefer to be placed wherever your ` +
+        `department's needs are greatest.`
+      ),
+      academic: (rawBg, major) => trimClause(
+        `My studies ${bgPhrase(rawBg)} cultivated both a researcher's patience and a teacher's ` +
+        `enjoyment of making hard ideas click. Whether in the lab or the classroom in ${major}, ` +
+        `I want to contribute wherever my efforts help your group most.`
+      ),
+      formal: (rawBg, major) => trimClause(
+        `My preparation ${bgPhrase(rawBg)} supports my candidacy for either a Research or Teaching ` +
+        `Assistantship in ${major}. I am open to whichever arrangement best serves your department.`
+      )
     };
 
     // Thank-you lines by tone (rendered before the sign-off)
     const THANKS = {
-      direct:  'Thank you for your time and consideration.',
-      academic:'With gratitude for your time and your contributions to the field,',
+      direct:  'Thank you for your time.',
+      academic:'With gratitude for your time,',
       formal:  'Respectfully yours,'
     };
 
-    // Closings by tone
+    // Closings by tone — trimmed to one short sentence each
     const CLOSINGS = {
       direct: () =>
-        `If my qualifications appear relevant to your plans, I would welcome a brief meeting or email ` +
-        `exchange. My CV and transcript are available upon request.`,
+        `If there is a fit, I would welcome a brief reply or meeting. My CV and transcript are available on request.`,
       academic: () =>
-        `Should you see a possible fit, I would be grateful for even a short conversation about your ` +
-        `group's direction. I am glad to share my CV, transcript, or writing samples whenever useful.`,
+        `Even a short conversation about your group's direction would mean a great deal; my CV and transcript are available whenever useful.`,
       formal: () =>
-        `I would welcome the opportunity for a brief discussion at your convenience, and my curriculum ` +
-        `vitae is available upon request.`
+        `I would welcome a brief discussion at your convenience; my curriculum vitae is available upon request.`
     };
 
     const SIGNOFF = { direct: 'Best regards,', academic: 'Warm regards,', formal: 'Sincerely,' };
@@ -651,7 +689,9 @@
     /* Major phrasing helper — "M.S. in Computer Science" reads naturally
        after "research in ..."; strip trailing punctuation only. */
 
-    /* Build the complete email from current form state + chosen tone */
+    /* Build the complete email from current form state + chosen tone.
+       The opener comes from raTemplates / taTemplates so that sentence two
+       always pairs the professor's paper topic with the user's tool/skill. */
     function buildEmail(tone) {
       const student = val('studentName');
       const major   = stripTrailingPunct(val('degreeMajor'));
@@ -659,10 +699,12 @@
       const bg      = val('background');
       const prof    = val('profName');
       const focus   = val('researchFocus');
+      const skill   = stripTrailingPunct(val('toolSkill'));
       const type    = document.getElementById('assistType').value; // RA | TA | EITHER
 
-      const ctx = { prof, major, term, bg, focus };
+      const ctx = { prof, major, term, bg, focus, skill };
 
+      const openerMap = { RA: raTemplates, TA: taTemplates, EITHER: raTemplates };
       const fitMap = { RA: FIT_RA, TA: FIT_TA, EITHER: FIT_EITHER };
       const typeLabel = { RA: 'Research Assistantship (RA)', TA: 'Teaching Assistantship (TA)', EITHER: 'graduate assistantship' }[type];
 
@@ -675,9 +717,9 @@
       const body = [
         greeting(prof),
         '',
-        OPENERS[tone](prof, focus, term),
+        openerMap[type][tone](focus, skill, term),
         '',
-        fitMap[type][tone](bgPhrase(bg), major),
+        fitMap[type][tone](bg, major),
         '',
         CLOSINGS[tone](),
         '',
@@ -734,7 +776,8 @@
     });
 
     /* ------------------------------------------------------------------
-       Word / character counters with 250-word guardrail
+       Word / character counters with 150-word guardrail — generated
+       templates are intentionally short so emails land under 150–200 words.
     ------------------------------------------------------------------ */
     function updateCounts() {
       const text = els.body.value;
@@ -744,24 +787,24 @@
       els.charCount.textContent = `${chars.toLocaleString()} character${chars === 1 ? '' : 's'}`;
       els.wordCount.textContent = `${words.toLocaleString()} word${words === 1 ? '' : 's'}`;
 
-      const pct = Math.min(100, Math.round((words / 250) * 100));
+      const pct = Math.min(100, Math.round((words / 150) * 100));
       els.countBar.style.width = pct + '%';
 
       if (words === 0) {
         els.verdict.textContent = '';
         els.countBar.className = 'h-full w-0 rounded-full bg-emerald-500';
-      } else if (words <= 180) {
+      } else if (words <= 150) {
         els.verdict.textContent = 'Nicely concise ✓';
         els.countBar.className = 'h-full rounded-full bg-emerald-500';
-      } else if (words <= 250) {
-        els.verdict.textContent = 'Getting long — trim if you can';
+      } else if (words <= 200) {
+        els.verdict.textContent = 'Acceptable — still under 200 words';
         els.countBar.className = 'h-full rounded-full bg-amber-500';
       } else {
-        els.verdict.textContent = `Over the 250-word target by ${words - 250} — professors skim!`;
+        els.verdict.textContent = `Over the 150-word target by ${words - 150} — professors skim!`;
         els.countBar.className = 'h-full rounded-full bg-rose-500';
       }
-      els.verdict.className = words > 250 ? 'font-semibold text-rose-600'
-                          : words > 180   ? 'font-medium text-amber-600'
+      els.verdict.className = words > 200 ? 'font-semibold text-rose-600'
+                          : words > 150   ? 'font-medium text-amber-600'
                                           : 'text-emerald-600';
     }
 
