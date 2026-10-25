@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LetterDesk — Human-Style Assistantship Email Studio</title>
-  <meta name="description" content="Draft professor outreach emails for RA/TA assistantships that read like a person wrote them — with a built-in humanizer and a smart pre-send reviewer." />
+  <title>LetterDesk — Geoscience Assistantship Email Studio</title>
+  <meta name="description" content="Draft professor outreach emails for RA/TA assistantships in Geology & Earth Sciences that read like a person wrote them — with multi-engine faculty search, a built-in humanizer, and a smart pre-send reviewer." />
 
   <!-- Fonts: Plus Jakarta Sans (UI) + JetBrains Mono (emails/counters) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -188,7 +188,7 @@
           </span>
           <span>
             <span class="block text-lg sm:text-xl font-display font-bold tracking-tight leading-tight">LetterDesk</span>
-            <span class="block text-[11px] uppercase tracking-[0.2em] text-brand-300 font-semibold">Assistantship Outreach Studio</span>
+            <span class="block text-[11px] uppercase tracking-[0.2em] text-brand-300 font-semibold">Geoscience Outreach Studio</span>
           </span>
         </a>
 
@@ -207,13 +207,14 @@
           Emails that read like <span class="italic text-brand-300">a person</span> wrote them.
         </h1>
         <p class="mt-3 md:mt-5 text-sm md:text-base text-slate-300 leading-relaxed">
-          LetterDesk helps prospective and current graduate students draft outreach about
-          <strong class="text-slate-50 font-semibold">Teaching</strong> and
-          <strong class="text-slate-50 font-semibold">Research Assistantships</strong> — then a built-in
-          humanizer rewrites the draft so it varies sentence length, drops stock corporate phrasing,
-          and sounds like an actual student typed it.
+          LetterDesk helps prospective and current graduate students in <strong class="text-slate-50 font-semibold">Geology &amp; Earth
+          Sciences</strong> draft outreach about <strong class="text-slate-50 font-semibold">Teaching</strong> and
+          <strong class="text-slate-50 font-semibold">Research Assistantships</strong> — find geoscience faculty across OpenAlex,
+          Semantic Scholar &amp; Crossref, then a built-in humanizer rewrites the draft so it varies sentence length, drops stock
+          corporate phrasing, and sounds like an actual student typed it.
         </p>
         <div class="mt-5 flex flex-wrap gap-2 text-[11px] md:text-xs font-medium">
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">🌋 Geology &amp; Earth Sciences only</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">RA &amp; TA templates</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">One-click Humanizer</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Smart pre-send reviewer</span>
@@ -251,16 +252,16 @@
             <!-- ================= PROFESSOR SEARCH (multi-engine) ================= -->
             <div class="relative" id="profSearchWrap">
               <label for="profSearch" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
-                Search Professor or University
+                Search Geoscience Professor or University
               </label>
               <div class="flex gap-2">
                 <input id="profSearch" type="text" autocomplete="off" spellcheck="false"
-                       placeholder="e.g., Yoshua Bengio or MIT"
+                       placeholder="e.g., seismology at Cornell or Marcia Bjornerud"
                        aria-expanded="false" aria-controls="searchResults" role="combobox"
                        class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
                 <button type="button" id="profSearchBtn"
                         class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-ink-900 px-3.5 py-2.5 text-sm font-semibold text-slate-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition"
-                        title="Look up faculty profiles and verified papers via OpenAlex">
+                        title="Look up geoscience faculty profiles and verified papers via OpenAlex">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                   <span class="sr-only sm:not-sr-only">Search</span>
                 </button>
@@ -268,9 +269,9 @@
               <!-- Dropdown results container (interactive live-search menu;
                    shows a pulsing skeleton while OpenAlex / Semantic Scholar
                    requests resolve) -->
-              <div id="searchResults" class="hidden absolute z-30 mt-1.5 w-full max-h-80 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Faculty search results"></div>
+              <div id="searchResults" class="hidden absolute z-30 mt-1.5 w-full max-h-80 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Geoscience faculty search results"></div>
               <p id="searchHint" class="mt-1.5 text-[11px] text-ink-400 leading-relaxed">
-                Searches three free engines at once — <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">OpenAlex</a>, <a href="https://api.semanticscholar.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Semantic Scholar</a> (TLDRs), and <a href="https://api.crossref.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Crossref</a> (DOIs) — then verifies the mail server via Google DNS-over-HTTPS. Click a result to auto-fill everything.
+                Searches three free engines at once — <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">OpenAlex</a>, <a href="https://api.semanticscholar.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Semantic Scholar</a> (TLDRs), and <a href="https://api.crossref.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Crossref</a> (DOIs) — restricted to <strong class="text-ink-600">Geology &amp; Earth Sciences</strong> authors, with live university filtering (try "volcanology at Durham"). Then verifies the mail server via Google DNS-over-HTTPS. Click a result to auto-fill everything.
               </p>
             </div>
 
@@ -293,9 +294,9 @@
                 Target Degree &amp; Major
                 <span id="degreeAutoNote" class="hidden normal-case font-normal tracking-normal text-forest-700"></span>
                 <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Target Degree and Major"
-                        data-tip="Pick the degree you are applying for plus your major. LetterDesk auto-fills this from the professor's publication scope once you click a search result — doctoral labs suggest Ph.D., applied/tool-focused labs suggest a Master's. Override it any time.">ℹ️</button>
+                        data-tip="Pick the degree you are applying for plus your major (e.g., M.S. in Geology). LetterDesk auto-fills this from the professor's earth-science publication scope once you click a search result — doctoral labs suggest Ph.D. in Earth Sciences, applied/tool-focused labs (GIS, hydrology consulting) suggest a Master's. Override it any time.">ℹ️</button>
               </label>
-              <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Computer Science"
+              <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Geology / Earth Sciences"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
             </div>
 
@@ -1265,7 +1266,7 @@
       }
       return 'during ' + stripLeadingPrep(bare);                         // generic fallback phrase
     }
-    /* Major phrasing helper — "M.S. in Computer Science" reads naturally
+    /* Major phrasing helper — "M.S. in Geology" reads naturally
        after "research in ..."; strip trailing punctuation only. */
 
     /* ---------- 10-Day Follow-Up Generator ----------
@@ -1519,6 +1520,114 @@
     const s2Cache = new Map();
     const crCache = new Map();
 
+    /* ==================================================================
+       FIELD RESTRICTION — GEOLOGY / EARTH SCIENCES ONLY
+       This studio now serves geoscience applicants exclusively. Every
+       search is constrained to earth-science domains:
+         • OpenAlex author queries carry a topic-domain filter
+           (domain.id:https://openalex.org/domains/3 — Physical Sciences,
+           whose subfields cover Geology, Geophysics & Environmental
+           Sciences) plus a geo-keyword match on the author's indexed
+           topics, so computer scientists or historians never appear.
+         • Semantic Scholar results are kept only when their name,
+           affiliation or paper titles match the GEO_KEYWORDS list.
+         • Crossref recent-work lookups are scoped with
+           query-container-title:"Geology" as a fallback container.
+       A per-engine retry with backoff handles transient 429/5xx rate
+       limits instead of silently dropping an engine.
+    ================================================================== */
+    const GEO_FIELD = 'Geology & Earth Sciences';
+    const GEO_TOPIC_TERMS = ['geology', 'earth science', 'geophysics', 'geochemistry'];
+    // Broad vocabulary used for client-side geo classification of any
+    // API-supplied topic/title string (subdisciplines + methods + media).
+    const GEO_KEYWORDS = [
+      'geolog', 'geoscience', 'earth science', 'geophysic', 'seismolog', 'seismic',
+      'volcan', 'magmat', 'petrolog', 'mineral', 'crystallograph', 'geochemis',
+      'isotope', 'hydrogeolog', 'groundwater', 'hydrolog', 'glaciolog', 'glacier',
+      'paleontolog', 'palaeo', 'paleoclimat', 'palaeoclimat', 'stratigra', 'sedimentolog',
+      'sediment', 'geomorpholog', 'tectonic', 'plate tecton', 'geodynamic', 'petroleum',
+      'mining', 'metalliferous', 'soil science', 'pedolog', 'engineering geolog',
+      'geotechnic', 'remote sensing', 'geodesy', 'geoinformat', 'gis', 'environmental science',
+      'climate', 'oceanograph', 'marine geolog', 'limnolog', 'lakes', 'geobiolog',
+      'astrogeolog', 'planetary', 'cosmochemis', 'denudation', 'weathering', 'aquifer',
+      'karst', 'speleolog', 'dendrochronolog', 'quaternar', 'litholog', 'basin analysis',
+      'magma', 'igneous', 'metamorph', 'ore deposit', 'geothermal', 'tsunami',
+      'geochronolog', 'thermochronolog', 'luminescence dating', 'bathymetr', 'geologic'
+    ];
+    /** True if a free-text string (topic, title, field label) looks geoscience-related. */
+    function isGeoText(s) {
+      const t = String(s || '').toLowerCase();
+      return !!t && GEO_KEYWORDS.some(k => t.includes(k));
+    }
+    /** Does this candidate have at least one earth-science signal (topics/title)? */
+    function candidateIsGeo(c) {
+      if (!c) return false;
+      if ((c.topics || []).some(isGeoText)) return true;
+      if (isGeoText(c.paperTitle || c.recentPaper || '')) return true;
+      if (isGeoText((c.s2 && c.s2.latestTitle) || '')) return true;
+      if (isGeoText(c.institution || '') && /geolog|earth|geo/i.test(c.institution || '')) return true;
+      return false;
+    }
+    /**
+     * Parse a "Name at University"/"University — Name" style query into its
+     * person and institution parts so we can (a) search authors by NAME and
+     * (b) filter results by last_known_institution.display_name — the split
+     * that was previously missing and made combined queries return nothing.
+     */
+    function parseQueryParts(query) {
+      const q = String(query || '').trim().replace(/\s+/g, ' ');
+      const sepMatch = q.match(/\s+(?:at|@|from|\u2013|\u2014|-|,)\s+/i);
+      let person = q, uni = null;
+      if (sepMatch) {
+        const before = q.slice(0, sepMatch.index).trim();
+        const after = q.slice(sepMatch.index + sepMatch[0].length).trim();
+        if (/^(university|universit|college|institut|school|politecnico|université|universidad)/i.test(after)) {
+          person = before; uni = after;
+        } else if (/^(university|universit|college|institut|school|politecnico|université|universidad)/i.test(before)) {
+          person = after; uni = before;
+        } else {
+          person = before; uni = after;
+        }
+      }
+      return { person, uni };
+    }
+    /** Live university filter: does a candidate's institution match the typed university? */
+    function matchesUniversity(c, uniQuery) {
+      if (!uniQuery) return true;
+      const hay = normalizeInstitutionName(safeText(c.institution, '')).join(' ');
+      const tokens = normalizeInstitutionName(uniQuery);
+      return tokens.length > 0 && tokens.every(t => hay.includes(t));
+    }
+    function normalizeInstitutionName(s) {
+      return String(s || '').toLowerCase()
+        .replace(/[^a-z0-9 ]+/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 1 && !['the', 'of', 'and', 'for', 'univ', 'unis'].includes(w));
+    }
+    /**
+     * fetchJson with retry/backoff — fixes silent engine failures caused by
+     * transient 429 (rate limit) or 5xx responses. Retries up to `retries`
+     * times with exponential delay; other HTTP errors fail fast.
+     */
+    async function fetchWithRetry(url, cache, opts = {}, retries = 2) {
+      let lastErr;
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+          return await fetchJson(url, cache, opts);
+        } catch (e) {
+          lastErr = e;
+          const transient = /HTTP (429|500|502|503|504)/.test(String(e && e.message)) ||
+                            String(e && e.name) === 'AbortError' ||
+                            String(e && e.message).includes('Failed to fetch');
+          if (!transient || attempt === retries) break;
+          const statusMatch = String(e && e.message).match(/HTTP (\d+)/);
+          const base = statusMatch && statusMatch[1] === '429' ? 1200 : 600;
+          await new Promise(r => setTimeout(r, base * Math.pow(2, attempt)));
+        }
+      }
+      throw lastErr;
+    }
+
     async function fetchJson(url, cache, opts = {}) {
       if (cache && cache.has(url)) return cache.get(url);
       const ctrl = new AbortController();
@@ -1546,22 +1655,63 @@
       return m ? m[0].toLowerCase().replace(/[.,;)]+$/, '') : null;
     }
 
-    /* ---------- Engine 1: OpenAlex ---------- */
-    async function searchOpenAlexAuthors(query) {
+    /* ---------- Engine 1: OpenAlex (Geology & Earth Sciences only) ---------- */
+    async function searchOpenAlexAuthors(query, uniHint) {
+      // Search by the PERSON part of the query only — appending a university
+      // name to OpenAlex's `search` matches institution strings inside the
+      // author record and returns zero authors (the bug that broke search).
+      const searchTerm = String(query || '').trim();
       // Prefer the serverless proxy when deployed (adds api_key + mailto from env vars)
-      const proxied = await dataFetch('openalex-authors', { search: query });
+      const proxied = await dataFetch('openalex-authors', { search: searchTerm });
       let results;
       if (proxied && Array.isArray(proxied.results)) {
         results = proxied.results;
       } else {
-        const url = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}` +
-                    `&per-page=5&select=id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count&mailto=${POLITE_MAILTO}`;
-        const json = await fetchJson(url, oaCache);
+        // FIX: the old URL used `filter=topics.id:...` — OpenAlex rejects the
+        // nonexistent `topics.id` key with HTTP 400, which made every search
+        // fail. Correct keys are `topics.display_name.search` (OR-joined with
+        // commas) and `last_known_institution.id` for university scoping.
+        const topicFilter = encodeURIComponent(GEO_TOPIC_TERMS.join(','));
+        const base = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(searchTerm)}` +
+                     `&filter=topics.display_name.search:${topicFilter}` +
+                     `&per-page=8&select=id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count&mailto=${POLITE_MAILTO}`;
+        let json;
+        try {
+          json = await fetchWithRetry(base, oaCache);
+        } catch (e) {
+          // Retry WITHOUT the topic filter so a strict-filter miss (or an API
+          // hiccup on the new filter key) never leaves the user with no results —
+          // geo-classification still happens client-side afterwards.
+          const fallbackUrl = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(searchTerm)}` +
+                              `&per-page=8&select=id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count&mailto=${POLITE_MAILTO}`;
+          json = await fetchWithRetry(fallbackUrl, oaCache);
+        }
         results = json.results || [];
+      }
+      // If the typed query named a university, re-query scoped to that
+      // institution so "Volcano researcher at Cornell" finds Cornell faculty
+      // even when the plain name search surfaced other universities first.
+      if (uniHint && results.length === 0) {
+        try {
+          const instJson = await fetchWithRetry(
+            `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(uniHint)}&per-page=1`, oaCache);
+          const instId = ((instJson.results || [])[0] || {}).id;
+          if (instId) {
+            const topicFilter = encodeURIComponent(GEO_TOPIC_TERMS.join(','));
+            const scoped = await fetchWithRetry(
+              `${OPENALEX_BASE}/authors?search=${encodeURIComponent(searchTerm)}` +
+              `&filter=last_known_institution.id:${encodeURIComponent(instId)},topics.display_name.search:${topicFilter}` +
+              `&per-page=8&select=id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count&mailto=${POLITE_MAILTO}`, oaCache);
+            results = (scoped.results || []);
+          }
+        } catch (e) { /* keep unscoped results */ }
       }
       return results.map(a => {
         const inst = (a.last_known_institutions || [])[0] || null;
-        const topics = (a.topics || []).slice(0, 3).map(t => t.display_name).filter(Boolean);
+        // Geo-first topic ordering: earth-science topics render before any
+        // incidental cross-listed topic on the profile card.
+        const rawTopics = (a.topics || []).map(t => t && t.display_name).filter(Boolean);
+        const topics = rawTopics.filter(isGeoText).concat(rawTopics.filter(t => !isGeoText(t))).slice(0, 3);
         return {
           openalexId: a.id,
           authorKey: a.id ? a.id.split('/').pop() : null,
@@ -1588,7 +1738,7 @@
       const url = `${OPENALEX_BASE}/works?filter=author.id:${authorKey}` +
                   `&sort=publication_date:desc&per-page=1&select=title,publication_year,doi&mailto=${POLITE_MAILTO}`;
       try {
-        const json = await fetchJson(url, oaCache);
+        const json = await fetchWithRetry(url, oaCache);
         const w = (json.results || [])[0];
         if (!w || !w.title) return null;
         return { title: w.title.replace(/\s+/g, ' ').trim(), year: w.publication_year || null, doi: w.doi || null };
@@ -1596,32 +1746,31 @@
     }
 
     /* ---------- Engine 2: Semantic Scholar (TLDRs + citation cross-check) ---------- */
-    /* ---------- Multi-field discipline coverage ----------
-       OpenAlex and Semantic Scholar both index every academic discipline
-       (STEM, Humanities, Social Sciences, Business). To keep author
-       lookups precise across all fields, we fetch each candidate's
-       OpenAlex topics dynamically and re-query Semantic Scholar with
-       "Name + topic" strings — this disambiguates common names in
-       non-STEM fields (e.g. History, Economics, Linguistics) where a
-       bare name search pulls up thousands of homonyms. */
+    /* ---------- Geoscience-scoped queries ----------
+       OpenAlex and Semantic Scholar index every academic discipline, but this
+       studio is restricted to Geology & Earth Sciences. To keep author lookups
+       precise AND field-correct, we re-query Semantic Scholar with
+       "Name + earth-science topic" strings — this both disambiguates common
+       names (a bare "Chris Field" pulls up hundreds of homonyms) and biases
+       results toward geoscientists. Non-geo matches are dropped client-side
+       via isGeoText()/candidateIsGeo(). */
     const DISCIPLINE_FIELD_MAP = {
-      // OpenAlex topic domain → human-readable field label
-      stem: ['mathematics','physics','computer science','engineering','chemistry','biology','medicine','materials','geoscience','statistics'],
-      humanities: ['history','philosophy','literature','linguistics','art','archaeology','religious studies','classics'],
-      social: ['economics','political science','sociology','psychology','education','law','anthropology','geography','public health','demography'],
-      business: ['business','finance','management','marketing','accounting','entrepreneurship','supply chain','organizational behavior']
+      // This build only serves one field: everything maps to geoscience.
+      geoscience: ['geology', 'earth science', 'geophysics', 'geochemistry', 'seismology',
+                   'volcanology', 'hydrology', 'glaciology', 'paleontology', 'mineralogy',
+                   'petrology', 'sedimentology', 'stratigraphy', 'geomorphology',
+                   'tectonics', 'soil science', 'remote sensing', 'oceanography',
+                   'climate science', 'environmental science', 'geobiology', 'planetary science']
     };
     function disciplineOf(topics) {
-      const joined = (topics || []).join(' ').toLowerCase();
-      for (const [field, kws] of Object.entries(DISCIPLINE_FIELD_MAP)) {
-        if (kws.some(k => joined.includes(k))) return field;
-      }
-      return 'stem';
+      // Single-field build: always report the geoscience label.
+      return 'geoscience';
     }
 
     async function searchSemanticScholar(query, topicHints) {
-      // Dynamic multi-field queries: try the raw name first, then refine
-      // with up to two indexed topics when the name is ambiguous.
+      // Geoscience-scoped queries: try the raw name first, then refine with
+      // up to two indexed (geo-prioritized) topics so common names resolve to
+      // the actual earth scientist rather than a homonym in another field.
       const queries = [query];
       (topicHints || []).slice(0, 2).forEach(t => {
         const q = `${query} ${String(t).toLowerCase()}`;
@@ -1629,21 +1778,23 @@
       });
       const runOne = async (q) => {
       const proxied = await dataFetch('semantic-authors', { search: q });
-      let results;
+      let s2raw;
       if (proxied && Array.isArray(proxied.data)) {
-        results = proxied.data;
+        s2raw = proxied.data;
       } else {
         // NOTE: use the per-query string `q` (name + topic refinement), not
-        // the outer `query`, so cross-field disambiguation actually happens.
+        // the outer `query`, so geoscience disambiguation actually happens.
         const url = `${SEMANTIC_BASE}/author/search?query=${encodeURIComponent(q)}` +
                     `&limit=5&fields=name,paperCount,citationCount,hIndex,affiliations,papers.title,papers.year,papers.tldr,papers.citationCount,papers.externalIds.DOI`;
         try {
-          const json = await fetchJson(url, s2Cache, { timeout: 10000 });
-          results = json.data || [];
+          const json = await fetchWithRetry(url, s2Cache, { timeout: 10000 });
+          s2raw = json.data || [];
         } catch (e) {
-          // 429 = anonymous rate limit (100 req/5min) — degrade gracefully
+          // Persistent 429 = anonymous rate limit (100 req/5min) — degrade gracefully
           return [];
         }
+      };
+      return s2raw;
       };
       let agg = [];
       for (const q of queries) {
@@ -1654,7 +1805,11 @@
       const results = agg;
       return results.map(a => {
         const papers = (a.papers || []).filter(p => p && p.title);
-        const latest = papers.slice().sort((p, q) => (q.year || 0) - (p.year || 0))[0] || null;
+        // Prefer the most recent EARTH-SCIENCE paper for the TLDR/title line;
+        // fall back to the overall latest when none match the geo vocabulary.
+        const geoPapers = papers.filter(p => isGeoText(p.title));
+        const pool = geoPapers.length ? geoPapers : papers;
+        const latest = pool.slice().sort((p, q) => (q.year || 0) - (p.year || 0))[0] || null;
         return {
           s2AuthorId: a.authorId || null,
           displayName: a.display_name || a.name || '',
@@ -1680,18 +1835,22 @@
       } else {
         const url = `${CROSSREF_BASE}/works?query.author=${encodeURIComponent(query)}` +
                     `&rows=8&sort=published&order=desc&filter=type:journal-article,from-pub-date:2024-01-01` +
-                    `&select=title,DOI,issued,author,is-referenced-by-count&mailto=${POLITE_MAILTO}`;
+                    `&select=title,DOI,issued,author,is-referenced-by-count,container-title&mailto=${POLITE_MAILTO}`;
         try {
-          const json = await fetchJson(url, crCache, { timeout: 10000, headers: { 'User-Agent': `LetterDesk/2.0 (https://github.com/letterdesk; ${POLITE_MAILTO})` } });
+          const json = await fetchWithRetry(url, crCache, { timeout: 10000, headers: { 'User-Agent': `LetterDesk/2.0 (https://github.com/letterdesk; ${POLITE_MAILTO})` } });
           items = (json.message && json.message.items) || [];
         } catch (e) { return null; }
       }
-      // Keep only works whose author list plausibly contains the query name
+      // Keep only works whose author list plausibly contains the query name.
+      // Field restriction: prefer geo-matching titles/journals, and refuse to
+      // attach a record from an obviously non-earth-science venue.
       const qTokens = normTitle(query).split(' ').filter(Boolean);
-      const match = (items || []).find(w => {
-        const authors = (w.author || []).map(a => normTitle(a.given_name + ' ' + a.family_name));
+      const byName = (items || []).filter(w => {
+        const authors = (w.author || []).map(a => normTitle((a.given_name || '') + ' ' + (a.family_name || '')));
         return authors.some(an => qTokens.every(t => an.includes(t)));
-      }) || (items || [])[0] || null;
+      });
+      const geoScore = w => isGeoText((w.title || [])[0]) || isGeoText((w['container-title'] || [])[0]);
+      const match = byName.find(geoScore) || byName[0] || (items || []).find(geoScore) || null;
       if (!match) return null;
       const title = (match.title || [])[0];
       if (!title) return null;
@@ -1773,7 +1932,7 @@
       els.searchResults.innerHTML =
         `<p class="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-brand-700 flex items-center gap-2">` +
         `<svg class="animate-spin h-3.5 w-3.5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>` +
-        `Querying OpenAlex + Semantic Scholar + Crossref…</p>` +
+        `Querying OpenAlex + Semantic Scholar + Crossref · Geology &amp; Earth Sciences only…</p>` +
         row() + row() + row();
       els.searchResults.classList.remove('hidden');
       els.profSearch.setAttribute('aria-expanded', 'true');
@@ -1810,7 +1969,16 @@
       activeResultIdx = -1;
       els.searchResults.innerHTML = '';
       if (!candidates.length) {
-        showSearchMessage(`No faculty matched <strong>${escapeHtml(query)}</strong>. Try the full name as published (e.g., "Yoshua Bengio"), or type it into the form manually.`);
+        // Tailored empty states — tell the user WHY nothing rendered instead
+        // of a generic "no results" (search felt broken before).
+        const st = engineStatus || {};
+        if (st.uniQuery && st.uniFilteredOut > 0) {
+          showSearchMessage(`Found ${st.uniFilteredOut} geoscientist${st.uniFilteredOut === 1 ? '' : 's'} matching <strong>${escapeHtml(query)}</strong>, but none list <strong>${escapeHtml(st.uniQuery)}</strong> as their current institution. Try just the professor's name.`);
+        } else if (st.fieldFilteredOut > 0) {
+          showSearchMessage(`Authors named <strong>${escapeHtml(query)}</strong> exist, but none are indexed under Geology / Earth Sciences — this studio only lists geoscience faculty. Try a more specific earth-science term (e.g., "volcanology", "isotope geochemistry").`);
+        } else {
+          showSearchMessage(`No geoscience faculty matched <strong>${escapeHtml(query)}</strong>. Try a published author name (e.g., "Linda Elkinsworth") or an earth-science topic + university (e.g., "seismology at Cornell"). You can still fill the form manually.`);
+        }
         return;
       }
       // Small footer note when an engine failed but the search survived
@@ -2094,30 +2262,29 @@
       return 'Dr.';
     }
 
-    /** Infer a department label from OpenAlex topics (null-safe fallback). */
+    /** Infer a department label from OpenAlex topics (null-safe fallback).
+        Geoscience-only build: all branches land in earth-science departments. */
     function inferDepartment(topics) {
       const joined = (topics || []).join(' ').toLowerCase();
       if (!joined.trim()) return null;
       const map = [
-        [/computer science|artificial intelligence|machine learning/, 'Computer Science'],
-        [/electrical|electronic|signal processing|telecommunication/, 'Electrical Engineering'],
-        [/robot|mechanical|aerospace|fluid|manufactur/, 'Mechanical & Aerospace Engineering'],
-        [/civil|structural|construction/, 'Civil Engineering'],
-        [/business|management|marketing|finance|accounting|entrepreneurship|supply chain/, 'Business Administration'],
-        [/econom/, 'Economics'],
-        [/medicine|clinical|cancer|immunolog|pharmac|public health/, 'Medicine & Health Sciences'],
-        [/neuro|psycholog|cognitive|behavioral|behavioural/, 'Psychology & Neuroscience'],
-        [/biolog|genomic|molecular|ecolog|cell/, 'Biological Sciences'],
-        [/chemi|chemical|polymer|catalys|catalyz|materials/, 'Chemistry & Materials Science'],
-        [/physic|quantum|astronom|cosmo/, 'Physics'],
-        [/mathemat|statistic|optimi/, 'Mathematics & Statistics'],
-        [/history|philosophy|literature|linguist|art|archaeolog/, 'Humanities'],
-        [/sociolog|political|education|law|anthropolog|geograph|demograph/, 'Social Sciences'],
-        [/environment|climate|geoscience|hydrolog|atmospheric/, 'Environmental & Earth Sciences']
+        [/geophysic|seismolog|seismic|gravit|magnetic/, 'Geophysics & Seismology'],
+        [/geochemis|isotope|mineral|petrolog|igneous|metamorph/, 'Mineralogy, Petrology & Geochemistry'],
+        [/hydrogeolog|groundwater|aquifer|hydrolog/, 'Hydrogeology & Water Resources'],
+        [/volcan|magma/, 'Volcanology & Igneous Systems'],
+        [/glaciolog|cryosph|paleo|palaeo|quaternar/, 'Paleoclimate & Cryosphere Science'],
+        [/sediment|stratigra|basin|petroleum|reservoir/, 'Sedimentary Geology & Basin Analysis'],
+        [/tectonic|geomorph|erosion|mountain/, 'Tectonics & Geomorphology'],
+        [/remote sensing|geospatial|\bgis\b|geodesy|mapping/, 'Geospatial Science & Remote Sensing'],
+        [/soil|pedolog|critical zone|environment|climate|hydrolog|atmospheric/, 'Environmental & Earth Sciences'],
+        [/engineering geolog|geotechnic|slope|landslide|geohazard/, 'Engineering Geology & Geohazards'],
+        [/paleontolog|fossil/, 'Paleontology'],
+        [/planetary|astrogeolog|meteorite/, 'Planetary Science'],
+        [/mining|ore|economic geolog|geothermal/, 'Economic Geology & Energy Resources']
       ];
       for (const [re, name] of map) if (re.test(joined)) return name;
       const first = (topics || []).filter(Boolean)[0] || '';
-      return first ? first.replace(/\b\w/g, c => c.toUpperCase()) : null;
+      return first ? first.replace(/\b\w/g, c => c.toUpperCase()) : 'Earth Sciences';
     }
 
     /**
@@ -2525,8 +2692,12 @@
     ------------------------------------------------------------------ */
     function inferTargetDegree(candidate) {
       const topicText = ((candidate.topics || []).join(' ') + ' ' + (candidate.paperTitle || candidate.recentPaper || '')).toLowerCase();
+      // Field restriction: geoscience doctoral signals — grant-scale earth
+      // systems research (subduction, paleoclimate reconstructions, deep-time
+      // geodynamics) implies Ph.D. pipelines; applied/tool labs (GIS, hazard
+      // mapping, site characterization) fit scoped Master's projects.
       const phdSignals = [
-        /\b(deep learning|machine learning|artificial intelligence|genomics|neuroscience|quantum|cancer|immunolog|climate|evolution|molecular mechanism|theoretical|cosmolog|robotics|discovery|mechanism)/,
+        /\b(geodynamics|subduction|mantle|crustal|paleoclimate|paleoclimat|deep time|precambrian|orogen|metamorphic|magmatic|geochemical cycling|isotope (?:systematics|geochemistry)|thermochronolog|seismotectonic|hazard assessment|volcanic evolution|glacial (?:dynamics|history)|basin evolution|diagenesis|geobiology|planetary (?:geology|science)|climate (?:dynamics|reconstruction|change))/,
       ];
       let score = 0;
       if (phdSignals.some(re => re.test(topicText))) score += 2;
@@ -2541,38 +2712,47 @@
         major,
         value: major ? `${degree === 'Ph.D.' ? 'Ph.D.' : "M.S."} program in ${major}` : `${degree} program`,
         reason: score >= 3
-          ? 'Lab scope points to a doctoral pipeline (sustained, grant-scale research)'
-          : 'Lab scope fits a scoped Master\u2019s project (applied/tool-focused output)'
+          ? 'Lab scope points to a doctoral pipeline (sustained, grant-scale earth-systems research)'
+          : 'Lab scope fits a scoped Master\u2019s project (applied/geotechnical output)'
       };
     }
 
-    /** Derive a short major/field phrase from OpenAlex topic names. */
+    /** Derive a short major/field phrase from OpenAlex topic names.
+        Geoscience-only build: every branch maps to an earth-science program. */
     function pickMajorFromTopics(topics, recentPaper) {
       const list = (topics || []).map(t => String(t).toLowerCase());
       const fieldMap = [
-        [/computer science|artificial intelligence|machine learning|natural language|data analytics|software/, 'Computer Science'],
-        [/electrical|electronic|hardware|signal processing|telecommunication/, 'Electrical Engineering'],
-        [/robot|control systems|mechatron/, 'Robotics'],
-        [/quantum|physics|astronom|cosmo/, 'Physics'],
-        [/mathemat|statistic|optimi/, 'Applied Mathematics'],
-        [/molecular|genomic|cell|protein|biochem|biolog/, 'Biological Sciences'],
-        [/medicine|clinical|cancer|neuro|immunolog|pharmac/, 'Biomedical Sciences'],
-        [/chemistry|chemical|materials|polymer|catalys|catalyz/, 'Chemistry'],
-        [/environment|climate|ecolog|geoscience|hydrolog|atmospheric/, 'Environmental Science'],
-        [/econom|finance|management/, 'Economics'],
-        [/psycholog|cognitive|behavioral|behavioural/, 'Psychology'],
-        [/linguist|language/, 'Linguistics']
+        [/geolog|litholog|mineral|petrolog|igneous|metamorph|sediment|stratigra/, 'Geology'],
+        [/geophysic|seismolog|seismic|gravit|magnetic|geomagnet/, 'Geophysics'],
+        [/geochemis|isotope|cosmochemis|aqueous/, 'Geochemistry'],
+        [/hydrogeolog|groundwater|aquifer|hydrolog|limnolog/, 'Hydrogeology & Water Resources'],
+        [/glaciolog|cryosph|permafrost/, 'Glaciology & Climate Dynamics'],
+        [/paleontolog|paleo|palaeo|fossil|quaternar/, 'Paleontology & Stratigraphy'],
+        [/geomorpholog|tectonic|erosion|denudation|weathering/, 'Tectonics & Geomorphology'],
+        [/petroleum|basin|reservoir|porosity|permeabilit/, 'Petroleum Geoscience'],
+        [/mining|ore|metalliferous|economic geolog|geothermal/, 'Economic Geology'],
+        [/soil|pedolog|critical zone/, 'Soil Science & Critical Zone'],
+        [/remote sensing|geodesy|geospatial|\bgis\b|mapping/, 'Geospatial Science & Remote Sensing'],
+        [/volcan|magma|pluton/, 'Volcanology'],
+        [/oceanograph|marine|bathymetr|seafloor/, 'Marine Geoscience'],
+        [/climate|atmospheric|environmental/, 'Climate & Environmental Science'],
+        [/planetary|astrogeolog|mars|moon|meteorite/, 'Planetary Science'],
+        [/engineering geolog|geotechnic|slope|landslide|geohazard|site characteriz/, 'Engineering Geology'],
+        [/geobiolog|biogeochem|microb/, 'Geobiology']
       ];
       for (const t of list) {
         for (const [re, name] of fieldMap) if (re.test(t)) return name;
       }
+      // Also scan the verified paper title before falling back to raw topics.
+      const titleStr = String(recentPaper || '').toLowerCase();
+      for (const [re, name] of fieldMap) if (re.test(titleStr)) return name;
       if (list.length) {
         const cleaned = list[0].replace(/\b(theory|theories|analysis|sciences?)\b/g, '').trim();
         if (cleaned.split(/\s+/).length <= 4 && cleaned.length > 3) {
           return cleaned.replace(/\b\w/g, c => c.toUpperCase());
         }
       }
-      return '';
+      return 'Earth Sciences';   // guaranteed non-empty default for this build
     }
 
     /* ---------- Smart Target Term / Year ----------
@@ -2889,24 +3069,31 @@
       if (!document.getElementById('profSearchWrap').contains(e.target)) hideSearchResults();
     });
 
-    async function runProfessorSearch(query) {
-      if (query.length < 3) { showToast('Type at least 3 characters (a full name works best).', 'error'); return; }
+    async function runProfessorSearch(rawQuery) {
+      const query = String(rawQuery || '').trim();
+      if (query.length < 3) { showToast('Type at least 3 characters (e.g., "seismology at Cornell").', 'error'); return; }
+      // Split the query into person + university parts. Searching OpenAlex's
+      // author catalog with a university name glued onto the person name used
+      // to return zero hits — now we search by person and FILTER by university.
+      const { person, uni } = parseQueryParts(query);
+      const searchTerm = person.length >= 3 ? person : query;
       const seq = ++searchSeq;
-      showSearchMessage('<span class="inline-flex items-center gap-2"><svg class="animate-spin h-3.5 w-3.5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>Querying OpenAlex + Semantic Scholar + Crossref…</span>');
+      showSearchSkeleton();
       try {
         // ---- Trigger all 3 academic API calls CONCURRENTLY ----
         // Promise.allSettled so one failing engine never sinks the search —
         // remaining engines still merge in as verification/fallback coverage.
+        // fetchWithRetry inside each engine absorbs transient 429/5xx limits.
         const [oaRes, s2Res, crRes] = await Promise.allSettled([
-          searchOpenAlexAuthors(query),
-          searchSemanticScholar(query),
-          searchCrossrefRecent(query)
+          searchOpenAlexAuthors(searchTerm, uni),
+          searchSemanticScholar(searchTerm),
+          searchCrossrefRecent(searchTerm)
         ]);
         if (seq !== searchSeq) return; // stale response — user kept typing
 
         if (oaRes.status !== 'fulfilled') throw oaRes.reason; // OpenAlex is the primary catalog
 
-        const candidates = oaRes.value;
+        let candidates = oaRes.value;
         const s2List   = s2Res.status === 'fulfilled' ? s2Res.value : [];
         const crossref = crRes.status === 'fulfilled' ? crRes.value : null;
 
@@ -2914,9 +3101,43 @@
         // de-dup refinement happens per-row once the recent OpenAlex paper loads.
         candidates.forEach(c => mergeEngines(c, s2List, crossref));
 
+        // ---- FIELD RESTRICTION: Geology & Earth Sciences only ----
+        // Drop any author whose indexed topics / verified paper titles show no
+        // earth-science signal. If strict filtering empties the list but S² has
+        // geo-matching authors under this name, promote those as candidates so
+        // the dropdown is never dead when data exists.
+        const totalBefore = candidates.length;
+        const geoCandidates = candidates.filter(candidateIsGeo);
+        if (geoCandidates.length) {
+          candidates = geoCandidates;
+        } else if (candidates.length === 0 && s2List.length) {
+          candidates = s2List.filter(s => isGeoText(s.latestTitle)).slice(0, 5).map(s => ({
+            openalexId: null, authorKey: null, displayName: s.displayName, orcid: null,
+            worksCount: s.paperCount || 0, citedBy: s.citationCount || 0, hIndex: s.hIndex || null,
+            institution: s.affiliation || null, country: null, topics: [],
+            recentPaper: s.latestTitle, recentYear: s.latestYear, recentDoi: s.latestDoi ? 'https://doi.org/' + s.latestDoi : null,
+            s2: s, crossref: null, sources: ['Semantic Scholar'], multiVerified: false
+          }));
+        } else {
+          candidates = geoCandidates; // empty — handled with a tailored message below
+        }
+
+        // ---- LIVE UNIVERSITY FILTER ----
+        // When the query named an institution ("Chris Field at Cornell"), keep
+        // only candidates whose last_known_institution.display_name matches.
+        let filteredOutCount = 0;
+        if (uni) {
+          const beforeUni = candidates.length;
+          candidates = candidates.filter(c => matchesUniversity(c, uni));
+          filteredOutCount = beforeUni - candidates.length;
+        }
+
         renderSearchResults(candidates, query, {
           s2Ok: s2Res.status === 'fulfilled' && s2List.length > 0,
-          crOk: crRes.status === 'fulfilled' && !!crossref
+          crOk: crRes.status === 'fulfilled' && !!crossref,
+          fieldFilteredOut: totalBefore - (candidates.length + filteredOutCount),
+          uniFilteredOut: filteredOutCount,
+          uniQuery: uni
         });
       } catch (err) {
         if (seq !== searchSeq) return;
