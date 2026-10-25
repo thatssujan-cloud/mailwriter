@@ -1,9 +1,14 @@
 /**
  * api/_shared.js — shared security helpers for the /api/search proxy.
  *
+ * SINGLE SOURCE OF TRUTH: scripts/build-search.js inlines this file verbatim
+ * into api/search.js (the deployable, self-contained function file). Edit
+ * HERE, then run `node scripts/build-search.js`. CI runs
+ * `node scripts/build-search.js --check` so the two can never drift apart.
+ *
  * NOTE: files beginning with "_" are ignored by Vercel's function router
- * (vercel.json `functions.ignore`), so this module is importable but never
- * exposed as an HTTP endpoint of its own.
+ * (vercel.json `functions.exclude`), so this module is never exposed as an
+ * HTTP endpoint of its own.
  */
 
 /* ------------------------------ Logging -------------------------------- */
@@ -196,7 +201,13 @@ function consume(map, key, cap) {
   return true;
 }
 
-function checkRateLimit(req, event) {
+// The availability probe (target=__probe__) is pure routing metadata — it
+// costs no upstream calls and no money. Exempting it keeps page-load probes
+// from eating the per-IP budget (#8).
+const RATE_LIMIT_EXEMPT_TARGETS = new Set(['__probe__']);
+
+function checkRateLimit(req, event, target) {
+  if (RATE_LIMIT_EXEMPT_TARGETS.has(String(target || ''))) return null;
   const ipCap = envInt('RATE_LIMIT_PER_IP', 30);
   const sessCap = envInt('RATE_LIMIT_PER_SESSION', 60); // per browser session, same 1-min window
   const now = Date.now();
@@ -215,6 +226,57 @@ function checkRateLimit(req, event) {
     return { retryAfter: Math.max(1000, Math.ceil((resetAt - now) / 1000) * 1000), scope: 'session' };
   }
   return null;
+}
+
+/* ---------------------------- Response caching ---------------------------- */
+// #5: small in-instance LRU for idempotent, slowly-changing upstream lookups
+// (author lists, works, MX records). Keys are route + normalized params —
+// NEVER raw emails and never API keys. TTLs stay short (minutes) because
+// research metadata changes rarely and freshness matters little. Cache hits
+// skip the upstream call entirely, protecting quota and rate-limit budget.
+const CACHE_MAX_ENTRIES = 200;
+const responseCache = new Map(); // cacheKey -> { value, expiresAt }
+
+function cacheGet(key) {
+  const e = responseCache.get(key);
+  if (!e) return null;
+  if (e.expiresAt <= Date.now()) { responseCache.delete(key); return null; }
+  // LRU touch: re-insert so iteration order tracks recency.
+  responseCache.delete(key);
+  responseCache.set(key, e);
+  return e.value;
+}
+
+function cacheSet(key, value, ttlMs) {
+  while (responseCache.size >= CACHE_MAX_ENTRIES) {
+    // Evict least-recently-used (first inserted after touches).
+    const oldest = responseCache.keys().next();
+    if (oldest.done) break;
+    responseCache.delete(oldest.value);
+  }
+  responseCache.set(key, { value, expiresAt: Date.now() + ttlMs });
+}
+
+// Canonical cache key: route name + sorted query params, minus volatile /
+// privacy-sensitive entries (api_key, mailto, raw email, consent flag). For
+// email-verify the key carries only the DOMAIN (MX records are per-domain)
+// plus the verification scope — a full address never enters the cache.
+function cacheKey(routeName, params) {
+  const skip = new Set(['api_key', 'mailto', 'consent', 'email', 'search', 'target']);
+  const parts = [];
+  for (const [k, v] of params.entries()) {
+    if (skip.has(k)) continue;
+    parts.push(`${k}=${String(v).toLowerCase()}`);
+  }
+  parts.sort();
+  if (routeName === 'email-verify') {
+    const email = cleanEmail(params.get('email')) || '';
+    const scope = String(params.get('consent') || '') === 'full' ? 'full' : 'domain';
+    parts.push(`scope=${scope}`, `domain=${email.split('@')[1] || ''}`);
+  } else {
+    parts.push(`q=${String(params.get('search') || params.get('query.author') || '').toLowerCase()}`);
+  }
+  return `${routeName}|${parts.join('&')}`;
 }
 
 /* ---------------------------- Spending controls -------------------------- */
@@ -314,6 +376,8 @@ module.exports = {
   LIMITS, cleanText, cleanPerPage, cleanAuthorId, cleanEmail,
   safeFetch,
   checkRateLimit, clientIp, clientSession, envInt,
+  cacheGet, cacheSet, cacheKey,
+  cacheGet, cacheSet, cacheKey,
   groqCapStatus, groqRetryAfterSeconds, recordGroqUsage,
   noteAbuse
 };

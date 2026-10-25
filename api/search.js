@@ -62,10 +62,10 @@
  *           GitHub Pages and the proxy is not executing).
  */
 
-/* ---- Security helpers INLINED from api/_shared.js so this is a
-      single self-contained function file (works identically on the
-      Vercel legacy /api router and Netlify Functions without any
-      bundler configuration). Edit api/_shared.js, then re-inline. ---- */
+/* ---- Security helpers INLINED from api/_shared.js — DO NOT EDIT THIS BLOCK.
+      Source of truth: api/_shared.js. Regenerate with:
+          node scripts/build-search.js
+      CI enforces freshness with: node scripts/build-search.js --check ---- */
 /* ------------------------------ Logging -------------------------------- */
 // Structured JSON log line (Vercel/Netlify ship these to their log drains,
 // where you can build alerts on event names like `rate-limit` or `cap`).
@@ -216,7 +216,7 @@ async function safeFetch(urlStr, init = {}, timeoutMs = 9000) {
 // instances are short-lived, so this is a best-effort first line of defense;
 // pair it with platform-level WAF rules for hard guarantees.
 const WINDOW_MS = 60_000;       // per-minute window (IP/session rate limits, Groq req cap)
-const TOKEN_WINDOW_MS = 15 * 60_000; // token/spend window (see note below)
+const TOKEN_WINDOW_MS = 15 * 60_000; // rolling token/spend window (see note below)
 const bucketsIP = new Map();      // ip -> { count, resetAt }
 const bucketsSession = new Map(); // session -> { count, resetAt }
 
@@ -256,7 +256,13 @@ function consume(map, key, cap) {
   return true;
 }
 
-function checkRateLimit(req, event) {
+// The availability probe (target=__probe__) is pure routing metadata — it
+// costs no upstream calls and no money. Exempting it keeps page-load probes
+// from eating the per-IP budget (#8).
+const RATE_LIMIT_EXEMPT_TARGETS = new Set(['__probe__']);
+
+function checkRateLimit(req, event, target) {
+  if (RATE_LIMIT_EXEMPT_TARGETS.has(String(target || ''))) return null;
   const ipCap = envInt('RATE_LIMIT_PER_IP', 30);
   const sessCap = envInt('RATE_LIMIT_PER_SESSION', 60); // per browser session, same 1-min window
   const now = Date.now();
@@ -275,6 +281,57 @@ function checkRateLimit(req, event) {
     return { retryAfter: Math.max(1000, Math.ceil((resetAt - now) / 1000) * 1000), scope: 'session' };
   }
   return null;
+}
+
+/* ---------------------------- Response caching ---------------------------- */
+// #5: small in-instance LRU for idempotent, slowly-changing upstream lookups
+// (author lists, works, MX records). Keys are route + normalized params —
+// NEVER raw emails and never API keys. TTLs stay short (minutes) because
+// research metadata changes rarely and freshness matters little. Cache hits
+// skip the upstream call entirely, protecting quota and rate-limit budget.
+const CACHE_MAX_ENTRIES = 200;
+const responseCache = new Map(); // cacheKey -> { value, expiresAt }
+
+function cacheGet(key) {
+  const e = responseCache.get(key);
+  if (!e) return null;
+  if (e.expiresAt <= Date.now()) { responseCache.delete(key); return null; }
+  // LRU touch: re-insert so iteration order tracks recency.
+  responseCache.delete(key);
+  responseCache.set(key, e);
+  return e.value;
+}
+
+function cacheSet(key, value, ttlMs) {
+  while (responseCache.size >= CACHE_MAX_ENTRIES) {
+    // Evict least-recently-used (first inserted after touches).
+    const oldest = responseCache.keys().next();
+    if (oldest.done) break;
+    responseCache.delete(oldest.value);
+  }
+  responseCache.set(key, { value, expiresAt: Date.now() + ttlMs });
+}
+
+// Canonical cache key: route name + sorted query params, minus volatile /
+// privacy-sensitive entries (api_key, mailto, raw email, consent flag). For
+// email-verify the key carries only the DOMAIN (MX records are per-domain)
+// plus the verification scope — a full address never enters the cache.
+function cacheKey(routeName, params) {
+  const skip = new Set(['api_key', 'mailto', 'consent', 'email', 'search', 'target']);
+  const parts = [];
+  for (const [k, v] of params.entries()) {
+    if (skip.has(k)) continue;
+    parts.push(`${k}=${String(v).toLowerCase()}`);
+  }
+  parts.sort();
+  if (routeName === 'email-verify') {
+    const email = cleanEmail(params.get('email')) || '';
+    const scope = String(params.get('consent') || '') === 'full' ? 'full' : 'domain';
+    parts.push(`scope=${scope}`, `domain=${email.split('@')[1] || ''}`);
+  } else {
+    parts.push(`q=${String(params.get('search') || params.get('query.author') || '').toLowerCase()}`);
+  }
+  return `${routeName}|${parts.join('&')}`;
 }
 
 /* ---------------------------- Spending controls -------------------------- */
@@ -410,11 +467,66 @@ async function fetchUpstreamJson(routeName, url, init) {
 
 const UPSTREAM_DOWN = { code: 'upstream-unavailable' };
 
+/* --------------------------- Response caching ---------------------------- */
+// #5: research metadata (author lists, works, MX records) changes slowly, so
+// identical lookups within a short TTL are served from the in-instance LRU in
+// _shared.js instead of burning upstream quota and rate-limit budget. Only
+// keyless public datasets are cached — routes that use paid provider keys
+// (email-verify with consent=full) and Groq drafts are never cached. Cache
+// keys contain normalized params only (no emails, no keys). Tunable via env.
+// NOTE: CACHE_TTL_MS is read LAZILY inside the route handlers (not at module
+// load) so tests and cold-start env injection can tune it after import.
+function cacheTtl(routeName) {
+  switch (routeName) {
+    case 'openalex-authors': return envInt('CACHE_TTL_OPENALEX_AUTHORS_SEC', 300) * 1000;
+    case 'openalex-works':   return envInt('CACHE_TTL_OPENALEX_WORKS_SEC', 300) * 1000;
+    case 'semantic-authors': return envInt('CACHE_TTL_SEMANTIC_SEC', 300) * 1000;
+    case 'crossref-works':   return envInt('CACHE_TTL_CROSSREF_SEC', 300) * 1000;
+    case 'dns-mx':           return envInt('CACHE_TTL_DNS_MX_SEC', 3600) * 1000; // MX records are stable
+    default:                 return 0; // uncached
+  }
+}
+
+// Run a cacheable GET route: return the stored upstream JSON on hit (zero
+// upstream calls, zero rate-limit budget), else compute it and store it.
+// Only successful payloads are cached; failures always fall through to the
+// live path so a transient 502 never sticks for the TTL.
+async function cachedJson(routeName, params, ctx, ttlMs, produce) {
+  const key = cacheKey(routeName, params);
+  const hit = cacheGet(key);
+  if (hit !== null && hit !== undefined) {
+    log('cache-hit', { route: routeName });
+    return { json: hit, cacheState: 'HIT', ttlMs };
+  }
+  const json = await produce();
+  if (json) cacheSet(key, json, ttlMs);
+  return { json, cacheState: 'MISS', ttlMs };
+}
+
+// Uniform success response for cached routes: adds X-Cache plus a SHORT
+// browser-only max-age matching the in-instance TTL. Deliberately `private`
+// — responses may reflect per-origin CORS and we do not want shared CDN caches
+// extending the effective TTL beyond what the function itself enforces.
+// `respond` merges extra headers AFTER its default 'no-store', so this wins.
+function okCached(body, ctx, cacheState, ttlMs) {
+  return respond(200, body, {
+    'X-Cache': cacheState,
+    'Cache-Control': `private, max-age=${Math.floor(ttlMs / 1000)}`
+  }, ctx);
+}
+
 /* ----------------------------- OpenAlex -------------------------------- */
 // Shared polite-pool / auth query params for both OpenAlex routes.
-function openalexAuthParams(usp) {
-  if (process.env.OPENALEX_API_KEY) usp.set('api_key', process.env.OPENALEX_API_KEY);
-  if (process.env.OPENALEX_MAILTO)  usp.set('mailto',  process.env.OPENALEX_MAILTO);
+// NOTE: api_key stays OUT of the URL entirely (#3 — keys in query strings leak
+// into access logs and proxies). OpenAlex authenticates via the Authorization
+// header ("Bearer <key>") or the mailto polite-pool param; the legacy ?api_key
+// form is intentionally not used here.
+function openalexAuthHeaders(headers = {}) {
+  if (process.env.OPENALEX_API_KEY) headers['Authorization'] = `Bearer ${process.env.OPENALEX_API_KEY}`;
+  return headers;
+}
+function openalexPoliteParams(usp) {
+  if (process.env.OPENALEX_MAILTO) usp.set('mailto', process.env.OPENALEX_MAILTO);
 }
 
 async function openalexAuthors(params, ctx) {
@@ -425,10 +537,13 @@ async function openalexAuthors(params, ctx) {
     'per-page': cleanPerPage(params.get('perPage'), '5'),
     select: 'id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count'
   });
-  openalexAuthParams(usp);
+  openalexPoliteParams(usp);
+  const ttl = cacheTtl('openalex-authors');
   try {
-    const json = await fetchUpstreamJson('openalex-authors', `https://api.openalex.org/authors?${usp}`);
-    return json ? ok(json, ctx) : bad(UPSTREAM_DOWN, 502, ctx);
+    const c = await cachedJson('openalex-authors', params, ctx, ttl, () =>
+      fetchUpstreamJson('openalex-authors', `https://api.openalex.org/authors?${usp}`,
+                        { headers: openalexAuthHeaders() }));
+    return c.json ? okCached(c.json, ctx, c.cacheState, ttl) : bad(UPSTREAM_DOWN, 502, ctx);
   } catch (e) {
     logWarn('upstream-failed', { route: 'openalex-authors', err: e.message });
     return bad(UPSTREAM_DOWN, 502, ctx);
@@ -444,10 +559,13 @@ async function openalexWorks(params, ctx) {
     'per-page': '3',
     select: 'title,publication_year,doi'
   });
-  openalexAuthParams(usp);
+  openalexPoliteParams(usp);
+  const ttl = cacheTtl('openalex-works');
   try {
-    const json = await fetchUpstreamJson('openalex-works', `https://api.openalex.org/works?${usp}`);
-    return json ? ok(json, ctx) : bad(UPSTREAM_DOWN, 502, ctx);
+    const c = await cachedJson('openalex-works', params, ctx, ttl, () =>
+      fetchUpstreamJson('openalex-works', `https://api.openalex.org/works?${usp}`,
+                        { headers: openalexAuthHeaders() }));
+    return c.json ? okCached(c.json, ctx, c.cacheState, ttl) : bad(UPSTREAM_DOWN, 502, ctx);
   } catch (e) {
     logWarn('upstream-failed', { route: 'openalex-works', err: e.message });
     return bad(UPSTREAM_DOWN, 502, ctx);
@@ -464,12 +582,14 @@ async function semanticAuthors(params, ctx) {
   const usp = new URLSearchParams({ query: q, limit: '5', fields });
   const headers = {};
   if (process.env.SEMANTIC_SCHOLAR_API_KEY) headers['x-api-key'] = process.env.SEMANTIC_SCHOLAR_API_KEY;
+  const ttl = cacheTtl('semantic-authors');
   try {
-    const json = await fetchUpstreamJson(
-      'semantic-authors',
-      `https://api.semanticscholar.org/graph/v1/author/search?${usp}`,
-      { headers });
-    return json ? ok(json, ctx) : bad(UPSTREAM_DOWN, 502, ctx);
+    const c = await cachedJson('semantic-authors', params, ctx, ttl, () =>
+      fetchUpstreamJson(
+        'semantic-authors',
+        `https://api.semanticscholar.org/graph/v1/author/search?${usp}`,
+        { headers }));
+    return c.json ? okCached(c.json, ctx, c.cacheState, ttl) : bad(UPSTREAM_DOWN, 502, ctx);
   } catch (e) {
     logWarn('upstream-failed', { route: 'semantic-authors', err: e.message });
     return bad(UPSTREAM_DOWN, 502, ctx);
@@ -489,9 +609,11 @@ async function crossrefWorks(params, ctx) {
   // Crossref polite pool: OPENALEX_MAILTO is reused as the project contact;
   // fall back to the repo's noreply address.
   usp.set('mailto', process.env.OPENALEX_MAILTO || 'letterdesk@users.noreply.github.com');
+  const ttl = cacheTtl('crossref-works');
   try {
-    const json = await fetchUpstreamJson('crossref-works', `https://api.crossref.org/works?${usp}`);
-    return json ? ok(json, ctx) : bad(UPSTREAM_DOWN, 502, ctx);
+    const c = await cachedJson('crossref-works', params, ctx, ttl, () =>
+      fetchUpstreamJson('crossref-works', `https://api.crossref.org/works?${usp}`));
+    return c.json ? okCached(c.json, ctx, c.cacheState, ttl) : bad(UPSTREAM_DOWN, 502, ctx);
   } catch (e) {
     logWarn('upstream-failed', { route: 'crossref-works', err: e.message });
     return bad(UPSTREAM_DOWN, 502, ctx);
@@ -534,7 +656,10 @@ async function groqDraft(req, event, ctx) {
   const capped = groqCapStatus();
   if (capped) {
     logWarn('groq-cap-blocked', { kind: capped, ip: ctx.ip });
-    return respond(429, { error: 'groq-cap' }, { 'Retry-After': '60' }, ctx);
+    // Real seconds until the earliest spending window resets (was hard-coded
+    // "60"); the client surfaces `error: 'groq-cap'` with retryAfter.
+    return respond(429, { error: 'groq-cap', retryAfter: Number(groqRetryAfterSeconds()) },
+      { 'Retry-After': groqRetryAfterSeconds() }, ctx);
   }
   // Body-size limit: Content-Length header first, then actual byte count.
   const cl = parseInt((req && req.headers && req.headers.get && req.headers.get('content-length')) ||
@@ -623,9 +748,15 @@ async function emailVerify(params, ctx) {
   // explicit consent; domain probes fall straight through to DNS MX below.
   if (consentFull) {
     // 1) Hunter.io — https://hunter.io/api/v2/verify
+    //    #3: key travels as a request BODY param over HTTPS, never in the URL
+    //    (query strings leak into access logs, proxies and browser history).
     if (process.env.HUNTER_API_KEY) {
       try {
-        const r = await safeFetch(`https://hunter.io/api/v2/verify?email=${encodeURIComponent(email)}&api_key=${process.env.HUNTER_API_KEY}`);
+        const r = await safeFetch('https://hunter.io/api/v2/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ api_key: process.env.HUNTER_API_KEY, email }).toString()
+        });
         if (r.ok) {
           const j = await r.json();
           const d = j.data || {};
@@ -640,9 +771,14 @@ async function emailVerify(params, ctx) {
     }
 
     // 2) Abstract API — https://email-validation.api.abstractapi.com/v1/
+    //    #3: api_user goes in HTTP Basic auth username (Abstract supports it),
+    //    keeping the key out of the URL entirely.
     if (process.env.ABSTRACT_API_KEY) {
       try {
-        const r = await safeFetch(`https://email-validation.api.abstractapi.com/v1/?api_user=${process.env.ABSTRACT_API_KEY}&email=${encodeURIComponent(email)}`);
+        const basic = Buffer.from(process.env.ABSTRACT_API_KEY + ':').toString('base64');
+        const r = await safeFetch(`https://email-validation.api.abstractapi.com/v1/?email=${encodeURIComponent(email)}`, {
+          headers: { 'Authorization': `Basic ${basic}` }
+        });
         if (r.ok) {
           const j = await r.json();
           return ok({
@@ -656,6 +792,9 @@ async function emailVerify(params, ctx) {
     }
 
     // 3) ZeroBounce — https://api.zerobounce.net/v2/validate
+    //    ZeroBounce v2 only accepts the key in the query string; keep it but
+    //    note redact() masks anything key-shaped in logs, and URLs are not
+    //    logged at all on this route.
     if (process.env.ZEROBOUNCE_API_KEY) {
       try {
         const r = await safeFetch(`https://api.zerobounce.net/v2/validate?api_key=${process.env.ZEROBOUNCE_API_KEY}&email=${encodeURIComponent(email)}`);
@@ -673,12 +812,18 @@ async function emailVerify(params, ctx) {
   }
 
   // 4) Default (and no-key fallback): free DNS-over-HTTPS MX probe of the
-  //    DOMAIN only — the local part never leaves this worker.
+  //    DOMAIN only — the local part never leaves this worker. MX records are
+  //    per-domain and change rarely, so this is cached for an hour (#5);
+  //    the cache key stores only the domain, never the full address.
+  const ttl = cacheTtl('dns-mx');
   try {
-    const r = await safeFetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`);
-    const j = await r.json();
-    const mxActive = Array.isArray(j.Answer) && j.Answer.length > 0;
-    return ok({ provider: 'dns-mx-only', mx_active: mxActive, deliverable: null, quality: null }, ctx);
+    const c = await cachedJson('email-verify', params, ctx, ttl, async () => {
+      const r = await safeFetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`);
+      const j = await r.json();
+      const mxActive = Array.isArray(j.Answer) && j.Answer.length > 0;
+      return { provider: 'dns-mx-only', mx_active: mxActive, deliverable: null, quality: null };
+    });
+    return okCached(c.json, ctx, c.cacheState, ttl);
   } catch (e) {
     return ok({ provider: 'none', mx_active: null, deliverable: null, quality: null }, ctx);
   }
@@ -687,9 +832,16 @@ async function emailVerify(params, ctx) {
 /* ------------------------------- Router -------------------------------- */
 // Whitelisted targets — anything else is rejected before touching upstreams.
 const TARGETS = new Set(['openalex-authors', 'openalex-works', 'semantic-authors', 'crossref-works', 'email-verify', 'groq-draft']);
+// Probe target answered by js/backend.js's availability check. It confirms
+// the function executes (JSON 400 for an unknown-but-explicit probe marker)
+// without touching any upstream. Rate-limit-exempt (see _shared.js).
+const PROBE_TARGET = '__probe__';
 
 async function route(params, req, event, ctx) {
   const target = String(params.get('target') || '');
+  if (target === PROBE_TARGET) {
+    return bad({ code: 'probe-ok' }, 400, ctx);
+  }
   if (!TARGETS.has(target)) {
     return bad({ code: 'unknown-target' }, 400, ctx);
   }
@@ -700,6 +852,7 @@ async function route(params, req, event, ctx) {
     case 'crossref-works':    return crossrefWorks(params, ctx);
     case 'email-verify':      return emailVerify(params, ctx);
     case 'groq-draft':        return groqDraft(req, event, ctx);
+    default:                  return bad({ code: 'unknown-target' }, 400, ctx);
   }
 }
 
@@ -721,11 +874,15 @@ async function handle(method, params, req, event, ctx) {
   }
   if (method === 'POST' && !params.get('target')) params.set('target', 'groq-draft');
 
-  // Rate limiting per IP and per session (X-Session-Id header).
-  const limited = checkRateLimit(req, event);
+  // Rate limiting per IP and per session (X-Session-Id header). Probes
+  // (target=__probe__) are exempt — they cost nothing and page loads fire
+  // them frequently (#8). 429 body carries the machine-readable code plus
+  // retryAfter seconds so clients can show a precise "slow down" message (#7).
+  const limited = checkRateLimit(req, event, target);
   if (limited) {
-    return respond(429, { error: 'rate-limited' },
-      { 'Retry-After': String(Math.ceil(limited.retryAfter / 1000)) }, ctx);
+    const raSec = Math.ceil(limited.retryAfter / 1000);
+    return respond(429, { error: 'rate-limited', scope: limited.scope, retryAfter: raSec },
+      { 'Retry-After': String(raSec) }, ctx);
   }
 
   // §4 privacy: mask any email address before logging the request line.

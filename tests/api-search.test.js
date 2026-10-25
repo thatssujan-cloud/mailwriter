@@ -13,7 +13,8 @@ const end = src.indexOf('/* ------------------------- Response helpers');
 assert.ok(start > 0 && end > start, 'inlined helper block not found');
 const helpers = new Function('process', src.slice(start, end) + `
   return { corsHeaders, cleanText, cleanPerPage, cleanAuthorId, cleanEmail, safeFetch,
-           checkRateLimit, groqCapStatus, recordGroqUsage, noteAbuse, LIMITS };`);
+           checkRateLimit, groqCapStatus, groqRetryAfterSeconds, recordGroqUsage, noteAbuse,
+           cacheGet, cacheSet, cacheKey, LIMITS };`);
 const H = helpers(process);
 
 let passed = 0;
@@ -24,9 +25,9 @@ function t(name, fn) {
 function loadModule() {
   const m = { exports: {} };
   const fn = new Function('module', 'exports', 'process', 'fetch', 'Buffer', 'console',
-    'URL', 'URLSearchParams', 'Response', 'setTimeout', 'clearTimeout', 'AbortController', src);
+    'URL', 'URLSearchParams', 'Response', 'Headers', 'setTimeout', 'clearTimeout', 'AbortController', src);
   fn(m, m.exports, process, async () => { throw new Error('offline'); }, Buffer, console,
-     URL, URLSearchParams, class Response {}, setTimeout, clearTimeout, AbortController);
+     URL, URLSearchParams, class Response {}, typeof Headers !== 'undefined' ? Headers : class {}, setTimeout, clearTimeout, AbortController);
   return m.exports;
 }
 
@@ -56,7 +57,8 @@ function loadModule() {
   });
   await t('cleanPerPage clamps to 1..25', () => {
     assert.strictEqual(H.cleanPerPage('999'), '25');
-    assert.strictEqual(H.cleanPerPage('-4'), '1');
+    assert.strictEqual(H.cleanPerPage('0'), '1');   // clamped up to perPageMin
+    assert.strictEqual(H.cleanPerPage('-4'), '5');  // non-digit falls back to default
     assert.strictEqual(H.cleanPerPage('', '5'), '5');
   });
   await t('cleanAuthorId regex whitelist', () => {
@@ -170,6 +172,85 @@ function loadModule() {
     });
     assert.strictEqual(res.statusCode, 400);
     assert.strictEqual(JSON.parse(res.body).error, 'malformed-email');
+  });
+
+  // ---- Response caching (#5) ---------------------------------------------
+  await t('cache: set/get roundtrip + TTL expiry + LRU eviction', () => {
+    H.cacheSet('k1', { a: 1 }, 60_000);
+    assert.deepStrictEqual(H.cacheGet('k1'), { a: 1 });
+    H.cacheSet('k2', { b: 2 }, -1);            // already expired on write
+    assert.strictEqual(H.cacheGet('k2'), null);
+    for (let i = 0; i < 250; i++) H.cacheSet('bulk' + i, { i }, 60_000); // > CACHE_MAX_ENTRIES
+    assert.strictEqual(H.cacheGet('k1'), null); // evicted, no throw
+  });
+  await t('cacheKey: normalizes query, excludes api_key/mailto, never stores raw email', () => {
+    const k1 = H.cacheKey('openalex-authors', new URLSearchParams({ search: 'Yoshua Bengio', api_key: 'SECRET', mailto: 'x@y.z', perPage: '5' }));
+    const k2 = H.cacheKey('openalex-authors', new URLSearchParams({ search: 'yoshua bengio', perPage: '5' }));
+    assert.strictEqual(k1, k2);                       // case-folded, volatile params skipped
+    assert.ok(!k1.includes('SECRET') && !k1.includes('x@y.z'));
+    const e1 = H.cacheKey('email-verify', new URLSearchParams({ target: 'email-verify', email: 'alice@mit.edu' }));
+    const e2 = H.cacheKey('email-verify', new URLSearchParams({ target: 'email-verify', email: 'bob@mit.edu' }));
+    assert.strictEqual(e1, e2);                       // domain-only key: same domain → same key
+    assert.ok(!e1.includes('alice') && !e1.includes('bob'));
+    const f1 = H.cacheKey('email-verify', new URLSearchParams({ email: 'a@mit.edu', consent: 'full' }));
+    assert.notStrictEqual(f1, e1);                   // consent scope changes the key
+  });
+  await t('handler: cached route answers second identical call with X-Cache HIT and one upstream fetch', async () => {
+    let calls = 0;
+    const fakeFetch = async (url) => {
+      if (String(url).includes('api.openalex.org')) {
+        calls++;
+        return { ok: true, status: 200, headers: new Headers(), json: async () => ({ results: [{ id: calls }] }) };
+      }
+      throw new Error('offline');
+    };
+    const m = { exports: {} };
+    const fn = new Function('module', 'exports', 'process', 'fetch', 'Buffer', 'console',
+      'URL', 'URLSearchParams', 'Response', 'Headers', 'setTimeout', 'clearTimeout', 'AbortController', src);
+    fn(m, m.exports, process, fakeFetch, Buffer, console, URL, URLSearchParams,
+       class Response {}, Headers, setTimeout, clearTimeout, AbortController);
+    const ev = (ip) => ({ httpMethod: 'GET', headers: { 'x-forwarded-for': ip },
+      queryStringParameters: { target: 'openalex-authors', search: 'Tina Dupue', perPage: '5' } });
+    const r1 = await m.exports.handler(ev('4.4.4.10'));
+    const r2 = await m.exports.handler(ev('4.4.4.11')); // different IP → isolates rate limiter
+    assert.strictEqual(r1.statusCode, 200);
+    assert.strictEqual(r1.headers['X-Cache'], 'MISS');
+    assert.strictEqual(r2.statusCode, 200);
+    assert.strictEqual(r2.headers['X-Cache'], 'HIT');
+    assert.strictEqual(calls, 1, 'second call must not hit upstream');
+    assert.ok(String(r2.headers['Cache-Control']).startsWith('private'));
+  });
+
+  // ---- Probe & 429 surfacing (#7/#8) ---------------------------------------
+  await t('probe: __probe__ returns JSON 400 probe-ok and is rate-limit exempt (#8)', async () => {
+    process.env.RATE_LIMIT_PER_IP = '2';
+    const mod = loadModule();
+    const ev = { httpMethod: 'GET', headers: { 'x-forwarded-for': '6.6.6.6' },
+                 queryStringParameters: { target: '__probe__' } };
+    for (let i = 0; i < 5; i++) {
+      const res = await mod.handler(ev);
+      assert.strictEqual(res.statusCode, 400);
+      assert.strictEqual(JSON.parse(res.body).error, 'probe-ok');
+    }
+    delete process.env.RATE_LIMIT_PER_IP;
+  });
+  await t('429 body carries machine-readable error + retryAfter seconds (#7)', async () => {
+    process.env.RATE_LIMIT_PER_IP = '1';
+    const mod = loadModule();
+    const mk = () => ({ httpMethod: 'GET', headers: { 'x-forwarded-for': '7.7.1.1' },
+                        queryStringParameters: { target: 'unknown-target' } });
+    await mod.handler(mk());
+    const limited = await mod.handler(mk());
+    assert.strictEqual(limited.statusCode, 429);
+    const body = JSON.parse(limited.body);
+    assert.strictEqual(body.error, 'rate-limited');
+    assert.ok(Number.isInteger(body.retryAfter) && body.retryAfter >= 1);
+    assert.ok(parseInt(limited.headers['Retry-After'], 10) >= 1);
+    delete process.env.RATE_LIMIT_PER_IP;
+  });
+  await t('groqRetryAfterSeconds returns a sane positive value (#7 wiring)', () => {
+    const v = Number(H.groqRetryAfterSeconds());
+    assert.ok(Number.isInteger(v) && v >= 1 && v <= 15 * 60);
   });
 
   console.log(`\n${passed} checks passed`);
