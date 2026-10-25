@@ -1,0 +1,25 @@
+# Netlify configuration for LetterDesk.
+# The static site is the repo root; /api/*.js are auto-detected as Netlify
+# Functions (search.js + its _shared.js dependency are bundled together).
+# GitHub Pages CANNOT run these functions — this file makes Netlify (or use
+# vercel.json for Vercel) the supported deployment target. Verify after
+# deploy:  curl -i https://<origin>/api/search  → JSON 400, not raw JS.
+
+[build]
+  publish = "."
+
+[functions]
+  node_bundler = "esbuild"
+
+# Security headers on every response (the function adds per-origin CORS
+# itself from ALLOWED_ORIGINS; wildcard is never emitted).
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"

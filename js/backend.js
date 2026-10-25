@@ -1,18 +1,25 @@
 /* ==========================================================================
    LetterDesk — js/backend.js
    Serverless proxy configuration and the central fetch wrapper used by the
-   research engines in js/core.js. Loads before core.js (classic script).
+   research engines. Loaded as a classic script from index.html BEFORE the
+   inline app code, so dataFetch/dataPost are defined before first use.
+
+   IMPORTANT: /api/search is a SERVERLESS FUNCTION (api/search.js) that only
+   executes on Vercel or Netlify. GitHub Pages serves it as plain text, which
+   previously caused a SILENT fallback to keyless direct calls. The probe in
+   PROXY_STATUS below detects that situation once per page load and disables
+   the proxy path explicitly (with a console warning) instead of failing
+   quietly. Deployment + verification steps: see SECURITY.md and README.md.
    ========================================================================== */
 /* ==================================================================
    SERVERLESS PROXY CONFIG (Vercel / Netlify) — see api/search.js
    ------------------------------------------------------------------
    This page works with zero setup: OpenAlex is queried directly and
-   needs no API key. Paid verification services (Hunter.io, Abstract,
-   ZeroBounce) DO require keys that must never ship in client code.
-   Deploy this folder to Vercel or Netlify and the /api/search proxy
-   function picks up your environment variables server-side:
+   needs no API key. Paid services (Groq drafting, Hunter.io, Abstract,
+   ZeroBounce) DO require keys that must NEVER ship in client code —
+   they live only in hosting environment variables:
 
-     Vercel:   vercel env add OPENALEX_API_KEY / HUNTER_API_KEY ...
+     Vercel:   vercel env add GROQ_API_KEY / OPENALEX_API_KEY ...
      Netlify:  Site settings → Environment variables
 
    Set USE_SERVER_PROXY = true once deployed; until then the site
@@ -23,18 +30,73 @@ const BACKEND = {
   get proxyUrl() { return '/api/search'; }
 };
 
+// Browser session id for server-side per-session rate limiting
+// (RATE_LIMIT_PER_SESSION in api/_shared.js). Random, persisted per tab;
+// contains no personal data.
+function ldSessionId() {
+  try {
+    let s = sessionStorage.getItem('ld_sid');
+    if (!s || !/^[\w:-]{8,64}$/.test(s)) {
+      s = 'ld-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      sessionStorage.setItem('ld_sid', s);
+    }
+    return s;
+  } catch (e) {
+    return 'ld-' + Math.random().toString(36).slice(2, 10);
+  }
+}
+
+/* ------------------- Proxy availability self-check ----------------------- */
+// One cheap probe per page load distinguishes three states:
+//   'ready'    — function executes and responds with JSON
+//   'absent'   — 404/405 or raw JS/HTML answer (e.g. GitHub Pages): the
+//                serverless runtime is NOT executing api/search.js. We log
+//                a loud warning (no longer silent) and skip proxy attempts.
+//   'unknown'  — network error; retried lazily on the next call.
+const PROXY_STATUS = { state: 'unknown', checkedAt: 0 };
+
+async function probeProxy() {
+  PROXY_STATUS.checkedAt = Date.now();
+  try {
+    // An intentionally invalid target must come back as JSON 400 ONLY if a
+    // real function is running; static hosts return 200 + raw JS source.
+    const r = await fetch(`${BACKEND.proxyUrl}?target=__probe__`, { headers: { 'X-Session-Id': ldSessionId() } });
+    const ct = r.headers.get('content-type') || '';
+    if (r.status === 400 && ct.includes('json')) {
+      PROXY_STATUS.state = 'ready';
+    } else {
+      PROXY_STATUS.state = 'absent';
+      console.warn('[LetterDesk] /api/search is not executing as a serverless function on this host ' +
+        `(got HTTP ${r.status}). GitHub Pages cannot run it — deploy to Vercel or Netlify (see SECURITY.md). ` +
+        'Falling back to keyless direct calls; AI draft mode will use local templates.');
+    }
+  } catch (e) {
+    PROXY_STATUS.state = 'unknown';
+  }
+  return PROXY_STATUS.state;
+}
+
 // Central fetch wrapper: routes through the serverless proxy when it's
 // available (keys stay server-side), falls back to direct keyless calls.
 async function dataFetch(target, params) {
   const qs = new URLSearchParams(params).toString();
   if (BACKEND.USE_SERVER_PROXY) {
-    try {
-      const r = await fetch(`${BACKEND.proxyUrl}?target=${encodeURIComponent(target)}&${qs}`);
-      if (r.ok) {
-        const json = await r.json();
-        if (json && (json.results || json.status || json.success !== undefined)) return json;
-      }
-    } catch (e) { /* proxy unavailable — fall through to direct call */ }
+    if (PROXY_STATUS.state === 'unknown' || Date.now() - PROXY_STATUS.checkedAt > 5 * 60 * 1000) {
+      await probeProxy();
+    }
+    if (PROXY_STATUS.state === 'ready') {
+      try {
+        const r = await fetch(`${BACKEND.proxyUrl}?target=${encodeURIComponent(target)}&${qs}`,
+          { headers: { 'X-Session-Id': ldSessionId() } });
+        if (r.ok) {
+          const json = await r.json();
+          if (json && (json.results || json.status || json.success !== undefined)) return json;
+        } else if (r.status === 404 || r.status === 405) {
+          // Function gone/unreachable mid-session — re-probe next time.
+          PROXY_STATUS.state = 'unknown';
+        }
+      } catch (e) { /* transient network error — caller falls back direct */ }
+    }
   }
   return null; // caller performs its own direct fetch
 }
@@ -42,17 +104,25 @@ async function dataFetch(target, params) {
 /* POST variant used by the AI generation mode (Groq / Llama 3). Sends the
    draft brief to the serverless proxy — the GROQ_API_KEY lives only in the
    hosting environment and never ships in client code. Resolves null when
-   the proxy is absent or the key is not configured, so callers can fall
-   back to the local template engine without breaking the UX. */
+   the proxy is absent, rate-limited, or over its spending cap, so callers
+   fall back to the local template engine without breaking the UX. */
 async function dataPost(target, payload) {
   if (!BACKEND.USE_SERVER_PROXY) return null;
+  if (PROXY_STATUS.state === 'absent') return null;
+  if (PROXY_STATUS.state === 'unknown') {
+    const s = await probeProxy();
+    if (s === 'absent') return null;
+  }
   try {
     const r = await fetch(`${BACKEND.proxyUrl}?target=${encodeURIComponent(target)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Session-Id': ldSessionId() },
       body: JSON.stringify(payload || {})
     });
-    if (!r.ok) return null;
+    if (!r.ok) {
+      if (r.status === 404 || r.status === 405) PROXY_STATUS.state = 'unknown';
+      return null;
+    }
     const json = await r.json();
     return (json && json.text) ? json : null;
   } catch (e) { return null; }
