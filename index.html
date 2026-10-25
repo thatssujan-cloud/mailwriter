@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LetterDesk — Geoscience Assistantship Email Studio</title>
-  <meta name="description" content="Draft professor outreach emails for RA/TA assistantships in Geology & Earth Sciences that read like a person wrote them — with multi-engine faculty search, a built-in humanizer, and a smart pre-send reviewer." />
+  <meta name="description" content="LetterDesk: discover geoscience research supervisors from scholarly APIs, check research alignment, draft personalized MSc/PhD outreach emails, verify funding claims, and track your academic outreach — all in your browser." />
 
   <!-- Fonts: Plus Jakarta Sans (UI) + JetBrains Mono (emails/counters) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -163,7 +163,7 @@
     /* Word-count bar */
     #countBar { transition: width 0.35s ease, background-color 0.35s ease; }
 
-    /* Humanizer progress meter */
+    /* Polish progress meter */
     #humanBar { transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s ease; }
 
     /* Respect reduced motion */
@@ -195,34 +195,48 @@
         <div class="hidden md:flex items-center gap-6 text-sm text-slate-300">
           <button type="button" data-scroll-tips class="hover:text-white transition cursor-pointer">Contact Tips</button>
           <a href="#generator" class="hover:text-white transition">Generator</a>
-          <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium ring-1 ring-white/15">
-            <span class="h-1.5 w-1.5 rounded-full bg-forest-400 animate-pulse"></span>
-            100% in-browser · no data leaves your device
-          </span>
+          <button type="button" id="privacyBadge" aria-haspopup="dialog"
+                  class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium ring-1 ring-white/15 cursor-pointer hover:bg-white/15 transition">
+            <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+            Local-first · search queries sent to scholarly APIs
+          </button>
         </div>
       </div>
 
       <div class="mt-8 md:mt-12 max-w-3xl">
         <h1 class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-slate-50">
-          Emails that read like <span class="italic text-brand-300">a person</span> wrote them.
+          Find the Right Research Supervisor.<br><span class="italic text-brand-300">Write a Better First Email.</span>
         </h1>
         <p class="mt-3 md:mt-5 text-sm md:text-base text-slate-300 leading-relaxed">
-          LetterDesk helps prospective and current graduate students in <strong class="text-slate-50 font-semibold">Geology &amp; Earth
-          Sciences</strong> draft outreach about <strong class="text-slate-50 font-semibold">Teaching</strong> and
-          <strong class="text-slate-50 font-semibold">Research Assistantships</strong> — find geoscience faculty across OpenAlex,
-          Semantic Scholar &amp; Crossref, then a built-in humanizer rewrites the draft so it varies sentence length, drops stock
-          corporate phrasing, and sounds like an actual student typed it.
+          Discover geology and Earth science faculty, connect your academic background with their published research,
+          and prepare accurate, personalized emails for funded graduate study — then track every contact until you get a reply.
         </p>
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <a href="#profSearch" id="heroPrimaryCta"
+             class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-lift hover:bg-brand-600 transition">
+            Find a Supervisor
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <button type="button" data-scroll-tips class="text-sm font-semibold text-slate-300 hover:text-white underline underline-offset-4 decoration-slate-500 transition cursor-pointer">See example workflow</button>
+          <button type="button" id="howItWorksToggle" aria-expanded="false" aria-controls="howItWorksPanel"
+                  class="text-sm font-semibold text-slate-300 hover:text-white underline underline-offset-4 decoration-slate-500 transition cursor-pointer">How it works</button>
+        </div>
+        <div id="howItWorksPanel" hidden class="mt-4 max-w-2xl rounded-lg bg-white/5 ring-1 ring-white/10 p-4 text-xs md:text-sm text-slate-300 leading-relaxed space-y-2">
+          <p><strong class="text-slate-100">1 · Supervisor discovery.</strong> Searches run live against public scholarly APIs — OpenAlex, Semantic Scholar, and Crossref — restricted to geoscience topic areas. Results are merged and de-duplicated by author identifier.</p>
+          <p><strong class="text-slate-100">2 · Drafting &amp; review.</strong> Templates assemble only the facts you enter plus publication metadata returned by those APIs. A deterministic style pass ("Natural Language Polish") and a rule-based pre-send reviewer run entirely in your browser.</p>
+          <p><strong class="text-slate-100">3 · Privacy.</strong> Your name, profile text, and drafts never leave this page. Your search query and the recipient's email domain (via Google DNS-over-HTTPS) are sent to external services to power discovery and deliverability checks. Tracker data is saved in this browser's local storage only — it does not sync across devices.</p>
+          <p><strong class="text-slate-100">4 · Honest limits.</strong> Affiliations come from publication metadata ("last known"), not official HR records — always verify on the department's faculty page before sending. LetterDesk never predicts admission or funding outcomes.</p>
+        </div>
         <div class="mt-5 flex flex-wrap gap-2 text-[11px] md:text-xs font-medium">
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">🌋 Geology &amp; Earth Sciences only</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">RA &amp; TA templates</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">One-click Humanizer</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Evidence-based supervisor discovery</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Personalized graduate outreach drafts</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Funding verification checklist</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Outreach tracker with export</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Smart pre-send reviewer</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">mailto: handoff</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-150-word guardrail</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">OpenAlex · Semantic Scholar · Crossref</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Multi-Source Verification</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Google DoH email checks</span>
         </div>
       </div>
     </nav>
@@ -368,10 +382,10 @@
                 </select>
               </div>
 
-              <!-- Select 8b: High-Conversion Email Format ("Grant Me Acceptance" engine) -->
+              <!-- Select 8b: Structured outreach format picker -->
               <div>
                 <label for="emailFormat" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
-                  Email Format <span class="text-ink-400 normal-case font-normal tracking-normal">(high-conversion pitches)</span>
+                  Email Format <span class="text-ink-400 normal-case font-normal tracking-normal">(structured outreach styles)</span>
                 </label>
                 <select id="emailFormat" name="emailFormat"
                         class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition">
@@ -410,13 +424,13 @@
               <div id="emailSuggestions" class="hidden mt-2 flex flex-wrap gap-1.5"></div>
             </div>
 
-            <!-- Humanizer toggle: auto-apply the human-like pass on every generate -->
+            <!-- Polish toggle: auto-apply the natural-language style pass on every generate -->
             <label class="flex items-start gap-3 rounded-lg border border-ink-200 bg-slate-50 px-3.5 py-3 cursor-pointer select-none">
               <input id="humanizeToggle" type="checkbox" checked
                      class="mt-0.5 h-4 w-4 rounded border-ink-300 accent-clay-600" />
               <span>
-                <span class="block text-sm font-semibold text-ink-800">Human-like polish</span>
-                <span class="block text-xs text-ink-500 leading-relaxed">Automatically rewrite each draft so sentence lengths vary and stock corporate phrasing goes away. You can also run it manually from the output panel.</span>
+                <span class="block text-sm font-semibold text-ink-800">Natural language polish</span>
+                <span class="block text-xs text-ink-500 leading-relaxed">Style refinement only: varies sentence length and removes stock corporate phrasing. Facts, names, and qualifications are never changed. You can also run it manually from the output panel.</span>
               </span>
             </label>
 
@@ -552,40 +566,52 @@
                 <button type="button" id="clearFundingBtn" class="text-slate-300 hover:text-white text-xs font-semibold underline decoration-dotted focus:outline-none">dismiss</button>
               </div>
               <div class="px-4 py-4 space-y-4">
-                <!-- a) Acceptance rate + b) assistantships row -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div class="rounded-lg border border-ink-200 bg-white p-3.5">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Target University Acceptance Rate
-                      <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Acceptance Rate"
-                              data-tip="Typical graduate admission rate for this university (planning estimate, not your personal odds). International applicants should target 4–6 labs: funded seats are supervisor-dependent, so research fit matters more than the headline rate.">ℹ️</button>
+                <!-- a) Funding verification status (never invented — evidence-based only) -->
+                <div class="rounded-lg border border-ink-200 bg-white p-3.5">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Funding Status for This Target
+                      <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Funding Status"
+                              data-tip="LetterDesk never invents admission rates or funding promises. Funded seats are supervisor- and grant-dependent; this card records what has actually been verified from official sources — and what still needs checking by you.">ℹ️</button>
                     </p>
-                    <p class="font-display text-2xl font-extrabold text-ink-900"><span id="fundingAcceptPct">—</span><span id="fundingAcceptTier" class="ml-2 align-middle rounded-full px-2 py-0.5 text-[10px] font-bold text-white bg-ink-300"></span></p>
-                    <div class="mt-2 h-2 rounded-full bg-ink-100 overflow-hidden">
-                      <div id="fundingAcceptBar" class="h-full w-0 rounded-full bg-brand-500 transition-all duration-500"></div>
-                    </div>
-                    <p class="mt-1.5 text-[11px] text-ink-500" id="fundingAcceptNote"></p>
+                    <p id="fundingStatusLine" class="text-sm font-semibold text-ink-900">🟡 Needs Confirmation — no official funding evidence reviewed yet.</p>
+                    <p class="mt-1.5 text-[11px] text-ink-500 leading-relaxed">A professor's publication activity does not imply an open funded position. Confirm current openings directly in your outreach email and on the group's careers page.</p>
                   </div>
+                <!-- b) Typical funding routes for the recipient's country (informational, with status) -->
                   <div class="rounded-lg border border-ink-200 bg-white p-3.5">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Available Assistantships &amp; Scholarships</p>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Typical Funding Routes at Institutions in This Country <span class="normal-case font-semibold tracking-normal text-amber-700">(Needs Confirmation)</span></p>
                     <ul id="fundingAwards" class="space-y-1.5 text-[11px] leading-snug text-ink-700"></ul>
                   </div>
+                <!-- c) Evidence table: category / applicant side / source / status / next action -->
+                <div class="rounded-lg border border-ink-200 bg-white p-3.5">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-2">Verification Checklist <span class="normal-case font-semibold tracking-normal text-ink-400">(your own review log — edit statuses as you confirm each item)</span></p>
+                  <div class="overflow-x-auto -mx-1">
+                    <table class="w-full min-w-[560px] text-left text-[11px] leading-snug" id="fundingAuditTable">
+                      <thead class="bg-slate-50 text-ink-600">
+                        <tr>
+                          <th scope="col" class="px-2 py-1.5 font-bold">Item to verify</th>
+                          <th scope="col" class="px-2 py-1.5 font-bold">Evidence / where to look</th>
+                          <th scope="col" class="px-2 py-1.5 font-bold">Status</th>
+                          <th scope="col" class="px-2 py-1.5 font-bold">Remaining action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="fundingAuditBody" class="divide-y divide-ink-100 text-ink-700"></tbody>
+                    </table>
+                  </div>
+                  <p class="mt-2 text-[10px] text-ink-500">Status legend: 🟢 Verified = confirmed on an official page for your intake · 🟡 Needs Confirmation = unreviewed or unclear · ⚪ Not Found = no reliable evidence located (does not mean unavailable).</p>
                 </div>
-                <!-- d) Acceptance Possibility Bar — dynamic fit score 0–100% -->
+                <!-- d) Research-alignment summary (transparent criteria, NOT an admission prediction) -->
                 <div class="rounded-lg border border-ink-200 bg-white p-3.5">
                   <div class="flex items-center justify-between gap-2 mb-1.5">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500">Acceptance Possibility Bar</p>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500">Research-Alignment Summary
+                      <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Research Alignment"
+                              data-tip="This describes topical overlap between your stated interests and the professor's recent publications. It is NOT an admission probability — selection committees weigh many factors we cannot see.">ℹ️</button>
+                    </p>
                     <span id="fitScoreTier" class="rounded-full px-2 py-0.5 text-[10px] font-bold text-white bg-ink-300">—</span>
                   </div>
-                  <div class="flex items-baseline gap-2">
-                    <p class="font-display text-2xl font-extrabold text-ink-900"><span id="fitScorePct">—</span><span class="text-sm font-bold text-ink-400">/100</span></p>
-                    <p class="text-[11px] text-ink-500" id="fitScoreHeadline">Select a professor to compute your fit score.</p>
-                  </div>
-                  <div class="mt-2 h-2.5 rounded-full bg-ink-100 overflow-hidden">
-                    <div id="fitScoreBar" class="h-full w-0 rounded-full bg-ink-300 transition-all duration-700"></div>
-                  </div>
+                  <p class="text-[11px] text-ink-500" id="fitScoreHeadline">Select a professor to compare their recent publications with your stated research interests.</p>
                   <ul id="fitScoreBreakdown" class="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] leading-snug text-ink-600"></ul>
+                  <p class="mt-2 text-[10px] text-ink-400 italic">Based only on topic/method overlap with recent publications — not citation counts, and not a prediction of admission or funding.</p>
                 </div>
-                <!-- c) Deadline warning / timeline -->
+                <!-- e) Deadline reminder (generic planning heuristic, clearly labeled) -->
                 <div class="rounded-lg border p-3.5" id="fundingDeadlineWrap">
                   <div class="flex items-start gap-2.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" id="fundingDeadlineIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -596,16 +622,16 @@
                     </div>
                   </div>
                 </div>
-                <p class="text-[10px] text-ink-400 italic leading-relaxed">Rates and deadlines are curated planning estimates for typical graduate programs at this institution — always confirm the current cycle on the university's official graduate admissions page before relying on them.</p>
+                <p class="text-[10px] text-ink-400 italic leading-relaxed">LetterDesk does not publish estimated acceptance rates or admission probabilities — such numbers are institution- and cohort-specific and change yearly. Deadlines shown are generic planning heuristics by intake season; always confirm exact dates, eligibility, tuition, and stipends on the university's official graduate admissions page before relying on them.</p>
               </div>
             </div>
 
-            <!-- ---------- HUMANIZER CARD ---------- -->
+            <!-- ---------- NATURAL LANGUAGE POLISH CARD (style refinement) ---------- -->
             <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 space-y-3">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
-                  <h3 class="font-display text-sm font-bold text-ink-900">Humanizer</h3>
+                  <h3 class="font-display text-sm font-bold text-ink-900">Natural Language Polish</h3>
                   <span id="humanStatusChip" class="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold text-ink-500">idle</span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -614,32 +640,37 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
                     Undo polish
                   </button>
+                  <button type="button" id="compareVersionBtn"
+                          class="hidden inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.97] transition">
+                    Compare with original
+                  </button>
                   <button type="button" id="humanizeBtn"
                           class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-slate-50 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Rewrite the draft so it reads like a person typed it: varied sentence rhythm, no stock corporate phrasing">
+                          title="Improve readability and professional tone: varied sentence rhythm, no stock corporate phrasing. Facts are never changed.">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-                    Humanize This Email
+                    Polish This Email
                   </button>
                 </div>
               </div>
 
               <p class="text-xs text-ink-600 leading-relaxed">
-                Rewrites every sentence with natural human rhythm — contractions where they fit, varied
-                lengths, everyday academic voice, hedge words removed, and all tell-tale machine phrases
-                swapped out. Proper nouns, lab names, tools, dates, and your signature are never touched.
+                Style refinement only — improves readability and natural phrasing (contractions where they fit,
+                varied lengths, everyday academic voice, hedge words removed, stock machine phrases swapped out).
+                Proper nouns, lab names, tools, dates, publications, and your signature are never touched, and no
+                qualifications or facts are added or altered.
               </p>
 
               <div class="flex items-center gap-3">
-                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500 shrink-0">Naturalness score
-                  <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Humanizer Naturalness Score"
-                          data-tip="How human the draft reads (0–100): LetterDesk measures sentence-length variety, machine phrases, contractions and hedge words — the same statistical signals AI detectors look for. Above 80 usually passes detector heuristics; always re-read before sending.">ℹ️</button>
+                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500 shrink-0">Readability score
+                  <button type="button" class="ld-tip align-middle ml-0.5" aria-label="Help: Readability Score"
+                          data-tip="Measures sentence-length variety, stock phrases, contractions, and hedging in your draft (0–100). It is a readability signal only — not a guarantee about AI detectors, which are unreliable and change constantly. Always re-read the final text yourself.">ℹ️</button>
                 </span>
                 <div class="flex-1 h-2 rounded-full bg-ink-100 overflow-hidden">
                   <div id="humanBar" class="h-full w-0 rounded-full bg-ink-300"></div>
                 </div>
                 <span id="humanScoreLabel" class="text-xs font-bold text-ink-600 w-9 text-right">—</span>
               </div>
-              <p id="humanChanges" class="text-[11px] text-ink-500 italic leading-relaxed">Run a generate or click Humanize to see what changed.</p>
+              <p id="humanChanges" class="text-[11px] text-ink-500 italic leading-relaxed">Run a generate or click "Polish This Email" to see what changed.</p>
             </div>
 
             <!-- Quick action toolbar -->
@@ -777,7 +808,7 @@
   <footer class="bg-ink-950 text-slate-300 mt-auto relative z-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
       <p>© <span id="year"></span> LetterDesk · Built for graduate applicants everywhere.</p>
-      <p class="text-slate-400">All generation happens locally in your browser.</p>
+      <p class="text-slate-400">Drafting, review, and tracking run locally in your browser; searches query public scholarly APIs.</p>
     </div>
   </footer>
 
@@ -810,6 +841,30 @@
 
   <!-- ============================ TOAST CONTAINER ============================ -->
   <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-[calc(100%-2rem)] max-w-sm" aria-live="polite"></div>
+
+  <!-- ==================== VERSION COMPARISON MODAL (Original vs Polished) === -->
+  <div id="compareModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="compareModalTitle">
+    <div id="compareModalBackdrop" class="absolute inset-0 bg-ink-950/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-xl bg-white shadow-card ring-1 ring-ink-200 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3.5 bg-ink-950 text-slate-50 shrink-0">
+        <h3 id="compareModalTitle" class="font-display text-sm font-bold">Version comparison — Original vs Polished</h3>
+        <button type="button" id="compareModalClose" class="text-slate-300 hover:text-white transition" aria-label="Close comparison">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <p class="px-5 pt-3 text-xs text-ink-500 leading-relaxed shrink-0">Polish is a style refinement only: it varies sentence rhythm and removes stock phrasing. It never adds qualifications or changes facts, names, dates, publications, or your signature.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 overflow-y-auto">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Original draft</p>
+          <pre id="compareOriginal" class="whitespace-pre-wrap rounded-lg border border-rose-200 bg-rose-50/60 p-3 text-xs leading-relaxed text-ink-800 font-sans max-h-72 overflow-y-auto"></pre>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">After Natural Language Polish</p>
+          <pre id="comparePolished" class="whitespace-pre-wrap rounded-lg border border-forest-200 bg-forest-50/60 p-3 text-xs leading-relaxed text-ink-800 font-sans max-h-72 overflow-y-auto"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ============================================================= -->
   <!-- ===================== JAVASCRIPT LOGIC ====================== -->
@@ -949,7 +1004,7 @@
     const trimClause = s => String(s).replace(/\s+/g, ' ').trim();
 
     /* ------------------------------------------------------------------
-       HIGH-CONVERSION "GRANT ME ACCEPTANCE" TEMPLATE ENGINE
+       STRUCTURED OUTREACH FORMAT ENGINE
        Four distinct international-outreach formats:
          1. TOOL MATCH   — RA focus: connects the candidate's specific
                            technical skill directly to the paper's methods.
@@ -1062,9 +1117,10 @@
     };
 
     /* ------------------------------------------------------------------
-       HIGH-CONVERSION FORMAT ENGINE ("Grant Me Acceptance")
-       Four distinct template formats selectable from the form. Every
-       format follows international academic outreach standards
+       STRUCTURED FORMAT ENGINE
+       Four distinct template formats selectable from the form. These are
+       writing structures only — they do not raise admission chances and
+       make no conversion promises. Every format follows standard
        (US/Canada/Europe/UK): direct opener referencing a specific recent
        publication or methodology, an explicit day-one contribution
        bridge from the candidate's home institution, a direct value
@@ -1296,7 +1352,7 @@
     }
 
     /* Build the complete email from current form state + chosen tone.
-       When a high-conversion FORMAT is selected (Tool Match / Grant Pitch /
+       When a structured FORMAT is selected (Tool Match / Grant Pitch /
        TA Pitch / Ultra-Short) the format engine takes over; otherwise the
        classic raTemplates / taTemplates engine runs, whose sentence two
        always pairs the professor's paper topic with the user's tool/skill.
@@ -1319,7 +1375,7 @@
 
       const ctx = { prof, major, term, bg, focus, skill };
 
-      // ---- High-conversion formats (Grant Me Acceptance engine) ----
+      // ---- Structured formats (format engine) ----
       if (format !== 'auto' && FORMATS[format]) {
         const fmt = FORMATS[format];
         const parts = fmt.body(ctx);
@@ -1398,7 +1454,8 @@
     };
 
     let lastGenerated = null; // remembers inputs were valid; stores {subject, body}
-    let preHumanizeSnapshot = null; // body text before the last humanizer pass
+    let preHumanizeSnapshot = null; // body text before the last polish pass
+    let polishedVersionText = null; // latest polished output (for Original vs Polished comparison)
     let verifiedProfessor = null;   // OpenAlex profile attached via search (audit card source)
 
     const TONE_LABELS = { direct: 'Professional & Direct', academic: 'Expressive & Academic', formal: 'Formal & Concise' };
@@ -1411,12 +1468,20 @@
       // never touches names, tools, dates, or the signature block.
       if (els.humanToggle && els.humanToggle.checked) {
         const h = humanizeText(body);
+        preHumanizeSnapshot = body;           // keep the original for Undo / Compare
+        polishedVersionText = h.text;
         finalBody = h.text;
-        setHumanPanel(h.score, `${h.changes} naturalness fix${h.changes === 1 ? '' : 'es'} applied automatically on generate.`, 'auto-polished');
+        els.undoHumanize.classList.remove('hidden');
+        const cmp = document.getElementById('compareVersionBtn');
+        if (cmp) cmp.classList.remove('hidden');
+        setHumanPanel(h.score, `Style refinement only: ${h.changes} phrasing fix${h.changes === 1 ? '' : 'es'} applied automatically on generate — no facts changed.`, 'auto-polished');
       } else {
         preHumanizeSnapshot = null;
+        polishedVersionText = null;
         els.undoHumanize.classList.add('hidden');
-        setHumanPanel(null, 'Auto-polish is off — click "Humanize This Email" any time.', 'idle');
+        const cmp = document.getElementById('compareVersionBtn');
+        if (cmp) cmp.classList.add('hidden');
+        setHumanPanel(null, 'Auto-polish is off — click "Polish This Email" any time.', 'idle');
       }
       els.body.value = finalBody;
       lastGenerated = { subject, body: finalBody };
@@ -2190,36 +2255,10 @@
       ]
     };
 
-    const ACCEPTANCE_INSIGHTS = {
-      // Curated typical graduate-level acceptance ranges (planning estimates)
-      'massachusetts institute of technology': { pct: 8,  note: 'extremely selective; committee screens on research fit' },
-      'stanford university':                   { pct: 9,  note: 'very selective; faculty-led admissions' },
-      'university of california, berkeley':    { pct: 12, note: 'selective; strong GRE-free holistic review' },
-      'harvard university':                    { pct: 7,  note: 'department-by-department; tiny cohorts' },
-      'university of toronto':                 { pct: 18, note: 'graduate admissions vary widely by department' },
-      'universite de montreal':                { pct: 22, note: 'larger intake; supervision-agreement first' },
-      'mcgill university':                     { pct: 25, note: 'moderate selectivity; supervisor buy-in is key' },
-      'university of british columbia':        { pct: 20, note: 'supervisor-dependent admits for research degrees' },
-      'university of oxford':                  { pct: 15, note: 'college + committee double gate' },
-      'university of cambridge':               { pct: 15, note: 'pre-interviews decide most outcomes' },
-      'imperial college london':               { pct: 20, note: 'program-specific competitiveness' },
-      'university college london':             { pct: 30, note: 'high volume; listed entry bar matters most' },
-      'university of edinburgh':               { pct: 35, note: 'many taught MSc routes; PGR more selective' },
-      'technical university of munich':        { pct: 25, note: 'formal requirements gate (ECTS matching)' },
-      'eth zurich':                            { pct: 22, note: 'MSc competitive; PhD = job application' },
-      'national university of singapore':      { pct: 20, note: 'strong candidates only; supervisor shortlist' },
-      'university of melbourne':               { pct: 30, note: 'Melbourne Model: coursework vs research tracks' },
-      'tribhuvan university':                  { pct: 45, note: 'entrance-exam based for affiliated campuses' }
-    };
-
-    function estimateAcceptance(institutionName) {
-      const norm = String(institutionName || '').toLowerCase().replace(/\s+/g, ' ').trim();
-      if (ACCEPTANCE_INSIGHTS[norm]) return ACCEPTANCE_INSIGHTS[norm];
-      // Country-level graduate baseline when the exact school isn't curated
-      const cc = guessCountryFromInstitution(norm);
-      const base = { US: 28, CA: 30, UK: 32, DE: 35, CH: 25, AU: 35, NZ: 40, FR: 38, NL: 32, SE: 30, KR: 25, JP: 30, SG: 20, CN: 18, IN: 30, NP: 45 }[cc] || 30;
-      return { pct: base, note: 'typical graduate-program range for this region (planning estimate)' };
-    }
+    /* Removed: fabricated per-university acceptance-rate estimates.
+       LetterDesk never displays invented admission probabilities or rates.
+       guessCountryFromInstitution() below is retained for funding-route
+       labelling and deadline heuristics only. */
 
     function guessCountryFromInstitution(norm) {
       if (/\.edu|university of|state university|polytechnic/.test(norm) && !/canada|quebec/.test(norm)) return 'US';
@@ -2366,60 +2405,160 @@
 
     let currentTermInfo = null; // last computed deadline info (for the card)
 
+    /* ---------- Verification checklist (user-maintained, localStorage) ----
+       Statuses follow the spec: Verified / Needs Confirmation / Not Found.
+       Nothing here is auto-asserted — the applicant records what they have
+       personally confirmed on official pages. */
+    const AUDIT_STATUSES = [
+      { v: 'needs',  label: '🟡 Needs Confirmation' },
+      { v: 'verified', label: '🟢 Verified' },
+      { v: 'notfound', label: '⚪ Not Found' }
+    ];
+    const AUDIT_ITEMS = [
+      { id: 'affiliation', item: 'Current affiliation & position', where: 'Department faculty page of the target university (publication metadata only shows last known institution)', action: 'Open the official profile link on the result card and confirm the professor still holds this post.' },
+      { id: 'funding',     item: 'Funded PhD/RA openings for your intake', where: 'Research group "Join us"/vacancies page + supervisor grant listings', action: 'Ask directly in your outreach email whether funded positions exist for the upcoming intake.' },
+      { id: 'deadline',    item: 'Application deadline for your intake', where: 'Official graduate school admissions calendar', action: 'Confirm the exact date; the heuristic shown below is generic planning guidance only.' },
+      { id: 'requirements',item: 'Degree background & English-language requirements', where: 'Programme requirements page (e.g., IELTS/TOEFL minimums, ECTS matching)', action: 'Check your credentials against the listed minimums before applying.' },
+      { id: 'tuition',     item: 'Tuition fees & stipend amounts', where: 'University fees page + scholarship provider site', action: 'Record current figures from official sources — never rely on third-party estimates.' }
+    ];
+
+    function auditStoreKey() { return 'letterdesk.audit.v1'; }
+    function loadAuditLog() {
+      try { return JSON.parse(localStorage.getItem(auditStoreKey())) || {}; } catch (e) { return {}; }
+    }
+    function saveAuditLog(log) {
+      try { localStorage.setItem(auditStoreKey(), JSON.stringify(log)); }
+      catch (e) { showToast('Could not save checklist status — browser storage unavailable.', 'error'); }
+    }
+
     function renderFundingCard(candidate, termInfo) {
       currentTermInfo = termInfo || null;
       const card = document.getElementById('fundingCard');
       card.classList.remove('hidden');
 
-      // a) Acceptance rate
-      const acc = estimateAcceptance(candidate.institution);
-      document.getElementById('fundingAcceptPct').textContent = `${acc.pct}%`;
-      const bar = document.getElementById('fundingAcceptBar');
-      bar.style.width = Math.min(100, acc.pct) + '%';
-      const tier = acc.pct < 15 ? ['bg-rose-500', 'Competitive'] : acc.pct <= 30 ? ['bg-amber-500', 'Selective'] : ['bg-emerald-500', 'Standard'];
-      bar.className = 'h-full rounded-full transition-all duration-500 ' + tier[0];
-      document.getElementById('fundingAcceptTier').textContent = tier[1];
-      document.getElementById('fundingAcceptTier').className = 'ml-2 align-middle rounded-full px-2 py-0.5 text-[10px] font-bold text-white ' + tier[0];
-      document.getElementById('fundingAcceptNote').textContent =
-        `${candidate.institution || 'This university'} — ${acc.note}. Apply to 4–6 labs; fit beats prestige for funded seats.`;
+      // a) Funding status line — always honest: nothing verified automatically
+      const log = loadAuditLog();
+      const fundStatus = (log[candidate.openalexId] && log[candidate.openalexId].funding) || 'needs';
+      const statusLine = document.getElementById('fundingStatusLine');
+      if (statusLine) {
+        statusLine.textContent = fundStatus === 'verified'
+          ? `🟢 Verified — you confirmed funding evidence for ${candidate.institution || 'this institution'} in your own checklist.`
+          : fundStatus === 'notfound'
+            ? `⚪ Not Found — you searched but located no reliable funding evidence yet. This does NOT mean funding is unavailable.`
+            : `🟡 Needs Confirmation — no official funding evidence reviewed yet for ${candidate.institution || 'this target'}.`;
+      }
 
-      // b) Assistantships & scholarships
-      const cc = (candidate.country || '').toUpperCase();
+      // b) Typical funding routes (informational patterns per country, clearly unverified)
+      const cc = (candidate.country || guessCountryFromInstitution(String(candidate.institution || '').toLowerCase()) || '').toUpperCase();
       const awards = GRAD_FUNDING_BY_COUNTRY[cc] || GRAD_FUNDING_BY_COUNTRY.DEFAULT;
       const ul = document.getElementById('fundingAwards');
       ul.innerHTML = '';
       awards.forEach(a => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-1.5';
-        li.innerHTML = '<span class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[9px] font-bold">$</span><span></span>';
-        li.querySelector('span:last-child').textContent = a;
+        const mark = document.createElement('span');
+        mark.className = 'mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800 text-[9px] font-bold';
+        mark.textContent = '?';
+        mark.setAttribute('aria-hidden', 'true');
+        const txt = document.createElement('span');
+        txt.textContent = a;
+        li.appendChild(mark); li.appendChild(txt);
         ul.appendChild(li);
       });
 
-      // c) Deadline warning / timeline
+      // c) Evidence table with editable statuses (persisted per professor)
+      const tbody = document.getElementById('fundingAuditBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        AUDIT_ITEMS.forEach(def => {
+          const tr = document.createElement('tr');
+          const td1 = document.createElement('td'); td1.className = 'px-2 py-1.5 font-semibold align-top'; td1.textContent = def.item;
+          const td2 = document.createElement('td'); td2.className = 'px-2 py-1.5 align-top text-ink-600'; td2.textContent = def.where;
+          const td3 = document.createElement('td'); td3.className = 'px-2 py-1.5 align-top';
+          const sel = document.createElement('select');
+          sel.className = 'rounded border border-ink-300 bg-white px-1.5 py-1 text-[10px] font-semibold text-ink-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40';
+          sel.setAttribute('aria-label', 'Verification status: ' + def.item);
+          AUDIT_STATUSES.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.v; opt.textContent = s.label;
+            sel.appendChild(opt);
+          });
+          sel.value = (log[candidate.openalexId] && log[candidate.openalexId][def.id]) || 'needs';
+          sel.addEventListener('change', () => {
+            const l2 = loadAuditLog();
+            l2[candidate.openalexId] = Object.assign({}, l2[candidate.openalexId], { [def.id]: sel.value });
+            saveAuditLog(l2);
+            renderFundingCard(candidate, currentTermInfo); // refresh status line
+          });
+          td3.appendChild(sel);
+          const td4 = document.createElement('td'); td4.className = 'px-2 py-1.5 align-top text-ink-600'; td4.textContent = def.action;
+          tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+          tbody.appendChild(tr);
+        });
+      }
+
+      // d) Research-alignment summary — transparent topic-overlap description,
+      //    computed ONLY from candidate topics vs. the user's stated focus.
+      const tierEl = document.getElementById('fitScoreTier');
+      const headEl = document.getElementById('fitScoreHeadline');
+      const bdEl   = document.getElementById('fitScoreBreakdown');
+      if (tierEl && headEl && bdEl) {
+        const userFocus = String(document.getElementById('researchFocus')?.value || '')
+          .toLowerCase() + ' ' + String(document.getElementById('labFocus')?.value || '').toLowerCase();
+        const topics = (candidate.topics || []).filter(Boolean);
+        const overlap = [];
+        const paperBits = String(candidate.paperTitle || '').toLowerCase();
+        topics.forEach(t => {
+          const words = t.toLowerCase().split(/[^a-zà-ÿ]+/).filter(w => w.length > 4);
+          if (words.some(w => userFocus.includes(w))) overlap.push(t);
+        });
+        const paperMatch = userFocus.trim() && paperBits && wordsOverlap(userFocus, paperBits);
+        let tier, tierCls, headline;
+        if (!userFocus.trim()) {
+          tier = 'Awaiting input'; tierCls = 'bg-ink-300';
+          headline = 'Enter your research interest in the form to see topical overlap with this researcher\u2019s work.';
+        } else if (overlap.length || paperMatch) {
+          tier = 'Topical overlap'; tierCls = 'bg-emerald-600';
+          headline = 'Your stated interests share topics with this researcher\u2019s recent work — describe that connection concretely in your email.';
+        } else {
+          tier = 'Little overlap'; tierCls = 'bg-amber-500';
+          headline = 'No clear topical match found between your stated interests and this profile\u2019s indexed topics. Consider whether another lab fits better.';
+        }
+        tierEl.textContent = tier;
+        tierEl.className = 'rounded-full px-2 py-0.5 text-[10px] font-bold text-white ' + tierCls;
+        headEl.textContent = headline;
+        bdEl.innerHTML = '';
+        const addLi = (txt) => { const li = document.createElement('li'); li.textContent = '• ' + txt; bdEl.appendChild(li); };
+        if (topics.length) addLi('Indexed topics: ' + topics.slice(0, 4).join(', '));
+        else addLi('Indexed topics: ' + DEFAULT_TOPICS);
+        if (candidate.paperTitle) addLi(`Recent publication: \u201C${candidate.paperTitle}\u201D${candidate.paperYear ? ' (' + candidate.paperYear + ')' : ''}`);
+        if (overlap.length) addLi('Matching topics: ' + overlap.join(', '));
+        if (paperMatch) addLi('Your focus shares wording with their most recent indexed publication.');
+        addLi('Affiliation source: publication metadata (last known) — verify on the official faculty page.');
+      }
+
+      // e) Deadline reminder — explicitly generic, no invented dates
       const wrap = document.getElementById('fundingDeadlineWrap');
       const main = document.getElementById('fundingDeadlineMain');
       const sub = document.getElementById('fundingDeadlineSub');
       const ti = currentTermInfo;
       wrap.className = 'rounded-lg border p-3.5 ';
       if (ti && ti.deadline) {
-        const days = Math.round((ti.deadline - new Date()) / (1000 * 60 * 60 * 24));
-        if (days <= 45) {
-          wrap.className += 'border-rose-300 bg-rose-50 text-rose-800';
-          main.textContent = `⚠ Closing soon: apply by ${fmtDate(ti.deadline)} (${days} days left)`;
-        } else if (days <= 100) {
-          wrap.className += 'border-amber-300 bg-amber-50 text-amber-800';
-          main.textContent = `Approaching window: deadline ${fmtDate(ti.deadline)} (~${Math.round(days / 30)} months out)`;
-        } else {
-          wrap.className += 'border-forest-300 bg-forest-50 text-forest-800';
-          main.textContent = `Open window: ${ti.label} intake — deadline ${fmtDate(ti.deadline)}`;
-        }
-        sub.textContent = (ti.note || '') + ' Start outreach now: professors commit funded seats 3–6 months before deadlines.';
+        wrap.className += 'border-amber-300 bg-amber-50 text-amber-900';
+        main.textContent = `Planning heuristic for the ${ti.label} intake — confirm the real deadline officially`;
+        sub.textContent = 'This generic seasonal window is not an official date. Graduate schools publish authoritative deadlines per programme and intake; check the target university\u2019s graduate admissions page and record the confirmed date in the checklist above.';
       } else {
         wrap.className += 'border-ink-200 bg-white text-ink-700';
-        main.textContent = ti ? ti.label + ' — confirm exact deadlines' : 'Select a professor to compute your window';
-        sub.textContent = ti && ti.note ? ti.note : 'Deadlines shown after you pick a target university from search.';
+        main.textContent = ti ? ti.label + ' — confirm exact deadlines on the official page' : 'Select a professor to see the typical application window';
+        sub.textContent = 'Deadlines vary by programme, intake, and applicant category (domestic/international). Never rely on third-party estimates for financial or academic decisions.';
       }
+    }
+
+    /** True when the two strings share any meaningful word (>4 chars). */
+    function wordsOverlap(a, b) {
+      const wa = new Set(String(a).toLowerCase().split(/[^a-zà-ÿ]+/).filter(w => w.length > 4));
+      const wb = String(b).toLowerCase().split(/[^a-zà-ÿ]+/).filter(w => w.length > 4);
+      return wb.some(w => wa.has(w));
     }
 
     /* ==================================================================
@@ -3403,22 +3542,25 @@
           : 'bg-ink-100 text-ink-500');
     }
 
-    /* Humanize button */
+    /* Polish button */
     els.humanizeBtn.addEventListener('click', () => {
       const current = els.body.value;
-      if (!current.trim()) { showToast('Nothing to humanize yet — generate an email first.', 'error'); return; }
+      if (!current.trim()) { showToast('Nothing to polish yet — generate an email first.', 'error'); return; }
       preHumanizeSnapshot = current;
       const h = humanizeText(current);
+      polishedVersionText = h.text;
       els.body.value = h.text;
       if (lastGenerated) lastGenerated.body = h.text;
       updateCounts();
       els.undoHumanize.classList.remove('hidden');
+      const cmpB = document.getElementById('compareVersionBtn');
+      if (cmpB) cmpB.classList.remove('hidden');
       setHumanPanel(h.score,
         h.changes > 0
-          ? `${h.changes} sentence${h.changes === 1 ? '' : 's'} rewritten: machine phrases swapped, contractions added, rhythm varied.`
-          : 'Already reads naturally — no machine tells found.',
+          ? `Style refinement only — ${h.changes} sentence${h.changes === 1 ? '' : 's'} rephrased: stock phrases swapped, contractions added, rhythm varied. Facts unchanged.`
+          : 'Already reads naturally — no stock phrases found. Nothing was changed.',
         'polished');
-      showToast(`Humanized — naturalness score ${h.score}/100`, 'success');
+      showToast(`Polished — readability score ${h.score}/100`, 'success');
     });
 
     /* Undo polish */
@@ -3426,11 +3568,14 @@
       if (preHumanizeSnapshot === null) return;
       els.body.value = preHumanizeSnapshot;
       if (lastGenerated) lastGenerated.body = preHumanizeSnapshot;
+      polishedVersionText = null;
       preHumanizeSnapshot = null;
       els.undoHumanize.classList.add('hidden');
+      const cmpU = document.getElementById('compareVersionBtn');
+      if (cmpU) cmpU.classList.add('hidden');
       updateCounts();
-      setHumanPanel(null, 'Reverted to the pre-humanized draft.', 'reverted');
-      showToast('Humanizer pass undone', 'info');
+      setHumanPanel(null, 'Reverted to the original draft.', 'reverted');
+      showToast('Polish pass undone', 'info');
     });
 
     /* ==================================================================
@@ -3497,7 +3642,7 @@
       // --- AI-tell scan (what detectors flag)
       const tells = (lower.match(/(?:delve|leverag\w*|utiliz\w*|seamless\w*|robust|pivotal|myriad|plethora|furthermore|moreover|testament to|paradigm|finds you well|profound|cutting-edge|state-of-the-art|landscape)/g) || []);
       if (tells.length === 0) good.push('Zero machine-style phrasing — clean for AI detectors.');
-      else bad.push({ t: `AI-tell words present: ${[...new Set(tells)].join(', ')}.`, fix: 'Click "Humanize This Email" — it swaps these automatically.' });
+      else bad.push({ t: `AI-tell words present: ${[...new Set(tells)].join(', ')}.`, fix: 'Click "Polish This Email" — it swaps these automatically.' });
 
       // Sentence-length uniformity (perplexity/burstiness check)
       const sents = (body.match(/[^.!?\n]+[.!?]+/g) || []).map(s => s.trim().split(/\s+/).length).filter(n => n > 3);
@@ -3725,6 +3870,156 @@
         tipsToggle.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
+
+    /* ------------------------------------------------------------------
+       Version comparison (Original vs Polished) modal
+    ------------------------------------------------------------------ */
+    (function wireCompareModal() {
+      const modal     = document.getElementById('compareModal');
+      const trigger   = document.getElementById('compareVersionBtn');
+      const closeBtn  = document.getElementById('compareModalClose');
+      const backdrop  = document.getElementById('compareModalBackdrop');
+      const origEl    = document.getElementById('compareOriginal');
+      const polEl     = document.getElementById('comparePolished');
+      if (!modal || !trigger) return;
+      function openCompare() {
+        if (preHumanizeSnapshot === null || polishedVersionText === null) {
+          showToast('Nothing to compare yet — run a generate or polish pass first.', 'info');
+          return;
+        }
+        origEl.textContent = preHumanizeSnapshot;
+        polEl.textContent  = polishedVersionText;
+        modal.classList.remove('hidden');
+        (closeBtn || modal).focus && closeBtn && closeBtn.focus();
+      }
+      function closeCompare() { modal.classList.add('hidden'); }
+      trigger.addEventListener('click', openCompare);
+      if (closeBtn) closeBtn.addEventListener('click', closeCompare);
+      if (backdrop) backdrop.addEventListener('click', closeCompare);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeCompare(); });
+    })();
+
+    /* ------------------------------------------------------------------
+       How it works panel + privacy badge (hero)
+    ------------------------------------------------------------------ */
+    (function wireHeroInfo() {
+      const hiwBtn = document.getElementById('howItWorksToggle');
+      const hiwPanel = document.getElementById('howItWorksPanel');
+      if (hiwBtn && hiwPanel) {
+        hiwBtn.addEventListener('click', () => {
+          const open = hiwPanel.hasAttribute('hidden');
+          if (open) hiwPanel.removeAttribute('hidden'); else hiwPanel.setAttribute('hidden', '');
+          hiwBtn.setAttribute('aria-expanded', String(open));
+        });
+      }
+      const badge = document.getElementById('privacyBadge');
+      if (badge && hiwPanel && hiwBtn) {
+        badge.addEventListener('click', () => {
+          hiwPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (hiwPanel.hasAttribute('hidden')) { hiwPanel.removeAttribute('hidden'); hiwBtn.setAttribute('aria-expanded', 'true'); }
+        });
+      }
+    })();
+
+    /* ------------------------------------------------------------------
+       Outreach Tracker (localStorage-backed) + Roadmap checklist
+    ------------------------------------------------------------------ */
+    (function wireTrackerAndRoadmap() {
+      const TRACK_KEY = 'letterdesk.tracker.v1';
+      const ROAD_KEY  = 'letterdesk.roadmap.v1';
+      const body      = document.getElementById('trackerBody');
+      const wrap      = document.getElementById('trackerWrap');
+      const saveBtn   = document.getElementById('saveTrackerBtn');
+      const STATUSES  = ['Sent', 'Follow-up sent', 'Reply received', 'Interview', 'Declined', 'No response'];
+
+      function loadEntries() { try { return JSON.parse(localStorage.getItem(TRACK_KEY)) || []; } catch (e) { return []; } }
+      function saveEntries(list) {
+        try { localStorage.setItem(TRACK_KEY, JSON.stringify(list)); return true; }
+        catch (e) { showToast('Could not save tracker entry — browser storage unavailable.', 'error'); return false; }
+      }
+      function fmtD(d) { return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
+
+      function renderTracker() {
+        const list = loadEntries();
+        if (!body) return;
+        body.innerHTML = '';
+        if (!list.length) { wrap.classList.add('hidden'); return; }
+        wrap.classList.remove('hidden');
+        list.forEach((en, idx) => {
+          const tr = document.createElement('tr');
+          const mk = (txt, cls) => { const td = document.createElement('td'); td.className = 'px-3 py-2 align-top ' + (cls || ''); td.textContent = txt; return td; };
+          tr.appendChild(mk(en.professor || '(unnamed)', 'font-semibold'));
+          tr.appendChild(mk(en.contacted ? fmtD(new Date(en.contacted)) : '—'));
+          tr.appendChild(mk(en.followUp ? fmtD(new Date(en.followUp)) : '—'));
+          const tdS = document.createElement('td'); tdS.className = 'px-3 py-2 align-top';
+          const sel = document.createElement('select');
+          sel.className = 'rounded border border-ink-300 bg-white px-1 py-0.5 text-[10px] font-semibold';
+          sel.setAttribute('aria-label', 'Status for ' + (en.professor || 'entry'));
+          STATUSES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; if (s === en.status) o.selected = true; sel.appendChild(o); });
+          sel.addEventListener('change', () => { const l = loadEntries(); l[idx].status = sel.value; saveEntries(l); });
+          tdS.appendChild(sel); tr.appendChild(tdS);
+          const tdA = document.createElement('td'); tdA.className = 'px-3 py-2 align-top text-right whitespace-nowrap';
+          const del = document.createElement('button');
+          del.type = 'button'; del.textContent = 'Remove';
+          del.className = 'text-[10px] font-semibold text-rose-600 hover:underline focus:outline-none';
+          del.addEventListener('click', () => { const l = loadEntries(); l.splice(idx, 1); saveEntries(l); renderTracker(); showToast('Tracker entry removed', 'info'); });
+          tdA.appendChild(del); tr.appendChild(tdA);
+          body.appendChild(tr);
+        });
+      }
+
+      if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+          const prof = (document.getElementById('profName')?.value || '').trim();
+          if (!prof) { showToast('Enter or select a professor before saving to the tracker.', 'error'); return; }
+          const list = loadEntries();
+          if (list.some(e => e.professor === prof && e.status !== 'Declined')) {
+            showToast('That contact is already in your tracker — update its status instead.', 'info');
+            renderTracker(); return;
+          }
+          const now = Date.now();
+          list.unshift({ professor: prof, institution: (verifiedProfessor && verifiedProfessor.institution) || '', contacted: now, followUp: now + 9 * 864e5, status: 'Sent' });
+          if (saveEntries(list)) { renderTracker(); showToast('Saved to Outreach Tracker (this browser only)', 'success'); }
+        });
+      }
+      renderTracker();
+
+      // Roadmap checklist persistence
+      const boxes = Array.from(document.querySelectorAll('[data-roadmap-step]'));
+      let savedSteps = {};
+      try { savedSteps = JSON.parse(localStorage.getItem(ROAD_KEY)) || {}; } catch (e) {}
+      boxes.forEach(b => {
+        const k = b.getAttribute('data-roadmap-step');
+        if (savedSteps[k]) b.checked = true;
+        b.addEventListener('change', () => {
+          let cur = {}; try { cur = JSON.parse(localStorage.getItem(ROAD_KEY)) || {}; } catch (e) {}
+          cur[k] = b.checked;
+          try { localStorage.setItem(ROAD_KEY, JSON.stringify(cur)); } catch (e) {}
+        });
+      });
+
+      // Roadmap accordion toggle
+      const rTog = document.getElementById('roadmapToggle');
+      const rPan = document.getElementById('roadmapPanel');
+      if (rTog && rPan) {
+        rTog.addEventListener('click', () => {
+          const open = rPan.classList.toggle('open');
+          rTog.setAttribute('aria-expanded', String(open));
+        });
+      }
+
+      // Zoom cheat-sheet modal
+      const zBtn = document.getElementById('zoomCheatBtn');
+      const zModal = document.getElementById('zoomModal');
+      if (zBtn && zModal) {
+        const zClose = document.getElementById('zoomModalClose');
+        const zBack  = document.getElementById('zoomModalBackdrop');
+        zBtn.addEventListener('click', () => zModal.classList.remove('hidden'));
+        if (zClose) zClose.addEventListener('click', () => zModal.classList.add('hidden'));
+        if (zBack)  zBack.addEventListener('click', () => zModal.classList.add('hidden'));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') zModal.classList.add('hidden'); });
+      }
+    })();
 
     /* ------------------------------------------------------------------
        Init
