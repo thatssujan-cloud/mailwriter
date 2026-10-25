@@ -187,8 +187,8 @@
        8/16/32 spacing ramp, borders instead of shadows.
        ==================================================================== */
     :root {
-      --accent: #4a7fae;          /* muted blue — the ONLY accent color */
-      --accent-dark: #3a6590;
+      --accent: #4f46e5;          /* indigo 600 — the ONLY accent color */
+      --accent-dark: #4338ca;     /* indigo 700 */
       --page-bg: #fafaf8;         /* off-white page background */
       --panel-bg: #ffffff;        /* white panels */
       --line-1: #e7e5e0;          /* tinted-neutral border ramp (light) */
@@ -204,6 +204,20 @@
       --sp-3: 32px;               /* between major sections */
     }
     body { background-color: var(--page-bg); }
+
+    /* ---------- Backdrop-blur loading overlay (search + AI generate) ---- */
+    #ldLoadingOverlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center;
+                        background: rgba(15, 23, 42, 0.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    #ldLoadingOverlay[hidden] { display: none !important; }
+    @keyframes ld-spin { to { transform: rotate(360deg); } }
+    .ld-spinner { width: 34px; height: 34px; border-radius: 9999px; border: 3px solid rgba(255,255,255,0.25);
+                  border-top-color: #a5b4fc; animation: ld-spin 0.8s linear infinite; }
+
+    /* ---------- Professor profile cards (short-card grid under search) -- */
+    .ld-prof-card { text-align: left; width: 100%; background: var(--panel-bg); border: 1px solid var(--line-1);
+                    border-radius: 10px; padding: 12px 14px; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+    .ld-prof-card:hover { border-color: var(--accent); box-shadow: 0 8px 20px -12px rgba(79,70,229,.35); transform: translateY(-1px); }
+    .ld-prof-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* ---------- Two-mode shell: Write | Track ---------- */
     .ld-mode-switch { display: inline-flex; border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; background: var(--panel-bg); }
@@ -234,10 +248,10 @@
 
     /* ---------- Single accent enforcement (muted blue everywhere) ---------- */
     :root {
-      --brand-50:#eef4fa;  --brand-100:#dbe8f3; --brand-200:#b9d0e7; --brand-300:#8fb4d6;
-      --brand-400:#6b9ac5; --brand-500:var(--accent); --brand-600:var(--accent-dark); --brand-700:#31567c; --brand-800:#284766;
-      --forest-50:#eef4fa; --forest-100:#dbe8f3; --forest-200:#b9d0e7; --forest-500:var(--accent);
-      --forest-600:var(--accent-dark); --forest-700:#31567c;
+      --brand-50:#eef2ff;  --brand-100:#e0e7ff; --brand-200:#c7d2fe; --brand-300:#a5b4fc;
+      --brand-400:#818cf8; --brand-500:var(--accent); --brand-600:var(--accent-dark); --brand-700:#4338ca; --brand-800:#3730a3;
+      --forest-50:#eef2ff; --forest-100:#e0e7ff; --forest-200:#c7d2fe; --forest-500:var(--accent);
+      --forest-600:var(--accent-dark); --forest-700:#4338ca;
       --amber-50:#faf6ec;  --amber-100:#f3ecd9;  --amber-300:#ddd0a8;  --amber-400:#c9b877;
       --amber-500:#b3a05c; --amber-700:#8a7a45;  --amber-800:#6f6238;
       --rose-50:#fdf1f1;   --rose-200:#f3caca;   --rose-600:#c05555;   --rose-700:#a34848;
@@ -1249,6 +1263,15 @@ Alex Rivera</pre>
   </div>
 
   <!-- ============================================================= -->
+  <!-- Backdrop-blur loading overlay: shown during multi-engine searches
+       and while the Groq AI rewrite is in flight; hidden otherwise. -->
+  <div id="ldLoadingOverlay" hidden role="status" aria-live="polite">
+    <div class="flex items-center gap-3 rounded-xl bg-slate-900/90 px-5 py-4 text-slate-100 shadow-lg ring-1 ring-white/10">
+      <span class="ld-spinner" aria-hidden="true"></span>
+      <span id="ldLoadingText" class="text-sm font-semibold">Querying OpenAlex · Semantic Scholar · Crossref…</span>
+    </div>
+  </div>
+
   <!-- ===================== JAVASCRIPT LOGIC ====================== -->
   <!-- ============================================================= -->
   <script>
@@ -1287,8 +1310,31 @@ Alex Rivera</pre>
       }
       return null; // caller performs its own direct fetch
     }
+
+    // POST companion of dataFetch(): used by the Groq AI mode to send a
+    // draft brief to the serverless proxy (API key stays server-side).
+    // Returns null on ANY failure so callers fall back to templates.
+    async function dataPost(target, payload) {
+      if (!BACKEND.USE_SERVER_PROXY) return null;
+      try {
+        const r = await fetch(`${BACKEND.proxyUrl}?target=${encodeURIComponent(target)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload || {})
+        });
+        if (!r.ok) return null;
+        return await r.json();
+      } catch (e) {
+        return null; // offline / CORS / rate-limited — graceful fallback
+      }
+    }
   </script>
   <script>
+    /* Single DOM-ready initialization block: every listener registration
+       and getElementById lookup below runs only after the document has
+       parsed, guaranteeing zero null-reference errors regardless of where
+       this script tag sits in the page. */
+    document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
     /* ------------------------------------------------------------------
@@ -4251,6 +4297,51 @@ Alex Rivera</pre>
     }
 
     /* ------------------------------------------------------------------
+       Loading overlay + step-chip navigation (Write flow)
+    ------------------------------------------------------------------ */
+    const ldOverlay = document.getElementById('ldLoadingOverlay');
+    const ldOverlayText = document.getElementById('ldLoadingText');
+    function showLdOverlay(msg) {
+      if (!ldOverlay) return;
+      if (ldOverlayText && msg) ldOverlayText.textContent = msg;
+      ldOverlay.hidden = false;
+    }
+    function hideLdOverlay() { if (ldOverlay) ldOverlay.hidden = true; }
+
+    // Slim step indicator: clicking a chip reveals that Write-flow panel.
+    // The ld-step CSS uses opacity/visibility (never display), so toggling
+    // 'is-active' can't clash with Tailwind's hidden utility used elsewhere.
+    document.querySelectorAll('[data-goto-step]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const target = document.getElementById('step' + chip.dataset.gotoStep);
+        if (!target) return;
+        document.querySelectorAll('.ld-step').forEach(p => p.classList.toggle('is-active', p === target));
+        const stepsBar = chip.closest('.ld-steps');
+        if (stepsBar) stepsBar.querySelectorAll('.ld-step-chip').forEach(c => c.classList.toggle('is-active', c === chip));
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // Generation-engine selector: chip label + ChatGPT prompt builder wiring.
+    const genEngineSel = document.getElementById('genEngine');
+    const gptPromptWrap = document.getElementById('gptPromptWrap');
+    const gptPromptBox = document.getElementById('gptPromptBox');
+    function refreshGenEngineUi() {
+      const engine = genEngineSel ? genEngineSel.value : 'local';
+      const chip = document.getElementById('genEngineChip');
+      if (chip) chip.textContent = { local: 'Local · instant · private', groq: 'Groq AI · Llama 3.3 · via proxy', gpt: 'ChatGPT brief · paste yourself' }[engine] || chip.textContent;
+      if (gptPromptWrap) gptPromptWrap.classList.toggle('hidden', engine !== 'gpt');
+      if (engine === 'gpt' && gptPromptBox) gptPromptBox.value = buildGptPrompt(currentCtx(els.toneSelect ? els.toneSelect.value : 'direct'));
+    }
+    if (genEngineSel) genEngineSel.addEventListener('change', refreshGenEngineUi);
+    if (gptPromptBox) gptPromptBox.addEventListener('focus', () => { try { gptPromptBox.select(); } catch (e) {} });
+    const copyGptBtn = document.getElementById('copyGptPromptBtn');
+    if (copyGptBtn) copyGptBtn.addEventListener('click', () => {
+      if (!gptPromptBox || !gptPromptBox.value.trim()) { showToast('Fill Step 2 details first — the brief is built from your inputs.', 'error'); return; }
+      copyText(gptPromptBox.value, 'Prompt copied — paste it into ChatGPT, Claude or Gemini.');
+    });
+
+    /* ------------------------------------------------------------------
        Tone chips (quick re-format toggles)
     ------------------------------------------------------------------ */
     function updateToneChips(activeTone) {
@@ -4279,6 +4370,7 @@ Alex Rivera</pre>
     });
 
     els.toneSelect.addEventListener('change', () => {
+      refreshGenEngineUi();   // keep the ChatGPT brief in sync with tone
       if (lastGenerated) {
         const rebuilt = buildEmail(els.toneSelect.value);
         renderOutput(rebuilt.subject, rebuilt.body);
@@ -4289,10 +4381,77 @@ Alex Rivera</pre>
 
     /* ------------------------------------------------------------------
        Generate / Reset handlers
+       Three engines share one guarded pipeline:
+         local  — deterministic template engine (instant, offline)
+         groq   — free Llama 3 rewrite through the /api proxy; any failure
+                  (no deploy, no key, rate limit, timeout) falls back to
+                  the local engine without freezing the UI
+         gpt    — builds a self-contained paste-to-ChatGPT brief locally
+       Every output passes the same under-150-word cap and cliché scrub.
     ------------------------------------------------------------------ */
-    els.form.addEventListener('submit', (e) => {
+    function enforceGuardrails(bodyText) {
+      let out = stripCliches(bodyText);                       // banned AI filler
+      const words = out.split(/\s+/).filter(Boolean);
+      if (words.length > 150) out = words.slice(0, 150).join(' ').replace(/[\s,.:;]+$/, '') + '.';
+      if (!/CV/i.test(out)) out += '\nMy CV is attached for your review.'; // explicit CV assertion
+      return out;
+    }
+
+    async function generateWithGroq(ctx, subject) {
+      showLdOverlay('Groq · Llama 3.3 70B is drafting your email…');
+      try {
+        const json = await dataPost('groq-draft', { prompt: buildBrief(ctx) });
+        const text = json && json.data && json.data.text ? String(json.data.text)
+                 : json && json.text ? String(json.text) : '';
+        if (!text.trim()) throw new Error('empty');
+        const body = enforceGuardrails(text);
+        els.badge.textContent = `AI · Groq Llama 3.3 · ${TYPE_LABELS[ctx.type]} · ${TONE_LABELS[ctx.tone] || ctx.tone}`;
+        renderOutput(subject, body);
+        showToast('AI draft ready — reviewed under the 150-word guardrail.', 'success');
+        return true;
+      } catch (e) {
+        const fb = buildEmail(ctx.tone);                      // deterministic fallback
+        renderOutput(fb.subject, fb.body);
+        els.badge.textContent = `${TYPE_LABELS[ctx.type]} · ${TONE_LABELS[ctx.tone]} · template fallback`;
+        showToast('Groq unavailable right now — used the fast local template instead.', 'info');
+        return false;
+      } finally {
+        hideLdOverlay();
+      }
+    }
+
+    els.form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const { subject, body } = buildEmail(els.toneSelect.value);
+      const tone = els.toneSelect.value;
+      const engine = genEngineSel ? genEngineSel.value : 'local';
+      const ctx = currentCtx(tone);
+
+      // Mode 3 — Paste to ChatGPT: build the brief locally, surface it, and
+      // still hand the user a usable local draft underneath.
+      if (engine === 'gpt') {
+        if (gptPromptBox) gptPromptBox.value = buildGptPrompt(ctx);
+        if (gptPromptWrap) gptPromptWrap.classList.remove('hidden');
+        const { subject, body } = buildEmail(tone);
+        renderOutput(subject, body);
+        showToast('ChatGPT brief ready — copy it above, or edit the local draft below.', 'info');
+        if (window.innerWidth < 1024) {
+          document.getElementById('outputHeading').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        return;
+      }
+
+      // Mode 2 — Groq AI rewrite (with guaranteed template fallback)
+      if (engine === 'groq') {
+        const { subject } = buildEmail(tone);
+        await generateWithGroq(ctx, subject);
+        if (window.innerWidth < 1024) {
+          document.getElementById('outputHeading').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        return;
+      }
+
+      // Mode 1 — Deterministic template engine (default, offline)
+      const { subject, body } = buildEmail(tone);
       renderOutput(subject, body);
       showToast('Email generated — review, personalize, and send!', 'success');
       // On small screens, scroll output into view
@@ -4513,6 +4672,7 @@ Alex Rivera</pre>
     document.getElementById('year').textContent = new Date().getFullYear();
     updateToneChips(els.toneSelect.value);
     updateCounts();
+    }); // end DOMContentLoaded init block
   </script>
 
   <!-- External UX layer: sticky nav, scroll progress, back-to-top, keyboard
