@@ -2451,8 +2451,11 @@ Alex Rivera</pre>
     /* ---------- dropdown rendering ---------- */
     let searchSeq = 0; // guards against out-of-order responses while typing
 
+    /* All call sites escape untrusted values (query strings, names) with
+       escapeHtml() before building the fragment; setSafeHtml sanitizes the
+       whole fragment again as defense in depth (DOMPurify / fallback). */
     function showSearchMessage(html) {
-      els.searchResults.innerHTML = `<div class="px-4 py-3 text-xs text-ink-500">${html}</div>`;
+      setSafeHtml(els.searchResults, `<div class="px-4 py-3 text-xs text-ink-500">${html}</div>`);
       els.searchResults.classList.remove('hidden');
       els.profSearch.setAttribute('aria-expanded', 'true');
     }
@@ -2472,26 +2475,28 @@ Alex Rivera</pre>
           '</div>' +
           '<div class="skeleton-block h-2.5 w-2/3 rounded"></div>' +
         '</div>';
-      els.searchResults.innerHTML =
+      setSafeHtml(els.searchResults,
         `<p class="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-brand-700 flex items-center gap-2">` +
         `<svg class="animate-spin h-3.5 w-3.5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>` +
         `Querying OpenAlex + Semantic Scholar + Crossref · Geology &amp; Earth Sciences only…</p>` +
-        row() + row() + row();
+        row() + row() + row());
       els.searchResults.classList.remove('hidden');
       els.profSearch.setAttribute('aria-expanded', 'true');
     }
 
     function hideSearchResults() {
       els.searchResults.classList.add('hidden');
-      els.searchResults.innerHTML = '';
+      els.searchResults.textContent = ''; // safe clear — no HTML sink needed
       els.profSearch.setAttribute('aria-expanded', 'false');
     }
 
-    /** Render the "✓ Verified by …" multi-source chip inside a result row. */
+    /** Render the "✓ Verified by …" multi-source chip inside a result row.
+        Source names are third-party (engine labels) → escaped, and the whole
+        fragment is sanitized again at every sink that consumes it. */
     function sourceChipHtml(sources) {
       if (!sources || sources.length < 2) return '';
-      const names = sources.join(' & ');
-      return `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-forest-800 ring-1 ring-forest-300 px-2 py-0.5 text-[10px] font-bold">✓ Verified by ${escapeHtml(names)}</span>`;
+      const names = escapeHtml(String(sources.join(' & ')));
+      return `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-forest-800 ring-1 ring-forest-300 px-2 py-0.5 text-[10px] font-bold">✓ Verified by ${names}</span>`;
     }
 
     /** Keyboard navigation for the live-search dropdown (↑/↓/Enter/Esc). */
@@ -2510,7 +2515,7 @@ Alex Rivera</pre>
 
     function renderSearchResults(candidates, query, engineStatus) {
       activeResultIdx = -1;
-      els.searchResults.innerHTML = '';
+      els.searchResults.textContent = ''; // safe clear (no HTML sink)
       if (!candidates.length) {
         // Tailored empty states — tell the user WHY nothing rendered instead
         // of a generic "no results" (search felt broken before).
@@ -2543,13 +2548,15 @@ Alex Rivera</pre>
         if (c.hIndex != null) metaBits.push(`h-index ${safeMetric(c.hIndex)}`);
         if (c.worksCount) metaBits.push(`${Number(c.worksCount).toLocaleString()} papers`);
         if (c.s2 && c.s2Citations != null && c.s2Citations > 0) metaBits.push(`S² cites ${c.s2Citations.toLocaleString()}`);
-        item.innerHTML =
+        // Every third-party value inside this template is escaped above; the
+        // fragment still passes through sanitizeHtml() via setSafeHtml (§2).
+        setSafeHtml(item,
           `<span class="block text-sm font-semibold text-ink-900 group-hover:text-brand-800">${escapeHtml(safeText(c.displayName, 'Unnamed Researcher'))}</span>` +
           `<span class="block text-[11px] text-ink-500 mt-0.5 truncate">${metaBits.join(' · ') || 'OpenAlex author record'}</span>` +
           `<span class="mt-1 block empty:hidden" data-src-line>${sourceChipHtml(c.sources)}</span>` +
           `<span class="block text-[11px] text-forest-700 mt-0.5 truncate" data-topic-line>${(c.topics && c.topics.length) ? 'Topics: ' + escapeHtml(c.topics.filter(Boolean).join(', ')) : ''}</span>` +
           `<span class="block text-[11px] text-ink-400 italic mt-0.5 truncate" data-paper-line>Merging OpenAlex / Semantic Scholar / Crossref records…</span>` +
-          (c.tldr ? `<span class="block text-[11px] text-ink-600 mt-0.5 line-clamp-2" data-tldr-line><span class="font-bold not-italic text-brand-700">TLDR:</span> ${escapeHtml(c.tldr)}</span>` : '');
+          (c.tldr ? `<span class="block text-[11px] text-ink-600 mt-0.5 line-clamp-2" data-tldr-line><span class="font-bold not-italic text-brand-700">TLDR:</span> ${escapeHtml(c.tldr)}</span>` : ''));
         item.addEventListener('click', () => selectProfessor(c));
         els.searchResults.appendChild(item);
         // Lazy-fill the recent paper line per row, then re-merge so the
@@ -2569,7 +2576,7 @@ Alex Rivera</pre>
             line.textContent = parts.join(' ');
           }
           const srcLine = item.querySelector('[data-src-line]');
-          if (srcLine) srcLine.innerHTML = sourceChipHtml(c.sources);
+          if (srcLine) setSafeHtml(srcLine, sourceChipHtml(c.sources)); // sanitized chip (§2)
         });
       });
       els.searchResults.classList.remove('hidden');
@@ -2578,6 +2585,61 @@ Alex Rivera</pre>
 
     function escapeHtml(s) {
       return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+    }
+
+    /* ------------------------------------------------------------------
+       SAFE RENDERING (DOM-XSS hardening — remediation §2)
+       ------------------------------------------------------------------
+       Policy for every untrusted string (third-party API data: author
+       names, titles, affiliations, topics, TLDRs — plus user-entered
+       tracker/comparison fields):
+         • textContent / innerText only — never raw interpolation into HTML.
+         • Static markup templates are allowed but MUST be passed through
+           sanitizeHtml() before hitting innerHTML. DOMPurify (vendored CDN,
+           async) performs the sanitization once loaded; until then the
+           built-in fallback strips tags/entities so no markup can ever
+           execute even on first paint or offline.
+       The result is written via a DocumentFragment parse, which cannot run
+       scripts or fire inline event handlers on insertion. */
+    (function loadDomPurify() {
+      if (window.DOMPurify) return;
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js';
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.integrity = 'sha384-u5OKdTq1ID/6MWWWcCZhKxnJn9eOxpFkDaxKVqN/hX5FRdLw4djxl01Gdv3tfMCm';
+      s.onerror = () => { /* fallback sanitizer below stays active */ };
+      document.head.appendChild(s);
+    })();
+
+    /** Fallback sanitizer used before DOMPurify loads (or if the CDN fails):
+        removes all tags and neutralizes stray angle brackets/ampersands. */
+    function fallbackSanitize(html) {
+      return String(html == null ? '' : html)
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/<\/?[a-zA-Z][^>]*>/g, '')   // strip any tag-like markup
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    /** Sanitize an HTML fragment that we control as a *template* (static
+        class names/SVG only). Untrusted values must already be escaped with
+        escapeHtml() before being interpolated — defense in depth. */
+    function sanitizeHtml(html) {
+      const raw = String(html == null ? '' : html);
+      if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
+        return window.DOMPurify.sanitize(raw, { USE_PROFILES: { html: true }, FORBID_TAGS: ['style', 'form'], FORBID_ATTR: ['style'] });
+      }
+      return fallbackSanitize(raw);
+    }
+
+    /** Safe innerHTML sink: parses sanitized markup into a DocumentFragment
+        (inert — scripts never execute) and replaces the container's content. */
+    function setSafeHtml(el, html) {
+      if (!el) return;
+      el.textContent = '';
+      const tpl = document.createElement('template');
+      tpl.innerHTML = sanitizeHtml(html);
+      el.appendChild(tpl.content.cloneNode(true));
     }
 
     /** Click event → auto-fill Professor Name, Lab Focus, Paper Topic, Email. */
@@ -2935,7 +2997,7 @@ Alex Rivera</pre>
       const cc = (candidate.country || guessCountryFromInstitution(String(candidate.institution || '').toLowerCase()) || '').toUpperCase();
       const awards = GRAD_FUNDING_BY_COUNTRY[cc] || GRAD_FUNDING_BY_COUNTRY.DEFAULT;
       const ul = document.getElementById('fundingAwards');
-      ul.innerHTML = '';
+      ul.textContent = ''; // safe clear (§2: no HTML sink)
       awards.forEach(a => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-1.5';
@@ -2952,7 +3014,7 @@ Alex Rivera</pre>
       // c) Evidence table with editable statuses (persisted per professor)
       const tbody = document.getElementById('fundingAuditBody');
       if (tbody) {
-        tbody.innerHTML = '';
+        tbody.textContent = ''; // safe clear (§2: no HTML sink)
         AUDIT_ITEMS.forEach(def => {
           const tr = document.createElement('tr');
           const td1 = document.createElement('td'); td1.className = 'px-2 py-1.5 font-semibold align-top'; td1.textContent = def.item;
@@ -3010,7 +3072,7 @@ Alex Rivera</pre>
         tierEl.textContent = tier;
         tierEl.className = 'rounded-full px-2 py-0.5 text-[10px] font-bold text-white ' + tierCls;
         headEl.textContent = headline;
-        bdEl.innerHTML = '';
+        bdEl.textContent = ''; // safe clear (§2: no HTML sink)
         const addLi = (txt) => { const li = document.createElement('li'); li.textContent = '• ' + txt; bdEl.appendChild(li); };
         if (topics.length) addLi('Indexed topics: ' + topics.slice(0, 4).join(', '));
         else addLi('Indexed topics: ' + DEFAULT_TOPICS);
@@ -3510,7 +3572,7 @@ Alex Rivera</pre>
     async function verifyEmailField() {
       const email = document.getElementById('profEmail').value.trim();
       els.emailSuggest.classList.add('hidden');
-      els.emailSuggest.innerHTML = '';
+      els.emailSuggest.textContent = ''; // safe clear (§2: no HTML sink)
       if (!email) {
         setEmailBadge('gray', verifiedProfessor ? 'Tip: click a search result to auto-fill or generate a pattern.' : 'Optional — add the professor’s address to enable mailto prefill.');
         return;
@@ -3546,7 +3608,7 @@ Alex Rivera</pre>
         verifyEmailField();
       } else if (patterns && patterns.length) {
         // Show clickable pattern chips instead of forcing one into the field
-        els.emailSuggest.innerHTML = '';
+        els.emailSuggest.textContent = ''; // safe clear (§2: no HTML sink)
         const intro = document.createElement('span');
         intro.className = 'text-[11px] text-ink-500 w-full';
         intro.textContent = 'No direct email on file — common academic patterns for this name + university (click to use, then confirm on their lab page):';
@@ -3557,7 +3619,9 @@ Alex Rivera</pre>
           chip.type = 'button';
           chip.title = '🟡 Pattern Match — estimated format, not a confirmed address. Click to use, then verify on the lab page.';
           chip.className = 'px-3 py-1 bg-amber-50 hover:bg-amber-100 rounded-full font-mono text-xs text-ink-700 ring-1 ring-amber-300 transition';
-          chip.innerHTML = `<span class="text-amber-600 font-semibold">🟡 ${90 - Math.min(i * 5, 20)}%</span> ${escapeHtml(p)}`;
+          // Email patterns are derived from third-party name/institution data
+          // → escaped value inside a static template, sanitized at the sink.
+          setSafeHtml(chip, `<span class="text-amber-600 font-semibold">🟡 ${90 - Math.min(i * 5, 20)}%</span> ${escapeHtml(p)}`);
           chip.addEventListener('click', () => {
             emailInput.value = p;
             setEmailBadge('yellow', `Pattern Match (${90 - Math.min(i * 5, 20)}% confidence) — estimated address. Verify on the professor's official page before sending.`);
@@ -3595,7 +3659,15 @@ Alex Rivera</pre>
       rows.forEach(([k, v]) => {
         const div = document.createElement('div');
         div.className = 'flex gap-1.5';
-        div.innerHTML = `<dt class="font-semibold text-ink-700 shrink-0">${escapeHtml(k)}:</dt><dd class="text-ink-600 min-w-0 break-words">${escapeHtml(v)}</dd>`;
+        // Untrusted key/value rendered as pure TEXT nodes — no HTML sink at
+        // all (§2: textContent-only for third-party titles/topics/affiliations).
+        const dtEl = document.createElement('dt');
+        dtEl.className = 'font-semibold text-ink-700 shrink-0';
+        dtEl.textContent = k + ':';
+        const ddEl = document.createElement('dd');
+        ddEl.className = 'text-ink-600 min-w-0 break-words';
+        ddEl.textContent = v;
+        div.appendChild(dtEl); div.appendChild(ddEl);
         dl.appendChild(div);
       });
       det.appendChild(dl);
@@ -3609,7 +3681,7 @@ Alex Rivera</pre>
       els.auditCard.classList.remove('hidden');
       els.auditWho.textContent = `${p.displayName}${p.institution ? ' — ' + p.institution : ''}`;
 
-      els.auditBadges.innerHTML = '';
+      els.auditBadges.textContent = ''; // safe clear (§2: no HTML sink)
       // Multi-Source Verification Badge: green only when ≥2 engines agree
       const srcs = p.sources || ['OpenAlex'];
       if (srcs.length >= 2) {
@@ -3624,7 +3696,7 @@ Alex Rivera</pre>
       const emailState = els.emailBadge.textContent || '';
       els.auditBadges.appendChild(auditBadge('Email Inbox Reachable (DNS MX)', /Verified/.test(emailState)));
 
-      els.auditFacts.innerHTML = '';
+      els.auditFacts.textContent = ''; // safe clear (§2: no HTML sink)
       const facts = [];
       if (p.paperTitle) facts.push(['Verified paper', `“${p.paperTitle}”${p.paperYear ? ' (' + p.paperYear + ')' : ''}`]);
       if (p.tldr) facts.push(['AI TLDR (Semantic Scholar)', p.tldr]);
@@ -3635,7 +3707,15 @@ Alex Rivera</pre>
       facts.forEach(([k, v]) => {
         const div = document.createElement('div');
         div.className = 'flex gap-1.5';
-        div.innerHTML = `<dt class="font-semibold text-ink-700 shrink-0">${escapeHtml(k)}:</dt><dd class="text-ink-600 min-w-0 break-words">${escapeHtml(v)}</dd>`;
+        // Untrusted key/value rendered as pure TEXT nodes — no HTML sink at
+        // all (§2: textContent-only for third-party titles/topics/affiliations).
+        const dtEl = document.createElement('dt');
+        dtEl.className = 'font-semibold text-ink-700 shrink-0';
+        dtEl.textContent = k + ':';
+        const ddEl = document.createElement('dd');
+        ddEl.className = 'text-ink-600 min-w-0 break-words';
+        ddEl.textContent = v;
+        div.appendChild(dtEl); div.appendChild(ddEl);
         els.auditFacts.appendChild(div);
       });
 
@@ -3650,7 +3730,7 @@ Alex Rivera</pre>
       if (p.recentDoi) engineRows.push(['OpenAlex DOI', p.recentDoi]);
       if (engineRows.length) els.auditFacts.appendChild(auditDetails('Engine cross-check details', engineRows));
 
-      els.auditLinks.innerHTML = '';
+      els.auditLinks.textContent = ''; // safe clear (§2: no HTML sink)
       const scholarQuery = encodeURIComponent(`${p.displayName} ${p.institution || ''}`.trim());
       const links = [
         { label: 'Google Scholar', href: `https://scholar.google.com/scholar?q=${scholarQuery}` },
@@ -3660,8 +3740,12 @@ Alex Rivera</pre>
       ];
       links.forEach(l => {
         if (!l.href || l.href === '#') return;
+        // Third-party URLs (ORCID / DOI / OpenAlex ids come from APIs) must
+        // never become javascript:/data: sinks — enforce https allow-list.
+        let href = l.href.startsWith('http') ? l.href : `https://openalex.org/${encodeURIComponent(String(l.href))}`;
+        if (!/^https?:\/\//i.test(href)) return;
         const a = document.createElement('a');
-        a.href = l.href.startsWith('http') ? l.href : `https://openalex.org/${l.href}`;
+        a.href = href;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
         a.className = 'inline-flex items-center gap-1 rounded-md border border-forest-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-forest-800 hover:bg-forest-50 transition';
@@ -3698,10 +3782,10 @@ Alex Rivera</pre>
     function showSearchFallbackMessage() {
       if (!els || !els.searchResults) return; // null safeguard (P1-2)
       els.searchResults.classList.remove('hidden');
-      els.searchResults.innerHTML =
+      setSafeHtml(els.searchResults,
         '<div class="px-4 py-3 text-xs text-ink-500 space-y-1">' +
         '<p><strong>Search is unavailable right now.</strong> The scholarly APIs may be offline, blocked by CORS, or rate-limited (HTTP 429).</p>' +
-        '<p>Try again in a minute — or skip the search and fill the form manually below. Everything else works without it.</p></div>';
+        '<p>Try again in a minute — or skip the search and fill the form manually below. Everything else works without it.</p></div>');
     }
 
     async function runProfessorSearch(rawQuery) {
@@ -3825,7 +3909,7 @@ Alex Rivera</pre>
       verifiedProfessor = null;
       renderAuditCard();
       els.emailSuggest.classList.add('hidden');
-      els.emailSuggest.innerHTML = '';
+      els.emailSuggest.textContent = ''; // safe clear (§2: no HTML sink)
       verifyEmailField();
     });
 
@@ -4212,13 +4296,13 @@ Alex Rivera</pre>
 
     function renderReview() {
       const { good, bad, grade } = reviewEmail();
-      els.reviewGood.innerHTML = '';
-      els.reviewBad.innerHTML = '';
+      els.reviewGood.textContent = ''; // safe clear (§2: no HTML sink)
+      els.reviewBad.textContent = ''; // safe clear (§2: no HTML sink)
 
       good.forEach(g => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-2.5 text-forest-700';
-        li.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`;
+        setSafeHtml(li, `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`); // static template, sanitized (§2)
         li.querySelector('span').textContent = g;
         els.reviewGood.appendChild(li);
       });
@@ -4226,7 +4310,7 @@ Alex Rivera</pre>
       bad.forEach(b => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-2.5 text-rose-700';
-        li.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><span class="block"></span><span class="block text-xs text-ink-500 mt-0.5 italic"></span></span>`;
+        setSafeHtml(li, `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><span class="block"></span><span class="block text-xs text-ink-500 mt-0.5 italic"></span></span>`); // static template, sanitized (§2)
         const spans = li.querySelectorAll('span > span, span span');
         li.querySelector('span > span:first-child').textContent = b.t;
         li.querySelector('span > span:last-child').textContent = '→ ' + b.fix;
@@ -4264,7 +4348,7 @@ Alex Rivera</pre>
       };
       const toast = document.createElement('div');
       toast.className = `pointer-events-auto toast-enter ${colors[variant] || colors.info} text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-lg ring-1 ring-white/20 flex items-center gap-2`;
-      toast.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`;
+      setSafeHtml(toast, `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`); // static template, sanitized (§2)
       toast.querySelector('span').textContent = message;
       document.getElementById('toastContainer').appendChild(toast);
 
@@ -4547,7 +4631,7 @@ Alex Rivera</pre>
       hideSearchResults();
       els.auditCard.classList.add('hidden');
       els.emailSuggest.classList.add('hidden');
-      els.emailSuggest.innerHTML = '';
+      els.emailSuggest.textContent = ''; // safe clear (§2: no HTML sink)
       setEmailBadge('gray', 'Optional — add the professor\u2019s address to enable mailto prefill.');
       updateCounts();
       updateToneChips(els.toneSelect.value);
@@ -4568,11 +4652,17 @@ Alex Rivera</pre>
     document.getElementById('mailtoBtn').addEventListener('click', () => {
       if (!lastGenerated) { showToast('Generate an email before opening your mail client.', 'error'); return; }
       const emailRaw = document.getElementById('profEmail').value.trim();
-      const subject  = encodeURIComponent(els.subject.value || 'Graduate Assistantship Inquiry');
-      const body     = encodeURIComponent(els.body.value);
-      const addr     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw) ? emailRaw : '';
-      window.location.href = `mailto:${addr}?subject=${subject}&body=${body}`;
-      showToast(addr ? 'Opening your email client…' : 'Opening mail client — add the professor\'s address in your draft', 'info');
+      // §3: URL-parameter injection guard for mailto:. Every component is
+      // percent-encoded ( ? & = # and newlines included ) so a crafted name,
+      // subject or body can never smuggle extra headers/params such as
+      // "?cc=", "&bcc=" or "&body=". The recipient address must additionally
+      // match a strict single-address regex — anything else opens blank.
+      const enc = encodeURIComponent;
+      const safeAddr = /^[^\s@%,;<>"'\\]+@[^\s@%,;<>"'\\]+\.[A-Za-z]{2,}$/.test(emailRaw) ? enc(emailRaw) : '';
+      const subject  = enc((els.subject.value || 'Graduate Assistantship Inquiry').slice(0, 998));
+      const body     = enc(els.body.value.slice(0, 16000));
+      window.location.href = `mailto:${safeAddr}?subject=${subject}&body=${body}`;
+      showToast(safeAddr ? 'Opening your email client…' : 'Opening mail client — add the professor\'s address in your draft', 'info');
     });
 
     /* ------------------------------------------------------------------
@@ -4671,7 +4761,7 @@ Alex Rivera</pre>
       function renderTracker() {
         const list = loadEntries();
         if (!body) return;
-        body.innerHTML = '';
+        body.textContent = ''; // safe clear (§2: no HTML sink)
         if (!list.length) { wrap.classList.add('hidden'); return; }
         wrap.classList.remove('hidden');
         list.forEach((en, idx) => {
