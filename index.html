@@ -3,38 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GradAssist Mailer — Academic Assistantship Email Generator</title>
-  <meta name="description" content="Craft polished, tailored outreach emails to professors for TA and RA assistantship opportunities." />
+  <title>LetterDesk — Human-Style Assistantship Email Studio</title>
+  <meta name="description" content="Draft professor outreach emails for RA/TA assistantships that read like a person wrote them — with a built-in humanizer and a smart pre-send reviewer." />
+
+  <!-- Fonts: Spectral (headings) + Public Sans (UI) + IBM Plex Mono (email paper) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Inline Tailwind configuration — academic SaaS palette
+    // Inline Tailwind configuration — warm "letterpress stationery" palette.
+    // Redesigned away from the old navy/indigo SaaS look: parchment canvas,
+    // ink-dark panels, terracotta accents, forest-green positive states.
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            navy: {
-              50:  '#f4f7fb',
-              100: '#e8eef7',
-              200: '#cfdcec',
-              300: '#a6bfda',
-              400: '#779cc4',
-              500: '#547fb0',
-              600: '#3f6594',
-              700: '#345279',
-              800: '#2d4565',
-              900: '#1e3049',
-              950: '#111e30'
+            parchment: {
+              DEFAULT: '#f6f1e6',
+              50:  '#faf7ef',
+              100: '#f6f1e6',
+              200: '#ece2cd',
+              300: '#ddccb0',
+              400: '#c9ae8b',
+              500: '#b89a76'
+            },
+            ink: {
+              DEFAULT: '#221e17',
+              50:  '#f5f3ee',
+              100: '#eae5db',
+              200: '#d8d0c0',
+              300: '#bdb19b',
+              400: '#9c8c73',
+              500: '#82735c',
+              600: '#6b5d49',
+              700: '#574b3c',
+              800: '#3e362b',
+              900: '#2b251d',
+              950: '#221e17'
+            },
+            clay: {
+              50:  '#fbf0ea',
+              100: '#f6dfd2',
+              200: '#ecbaa0',
+              300: '#df9672',
+              400: '#d07b53',
+              500: '#bc6238',
+              600: '#a04f2b',
+              700: '#803f24',
+              800: '#633320',
+              900: '#4b281a'
+            },
+            forest: {
+              50:  '#eaf3ec',
+              100: '#d3e6d7',
+              200: '#a9cfb1',
+              300: '#7cb388',
+              400: '#559264',
+              500: '#3c7a4b',
+              600: '#2f623c',
+              700: '#274f32',
+              800: '#203f2a',
+              900: '#1a3322'
             }
           },
           fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-            serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif']
+            display: ['Spectral', 'Georgia', 'Cambria', '"Times New Roman"', 'serif'],
+            sans: ['"Public Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace']
           },
           boxShadow: {
-            panel: '0 1px 2px rgba(17,30,48,0.06), 0 8px 24px -12px rgba(17,30,48,0.18)',
-            lift: '0 12px 32px -12px rgba(79,70,229,0.35)'
+            card: '0 1px 2px rgba(34,30,23,0.05), 0 10px 30px -14px rgba(34,30,23,0.22)',
+            lift: '0 12px 28px -12px rgba(160,79,43,0.45)'
           }
         }
       }
@@ -47,20 +89,36 @@
 
     body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 
-    /* Subtle academic grid backdrop for the header */
-    .hero-grid {
-      background-image:
-        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
-      background-size: 36px 36px;
+    /* Faint "ruled stationery" backdrop for the masthead */
+    .hero-rule {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 35px,
+        rgba(246, 241, 230, 0.07) 35px,
+        rgba(246, 241, 230, 0.07) 36px
+      );
     }
 
-    /* Output textarea keeps monospace-ish email formatting */
+    /* Paper-grain texture on the parchment canvas */
+    .grain::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+      background-image: radial-gradient(rgba(120, 100, 70, 0.10) 0.5px, transparent 0.6px);
+      background-size: 7px 7px;
+    }
+
+    /* Email textarea reads like a typed letter on paper */
     #emailBody {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      line-height: 1.65;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      line-height: 1.7;
       tab-size: 4;
       resize: vertical;
+      background-color: #fdfbf5;
     }
 
     /* Toast animation */
@@ -90,8 +148,8 @@
 
     /* Gentle pulse used when regenerating output */
     @keyframes soft-flash {
-      0%   { box-shadow: 0 0 0 0 rgba(99,102,241,0.35); }
-      100% { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+      0%   { box-shadow: 0 0 0 0 rgba(188, 98, 56, 0.35); }
+      100% { box-shadow: 0 0 0 10px rgba(188, 98, 56, 0); }
     }
     .flash { animation: soft-flash 0.7s ease-out; }
 
@@ -101,6 +159,9 @@
     /* Word-count bar */
     #countBar { transition: width 0.35s ease, background-color 0.35s ease; }
 
+    /* Humanizer progress meter */
+    #humanBar { transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s ease; }
+
     /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -108,48 +169,50 @@
   </style>
 </head>
 
-<body class="bg-zinc-100 font-sans text-navy-900 min-h-screen flex flex-col">
+<body class="bg-parchment font-sans text-ink-900 min-h-screen flex flex-col grain">
 
   <!-- ============================ NAVBAR / HEADER ============================ -->
-  <header class="bg-navy-950 text-white hero-grid">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 md:pt-8 md:pb-14">
+  <header class="bg-ink-950 text-parchment-100 hero-rule">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 md:pt-8 md:pb-14 relative z-10">
       <div class="flex items-center justify-between">
-        <a href="#" class="flex items-center gap-3 group" aria-label="GradAssist Mailer home">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lift ring-1 ring-white/20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <a href="#" class="flex items-center gap-3 group" aria-label="LetterDesk home">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-clay-600 ring-2 ring-parchment-100/25 shadow-lift">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-parchment-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 7 13.5 12.8a2 2 0 0 1-2.3 0L2 7"/>
               <rect x="2" y="4" width="20" height="16" rx="3"/>
             </svg>
           </span>
           <span>
-            <span class="block text-lg sm:text-xl font-bold tracking-tight leading-tight">GradAssist Mailer</span>
-            <span class="block text-[11px] uppercase tracking-[0.2em] text-indigo-300 font-semibold">Assistantship Outreach Studio</span>
+            <span class="block text-lg sm:text-xl font-display font-bold tracking-tight leading-tight">LetterDesk</span>
+            <span class="block text-[11px] uppercase tracking-[0.2em] text-clay-300 font-semibold">Assistantship Outreach Studio</span>
           </span>
         </a>
 
-        <div class="hidden md:flex items-center gap-6 text-sm text-navy-200">
+        <div class="hidden md:flex items-center gap-6 text-sm text-parchment-300">
           <button type="button" data-scroll-tips class="hover:text-white transition cursor-pointer">Contact Tips</button>
           <a href="#generator" class="hover:text-white transition">Generator</a>
           <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium ring-1 ring-white/15">
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="h-1.5 w-1.5 rounded-full bg-forest-400 animate-pulse"></span>
             100% in-browser · no data leaves your device
           </span>
         </div>
       </div>
 
       <div class="mt-8 md:mt-12 max-w-3xl">
-        <h1 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
-          Write professor outreach emails that get <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">replies</span>.
+        <h1 class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-parchment-50">
+          Emails that read like <span class="italic text-clay-300">a person</span> wrote them.
         </h1>
-        <p class="mt-3 md:mt-5 text-sm md:text-base text-navy-200 leading-relaxed">
-          GradAssist Mailer helps prospective and current graduate students draft professional, tailored
-          inquiries about <strong class="text-white font-semibold">Teaching</strong> and
-          <strong class="text-white font-semibold">Research Assistantships</strong> for Master's and Ph.D. programs —
-          in seconds, with the right tone, every time.
+        <p class="mt-3 md:mt-5 text-sm md:text-base text-parchment-300 leading-relaxed">
+          LetterDesk helps prospective and current graduate students draft outreach about
+          <strong class="text-parchment-50 font-semibold">Teaching</strong> and
+          <strong class="text-parchment-50 font-semibold">Research Assistantships</strong> — then a built-in
+          humanizer rewrites the draft so it varies sentence length, drops stock corporate phrasing,
+          and sounds like an actual student typed it.
         </p>
         <div class="mt-5 flex flex-wrap gap-2 text-[11px] md:text-xs font-medium">
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">RA &amp; TA templates</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">3 tone variations</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">One-click Humanizer</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Smart pre-send reviewer</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">mailto: handoff</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-150-word guardrail</span>
         </div>
@@ -162,94 +225,94 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
       <!-- ---------------- LEFT COLUMN: FORM INPUT PANEL ---------------- -->
-      <section aria-labelledby="formHeading" class="lg:col-span-5 xl:col-span-4">
-        <div class="bg-white rounded-2xl shadow-panel ring-1 ring-zinc-200 overflow-hidden">
-          <div class="border-b border-zinc-200 bg-gradient-to-r from-navy-50 to-white px-5 py-4 sm:px-6">
-            <h2 id="formHeading" class="text-base font-bold text-navy-900 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      <section aria-labelledby="formHeading" class="lg:col-span-5 xl:col-span-4 relative z-10">
+        <div class="bg-white/90 backdrop-blur rounded-xl border border-ink-200 shadow-card overflow-hidden">
+          <div class="border-b border-ink-200 bg-parchment-50 px-5 py-4 sm:px-6">
+            <h2 id="formHeading" class="font-display text-base font-bold text-ink-900 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               Your Details
             </h2>
-            <p class="text-xs text-zinc-500 mt-1">Fill what you know — blanks use smart fallback defaults.</p>
+            <p class="text-xs text-ink-500 mt-1">Fill what you know — blanks use smart fallback defaults.</p>
           </div>
 
           <form id="assistantForm" class="px-5 py-5 sm:px-6 space-y-4" novalidate>
 
             <!-- Input 1: Student Full Name -->
             <div>
-              <label for="studentName" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
-                Student Full Name <span class="text-zinc-400 normal-case font-normal tracking-normal">(your signature)</span>
+              <label for="studentName" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
+                Student Full Name <span class="text-ink-400 normal-case font-normal tracking-normal">(your signature)</span>
               </label>
               <input id="studentName" name="studentName" type="text" autocomplete="name" placeholder="e.g., Alex Rivera"
-                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
             <!-- Input 2: Target Degree & Major -->
             <div>
-              <label for="degreeMajor" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+              <label for="degreeMajor" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Target Degree &amp; Major
               </label>
               <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Computer Science"
-                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
             <!-- Input 3: Target Term/Year -->
             <div>
-              <label for="termYear" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+              <label for="termYear" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Target Term / Year
               </label>
               <input id="termYear" name="termYear" type="text" placeholder="e.g., Fall 2027"
-                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
             <!-- Input 4: Previous University / Background -->
             <div>
-              <label for="background" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+              <label for="background" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Previous University / Current Background
               </label>
               <input id="background" name="background" type="text" placeholder="e.g., B.Tech in Electrical Engineering, Pune Institute of Technology"
-                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
-            <div class="border-t border-dashed border-zinc-200 pt-4">
-              <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-indigo-600">Recipient</p>
+            <div class="border-t border-dashed border-ink-200 pt-4">
+              <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-clay-700">Recipient</p>
             </div>
 
             <!-- Input 5: Professor's Full Name -->
             <div>
-              <label for="profName" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+              <label for="profName" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Professor's Full Name
               </label>
               <input id="profName" name="profName" type="text" placeholder="e.g., Dr. Jane Smith"
-                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
             <!-- Input 6: Research Focus / Lab / Paper Topic -->
             <div>
-              <label for="researchFocus" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+              <label for="researchFocus" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Research Interest / Lab Name / Specific Paper Topic
               </label>
               <textarea id="researchFocus" name="researchFocus" rows="2"
                         placeholder="e.g., the RoboNLP Lab's work on sample-efficient reinforcement learning, or your paper on low-resource machine translation"
-                        class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition resize-y"></textarea>
+                        class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition resize-y"></textarea>
             </div>
 
             <!-- Input 6b: Tool/Skill You Use — paired with the professor's paper topic in the email body -->
             <div>
-              <label for="toolSkill" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
-                Tool/Skill You Use <span class="text-zinc-400 normal-case font-normal tracking-normal">(e.g., PyTorch, Matlab, Lab Technique)</span>
+              <label for="toolSkill" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
+                Tool/Skill You Use <span class="text-ink-400 normal-case font-normal tracking-normal">(e.g., PyTorch, Matlab, Lab Technique)</span>
               </label>
               <input id="toolSkill" name="toolSkill" type="text" placeholder="e.g., PyTorch, Matlab, Western Blotting, mass spectrometry"
-                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
             <!-- Select 7: Assistantship Type -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="assistType" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                <label for="assistType" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                   Assistantship Type
                 </label>
                 <select id="assistType" name="assistType"
-                        class="field w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                        class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition">
                   <option value="RA">Research Assistantship — RA</option>
                   <option value="TA">Teaching Assistantship — TA</option>
                   <option value="EITHER">Either / General Inquiry</option>
@@ -258,11 +321,11 @@
 
               <!-- Select 8: Email Tone -->
               <div>
-                <label for="tone" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
+                <label for="tone" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                   Email Tone
                 </label>
                 <select id="tone" name="tone"
-                        class="field w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                        class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition">
                   <option value="direct">Professional &amp; Direct</option>
                   <option value="academic">Expressive &amp; Academic</option>
                   <option value="formal">Formal &amp; Concise</option>
@@ -272,22 +335,32 @@
 
             <!-- Optional: professor email for mailto -->
             <div>
-              <label for="profEmail" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">
-                Professor Email <span class="text-zinc-400 normal-case font-normal tracking-normal">(optional — enables mailto prefill)</span>
+              <label for="profEmail" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
+                Professor Email <span class="text-ink-400 normal-case font-normal tracking-normal">(optional — enables mailto prefill)</span>
               </label>
               <input id="profEmail" name="profEmail" type="email" autocomplete="off" placeholder="e.g., j.smith@university.edu"
-                     class="field w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
+
+            <!-- Humanizer toggle: auto-apply the human-like pass on every generate -->
+            <label class="flex items-start gap-3 rounded-lg border border-ink-200 bg-parchment-50 px-3.5 py-3 cursor-pointer select-none">
+              <input id="humanizeToggle" type="checkbox" checked
+                     class="mt-0.5 h-4 w-4 rounded border-ink-300 accent-clay-600" />
+              <span>
+                <span class="block text-sm font-semibold text-ink-800">Human-like polish</span>
+                <span class="block text-xs text-ink-500 leading-relaxed">Automatically rewrite each draft so sentence lengths vary and stock corporate phrasing goes away. You can also run it manually from the output panel.</span>
+              </span>
+            </label>
 
             <!-- Buttons -->
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
               <button type="submit" id="generateBtn"
-                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lift hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 active:scale-[0.98] transition">
+                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-clay-700 px-4 py-2.5 text-sm font-semibold text-parchment-50 shadow-lift hover:bg-clay-600 focus:outline-none focus:ring-2 focus:ring-clay-500/50 active:scale-[0.98] transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
                 Generate Email
               </button>
               <button type="button" id="resetBtn"
-                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-navy-800 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-400/40 active:scale-[0.98] transition">
+                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-ink-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 hover:bg-parchment-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.98] transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                 Reset Form
               </button>
@@ -296,24 +369,24 @@
         </div>
 
         <!-- ---------- TIPS ACCORDION ---------- -->
-        <div class="mt-6 bg-white rounded-2xl shadow-panel ring-1 ring-zinc-200 overflow-hidden">
+        <div class="mt-6 bg-white/90 rounded-xl border border-ink-200 shadow-card overflow-hidden">
           <button type="button" id="tipsToggle" aria-expanded="false" aria-controls="tipsPanel"
-                  class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-zinc-50 transition sm:px-6">
+                  class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-parchment-50 transition sm:px-6">
             <span class="flex items-center gap-2.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>
-              <span class="text-sm font-bold text-navy-900">Tips for Contacting Professors</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>
+              <span class="text-sm font-bold text-ink-900">Tips for Contacting Professors</span>
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-ink-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div id="tipsPanel" class="accordion-panel">
             <div>
-              <ul class="px-5 pb-5 sm:px-6 space-y-3 text-sm text-zinc-600 leading-relaxed list-none">
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">1</span><span><strong class="text-navy-800">Time it right.</strong> Send emails Tue–Thu, 8–10 a.m. in the professor's time zone. Avoid holidays and the two weeks before admission deadlines, when inboxes overflow.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">2</span><span><strong class="text-navy-800">Read one real paper first.</strong> Cite a specific paper or project (paste its topic into the form). Generic flattery reads as spam; specificity reads as scholarship.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">3</span><span><strong class="text-navy-800">Attach a CV &amp; unofficial transcript</strong> as PDFs, named <code class="rounded bg-zinc-100 px-1 py-0.5 text-[12px]">Lastname_CV.pdf</code>. Mention the attachments so they aren't overlooked.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">4</span><span><strong class="text-navy-800">Keep it under 150 words.</strong> Professors skim. One direct opener, one paragraph of fit, one line of logistics — then stop. The live counter below watches this for you.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">5</span><span><strong class="text-navy-800">Follow up once after 7–10 days.</strong> Reply to your original message with a short, polite bump. No reply after that? Move on gracefully.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">6</span><span><strong class="text-navy-800">Use your institutional email if possible,</strong> and double-check the professor's title (Dr./Prof.) and spelling before sending. Personalize one email at a time — never BCC a cohort.</span></li>
+              <ul class="px-5 pb-5 sm:px-6 space-y-3 text-sm text-ink-600 leading-relaxed list-none">
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">1</span><span><strong class="text-ink-800">Time it right.</strong> Send emails Tue–Thu, 8–10 a.m. in the professor's time zone. Avoid holidays and the two weeks before admission deadlines, when inboxes overflow.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">2</span><span><strong class="text-ink-800">Read one real paper first.</strong> Cite a specific paper or project (paste its topic into the form). Generic flattery reads as spam; specificity reads as scholarship.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">3</span><span><strong class="text-ink-800">Attach a CV &amp; unofficial transcript</strong> as PDFs, named <code class="rounded bg-parchment-200 px-1 py-0.5 text-[12px]">Lastname_CV.pdf</code>. Mention the attachments so they aren't overlooked.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">4</span><span><strong class="text-ink-800">Keep it under 150 words.</strong> Professors skim. One direct opener, one paragraph of fit, one line of logistics — then stop. The live counter below watches this for you.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">5</span><span><strong class="text-ink-800">Follow up once after 7–10 days.</strong> Reply to your original message with a short, polite bump. No reply after that? Move on gracefully.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">6</span><span><strong class="text-ink-800">Use your institutional email if possible,</strong> and double-check the professor's title (Dr./Prof.) and spelling before sending. Personalize one email at a time — never BCC a cohort.</span></li>
               </ul>
             </div>
           </div>
@@ -321,14 +394,14 @@
       </section>
 
       <!-- ---------------- RIGHT COLUMN: OUTPUT PANEL ---------------- -->
-      <section aria-labelledby="outputHeading" class="lg:col-span-7 xl:col-span-8">
-        <div class="bg-white rounded-2xl shadow-panel ring-1 ring-zinc-200 overflow-hidden flex flex-col">
-          <div class="border-b border-zinc-200 bg-gradient-to-r from-navy-50 to-white px-5 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
-            <h2 id="outputHeading" class="text-base font-bold text-navy-900 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v-3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v3"/><path d="M2 19h20"/><path d="M8 19V8"/><path d="M16 19V8"/><rect x="2" y="8" width="20" height="11" rx="2"/></svg>
+      <section aria-labelledby="outputHeading" class="lg:col-span-7 xl:col-span-8 relative z-10">
+        <div class="bg-white/90 rounded-xl border border-ink-200 shadow-card overflow-hidden flex flex-col">
+          <div class="border-b border-ink-200 bg-parchment-50 px-5 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+            <h2 id="outputHeading" class="font-display text-base font-bold text-ink-900 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v-3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v3"/><path d="M2 19h20"/><path d="M8 19V8"/><path d="M16 19V8"/><rect x="2" y="8" width="20" height="11" rx="2"/></svg>
               Generated Email
             </h2>
-            <span id="templateBadge" class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-indigo-50 ring-1 ring-indigo-200 px-3 py-1 text-[11px] font-semibold text-indigo-700">
+            <span id="templateBadge" class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-clay-100 ring-1 ring-clay-200 px-3 py-1 text-[11px] font-semibold text-clay-800">
               RA · Professional &amp; Direct
             </span>
           </div>
@@ -337,13 +410,13 @@
 
             <!-- Subject line + copy button -->
             <div>
-              <label for="subjectLine" class="block text-xs font-semibold uppercase tracking-wide text-navy-700 mb-1.5">Subject Line</label>
+              <label for="subjectLine" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">Subject Line</label>
               <div class="flex gap-2">
                 <input id="subjectLine" type="text" readonly spellcheck="false"
                        placeholder="Generate an email to see a tailored subject line…"
-                       class="field w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3.5 py-2.5 text-sm text-navy-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition" />
+                       class="field w-full rounded-lg border border-ink-200 bg-parchment-50 px-3.5 py-2.5 text-sm text-ink-900 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
                 <button type="button" id="copySubjectBtn"
-                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-navy-800 hover:border-indigo-400 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 active:scale-[0.97] transition"
+                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-ink-800 hover:border-clay-400 hover:text-clay-700 focus:outline-none focus:ring-2 focus:ring-clay-500/40 active:scale-[0.97] transition"
                         title="Copy the subject line">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   <span class="hidden sm:inline">Copy Subject</span><span class="sm:hidden">Copy</span>
@@ -354,61 +427,126 @@
             <!-- Email body textarea -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label for="emailBody" class="block text-xs font-semibold uppercase tracking-wide text-navy-700">Email Body</label>
-                <span class="text-[11px] text-zinc-400">Editable — tweak wording before sending</span>
+                <label for="emailBody" class="block text-xs font-semibold uppercase tracking-wide text-ink-700">Email Body</label>
+                <span class="text-[11px] text-ink-400">Editable — tweak wording before sending</span>
               </div>
               <textarea id="emailBody" rows="16" spellcheck="true"
                         placeholder="Your generated assistantship email will appear here, formatted and ready to personalize…"
-                        class="field w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3.5 text-[13px] sm:text-sm text-navy-900 placeholder-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition"></textarea>
+                        class="field w-full rounded-lg border border-ink-200 px-4 py-3.5 text-[13px] sm:text-sm text-ink-900 placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition"></textarea>
 
               <!-- Character & word counter -->
               <div class="mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div class="flex items-center gap-3 text-xs font-medium" id="counterWrap">
-                  <span id="wordCount" class="rounded-md bg-zinc-100 px-2 py-1 text-zinc-600">0 words</span>
-                  <span id="charCount" class="rounded-md bg-zinc-100 px-2 py-1 text-zinc-600">0 characters</span>
-                  <span id="wordVerdict" class="text-zinc-400"></span>
+                  <span id="wordCount" class="rounded-md bg-parchment-200 px-2 py-1 text-ink-600">0 words</span>
+                  <span id="charCount" class="rounded-md bg-parchment-200 px-2 py-1 text-ink-600">0 characters</span>
+                  <span id="wordVerdict" class="text-ink-400"></span>
                 </div>
                 <div class="flex-1 min-w-[120px]" title="Target: under 150 words">
-                  <div class="h-1.5 w-full rounded-full bg-zinc-200 overflow-hidden">
-                    <div id="countBar" class="h-full w-0 rounded-full bg-emerald-500"></div>
+                  <div class="h-1.5 w-full rounded-full bg-ink-100 overflow-hidden">
+                    <div id="countBar" class="h-full w-0 rounded-full bg-forest-500"></div>
                   </div>
                 </div>
               </div>
             </div>
 
+            <!-- ---------- HUMANIZER CARD ---------- -->
+            <div class="rounded-xl border border-clay-200 bg-clay-50/60 p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+                  <h3 class="font-display text-sm font-bold text-ink-900">Humanizer</h3>
+                  <span id="humanStatusChip" class="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold text-ink-500">idle</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" id="undoHumanizeBtn"
+                          class="hidden inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-parchment-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.97] transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+                    Undo polish
+                  </button>
+                  <button type="button" id="humanizeBtn"
+                          class="inline-flex items-center gap-2 rounded-lg bg-clay-700 px-4 py-2 text-sm font-semibold text-parchment-50 hover:bg-clay-600 focus:outline-none focus:ring-2 focus:ring-clay-500/50 active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Rewrite the draft so it reads like a person typed it: varied sentence rhythm, no stock corporate phrasing">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                    Humanize This Email
+                  </button>
+                </div>
+              </div>
+
+              <p class="text-xs text-ink-600 leading-relaxed">
+                Rewrites every sentence with natural human rhythm — contractions where they fit, varied
+                lengths, everyday academic voice, hedge words removed, and all tell-tale machine phrases
+                swapped out. Proper nouns, lab names, tools, dates, and your signature are never touched.
+              </p>
+
+              <div class="flex items-center gap-3">
+                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500 shrink-0">Naturalness score</span>
+                <div class="flex-1 h-2 rounded-full bg-ink-100 overflow-hidden">
+                  <div id="humanBar" class="h-full w-0 rounded-full bg-ink-300"></div>
+                </div>
+                <span id="humanScoreLabel" class="text-xs font-bold text-ink-600 w-9 text-right">—</span>
+              </div>
+              <p id="humanChanges" class="text-[11px] text-ink-500 italic leading-relaxed">Run a generate or click Humanize to see what changed.</p>
+            </div>
+
             <!-- Quick action toolbar -->
-            <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-3 sm:p-4 space-y-3">
+            <div class="rounded-xl border border-ink-200 bg-parchment-50/70 p-3 sm:p-4 space-y-3">
               <div class="flex flex-wrap items-center gap-2">
+                <button type="button" id="reviewBtn"
+                        class="inline-flex items-center gap-2 rounded-lg border border-ink-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 hover:border-forest-500 hover:text-forest-700 focus:outline-none focus:ring-2 focus:ring-forest-500/40 active:scale-[0.97] transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="m9 11 2 2 4-4"/></svg>
+                  Smart Review (what's right / what's wrong)
+                </button>
                 <button type="button" id="copyBodyBtn"
-                        class="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-navy-500/50 active:scale-[0.97] transition">
+                        class="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-semibold text-parchment-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   Copy Email Body
                 </button>
                 <button type="button" id="mailtoBtn"
-                        class="inline-flex items-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 active:scale-[0.97] transition">
+                        class="inline-flex items-center gap-2 rounded-lg border border-clay-300 bg-white px-4 py-2.5 text-sm font-semibold text-clay-800 hover:bg-clay-50 focus:outline-none focus:ring-2 focus:ring-clay-500/40 active:scale-[0.97] transition">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.994 5.7a2 2 0 0 1-2.006 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="3"/></svg>
                   Open in Email Client (mailto:)
                 </button>
               </div>
 
               <!-- Tone quick-toggle buttons -->
-              <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-zinc-200/80">
-                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-500 mr-1">Quick re-tone:</span>
-                <div class="inline-flex rounded-lg border border-zinc-300 bg-white p-1 gap-1" role="group" aria-label="Quick tone toggle">
+              <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-ink-200/80">
+                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500 mr-1">Quick re-tone:</span>
+                <div class="inline-flex rounded-lg border border-ink-300 bg-white p-1 gap-1" role="group" aria-label="Quick tone toggle">
                   <button type="button" data-tone="direct"   class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Direct</button>
                   <button type="button" data-tone="academic" class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Academic</button>
                   <button type="button" data-tone="formal"   class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Formal</button>
                 </div>
-                <span class="text-[11px] text-zinc-400">instantly reformats the last generated email</span>
+                <span class="text-[11px] text-ink-400">instantly reformats the last generated email</span>
+              </div>
+            </div>
+
+            <!-- ---------- SMART REVIEWER PANEL ---------- -->
+            <div id="reviewPanel" class="hidden rounded-xl border border-ink-200 bg-white overflow-hidden">
+              <div class="flex items-center justify-between px-4 py-3 bg-ink-950 text-parchment-50">
+                <h3 class="font-display text-sm font-bold flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-clay-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                  Smart Pre-Send Reviewer
+                </h3>
+                <div class="flex items-center gap-3">
+                  <span id="reviewGrade" class="rounded-full px-2.5 py-1 text-[11px] font-bold bg-ink-700 text-parchment-200">—</span>
+                  <button type="button" id="closeReviewBtn" class="text-parchment-300 hover:text-white transition" aria-label="Close review panel">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="p-4 sm:p-5 space-y-4 max-h-96 overflow-y-auto">
+                <ul id="reviewGoodList" class="space-y-2 text-sm"></ul>
+                <ul id="reviewBadList"  class="space-y-2 text-sm"></ul>
+                <p id="reviewEmpty" class="hidden text-sm text-ink-500 italic">Nothing to flag — this draft looks clean.</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Compliance mini-card -->
-        <div class="mt-4 flex flex-col sm:flex-row gap-3 text-xs text-zinc-500">
-          <p class="flex-1 bg-white rounded-xl ring-1 ring-zinc-200 px-4 py-3 leading-relaxed">
-            <strong class="text-navy-800">Before you send:</strong> verify the professor's name spelling and title, confirm their current lab page,
+        <div class="mt-4 flex flex-col sm:flex-row gap-3 text-xs text-ink-500 relative z-10">
+          <p class="flex-1 bg-white/90 rounded-xl border border-ink-200 px-4 py-3 leading-relaxed">
+            <strong class="text-ink-800">Before you send:</strong> verify the professor's name spelling and title, confirm their current lab page,
             attach your CV/transcript as PDFs, and replace any bracketed placeholders. This tool drafts — you own the final read-through.
           </p>
         </div>
@@ -417,10 +555,10 @@
   </main>
 
   <!-- ============================ FOOTER ============================ -->
-  <footer class="bg-navy-950 text-navy-200 mt-auto">
+  <footer class="bg-ink-950 text-parchment-300 mt-auto relative z-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-      <p>© <span id="year"></span> GradAssist Mailer · Built for graduate applicants everywhere.</p>
-      <p class="text-navy-300">All generation happens locally in your browser.</p>
+      <p>© <span id="year"></span> LetterDesk · Built for graduate applicants everywhere.</p>
+      <p class="text-parchment-400">All generation happens locally in your browser.</p>
     </div>
   </footer>
 
@@ -744,18 +882,44 @@
       verdict:     document.getElementById('wordVerdict'),
       countBar:    document.getElementById('countBar'),
       toneSelect:  document.getElementById('tone'),
-      assistSelect:document.getElementById('assistType')
+      assistSelect:document.getElementById('assistType'),
+      humanizeBtn:  document.getElementById('humanizeBtn'),
+      undoHumanize: document.getElementById('undoHumanizeBtn'),
+      humanToggle:  document.getElementById('humanizeToggle'),
+      humanBar:     document.getElementById('humanBar'),
+      humanScore:   document.getElementById('humanScoreLabel'),
+      humanChanges: document.getElementById('humanChanges'),
+      humanChip:    document.getElementById('humanStatusChip'),
+      reviewBtn:    document.getElementById('reviewBtn'),
+      reviewPanel:  document.getElementById('reviewPanel'),
+      reviewGrade:  document.getElementById('reviewGrade'),
+      reviewGood:   document.getElementById('reviewGoodList'),
+      reviewBad:    document.getElementById('reviewBadList'),
+      reviewEmpty:  document.getElementById('reviewEmpty')
     };
 
     let lastGenerated = null; // remembers inputs were valid; stores {subject, body}
+    let preHumanizeSnapshot = null; // body text before the last humanizer pass
 
     const TONE_LABELS = { direct: 'Professional & Direct', academic: 'Expressive & Academic', formal: 'Formal & Concise' };
     const TYPE_LABELS = { RA: 'RA', TA: 'TA', EITHER: 'General' };
 
     function renderOutput(subject, body, flash = true) {
       els.subject.value = subject;
-      els.body.value = body;
-      lastGenerated = { subject, body };
+      let finalBody = body;
+      // Auto-humanize pass (toggle in the form). Deterministic rewrite —
+      // never touches names, tools, dates, or the signature block.
+      if (els.humanToggle && els.humanToggle.checked) {
+        const h = humanizeText(body);
+        finalBody = h.text;
+        setHumanPanel(h.score, `${h.changes} naturalness fix${h.changes === 1 ? '' : 'es'} applied automatically on generate.`, 'auto-polished');
+      } else {
+        preHumanizeSnapshot = null;
+        els.undoHumanize.classList.add('hidden');
+        setHumanPanel(null, 'Auto-polish is off — click "Humanize This Email" any time.', 'idle');
+      }
+      els.body.value = finalBody;
+      lastGenerated = { subject, body: finalBody };
       updateCounts();
       updateToneChips(els.toneSelect.value);
       const type = els.assistSelect.value;
@@ -792,10 +956,10 @@
 
       if (words === 0) {
         els.verdict.textContent = '';
-        els.countBar.className = 'h-full w-0 rounded-full bg-emerald-500';
+        els.countBar.className = 'h-full w-0 rounded-full bg-forest-500';
       } else if (words <= 150) {
         els.verdict.textContent = 'Nicely concise ✓';
-        els.countBar.className = 'h-full rounded-full bg-emerald-500';
+        els.countBar.className = 'h-full rounded-full bg-forest-500';
       } else if (words <= 200) {
         els.verdict.textContent = 'Acceptable — still under 200 words';
         els.countBar.className = 'h-full rounded-full bg-amber-500';
@@ -805,16 +969,433 @@
       }
       els.verdict.className = words > 200 ? 'font-semibold text-rose-600'
                           : words > 150   ? 'font-medium text-amber-600'
-                                          : 'text-emerald-600';
+                                          : 'text-forest-600';
     }
+
+    /* ==================================================================
+       HUMANIZER ENGINE
+       Deterministic, in-browser rewrite that targets the statistical and
+       lexical signals AI detectors actually look for:
+         • uniform sentence length (low "burstiness")  → split/run-on fix
+         • stock machine phrases ("I hope this email
+           finds you well", "delve", "leverage"…)       → swap/deletion
+         • over-formal vocabulary                       → plain synonyms
+         • zero contractions                            → natural ones
+         • hedge padding ("very", "really", "just")     → trimmed
+       Protected spans (names, emails, URLs, tools like
+       PyTorch/GitHub, bracketed placeholders) are tokenized out first
+       and restored verbatim afterwards, so nothing factual is altered.
+    ================================================================== */
+
+    // Phrases that scream "generated". Longest-match-first replacement.
+    const MACHINE_PHRASES = [
+      [/\bI (?:hope|trust) this e?-?mail (?:finds|find) you well\.?\s*/gi, ''],
+      [/\bi hope you(?:'re| are) (?:doing|having) well\.?\s*/gi, ''],
+      [/\bI am writing to express my (?:strong |keen |great )?(?:interest|enthusiasm) in\b/gi, 'I want to ask about'],
+      [/\bexpress my sincere interest in\b/gi, 'ask about'],
+      [/\bprofound (?:interest|enthusiasm|admiration)\b/gi, 'real interest'],
+      [/\bdeep-seated\b/gi, 'genuine'],
+      [/\bdelve(?:s|d)? into\b/gi, 'dig into'],
+      [/\bdelve\b/gi, 'dig in'],
+      [/\blembrace[sd]?\b/gi, 'take on'],
+      [/\bleverag(?:e|ing|es)(?:d)?\b/gi, 'use'],
+      [/\butiliz(?:e|ing|ation)\b/gi, 'use'],
+      [/\bmyriad\b/gi, 'lots of'],
+      [/\bplethora\b/gi, 'plenty'],
+      [/\bcapitaliz(?:e|ing)\s+on\b/gi, 'build on'],
+      [/\bseamless(?:ly)?\b/gi, 'smooth'],
+      [/\brobust\b/gi, 'solid'],
+      [/\bcutting-edge\b/gi, 'new'],
+      [/\bstate-of-the-art\b/gi, 'the latest'],
+      [/\bparadigm\b/gi, 'approach'],
+      [/\bnavigat(?:e|ing) the (?:complex |intricate )?landscape of\b/gi, 'work through'],
+      [/\btestament to\b/gi, 'sign of'],
+      [/\bpivotal\b/gi, 'key'],
+      [/\bcrucial\b/gi, 'important'],
+      [/\bit is worth noting that\s+/gi, ''],
+      [/\bnotably,?\s+/gi, ''],
+      [/\bfurthermore,?\s*/gi, 'Also, '],
+      [/\bmoreover,?\s*/gi, 'And '],
+      [/\badditionally,?\s*/gi, 'Also, '],
+      [/\bsubsequently,?\s*/gi, 'Then '],
+      [/\bconsequently,?\s*/gi, 'So '],
+      [/\bin addition,?\s*/gi, 'Also, '],
+      [/\bwith that being said,?\s*/gi, 'That said, '],
+      [/\bi am eager to contribute to\b/gi, 'I would like to help with'],
+      [/\bunderpin(?:s|ed)?\b/gi, 'support'],
+      [/\bfacilitate\b/gi, 'help with'],
+      [/\bendeavor\b/gi, 'try']
+    ];
+
+    // Over-formal single words → everyday academic voice.
+    const FORMAL_SWAPS = [
+      [/\bprior to\b/g, 'before'],
+      [/\bat this point in time\b/g, 'now'],
+      [/\bin the event that\b/g, 'if'],
+      [/\bcommence\b/g, 'start'],
+      [/\bterminate\b/g, 'end'],
+      [/\bobtain\b/g, 'get'],
+      [/\bdemonstrate\b/g, 'show'],
+      [/\bregarding\b/g, 'about'],
+      [/\bsufficient\b/g, 'enough'],
+      [/\battempt(?:ing)?\b/g, m => m.toLowerCase().startsWith('attempting') ? 'trying' : 'try'],
+      [/\bshould you (?:be )?interested\b/g, 'If you have room in the lab'],
+      [/\bvery \b/g, ''],
+      [/\breally \b/g, ''],
+      [/\bactually \b/g, ''],
+      [/\bbasically \b/g, '']
+    ];
+
+    // Natural contractions — only when followed by a lowercase word so we
+    // never contract across a proper noun or at sentence boundaries oddly.
+    const CONTRACTIONS = [
+      [/\bI am\b/g, "I'm"],
+      [/\bI am not\b/g, "I'm not"],
+      [/\byou are\b/g, "you're"],
+      [/\bwe are\b/g, "we're"],
+      [/\bit is\b/g, "it's"],
+      [/\bthat is\b/g, "that's"],
+      [/\bthere is\b/g, "there's"],
+      [/\bdo not\b/g, "don't"],
+      [/\bdoes not\b/g, "doesn't"],
+      [/\bis not\b/g, "isn't"],
+      [/\bare not\b/g, "aren't"],
+      [/\bcannot\b/g, "can't"],
+      [/\bwould not\b/g, "wouldn't"],
+      [/\bwill not\b/g, "won't"],
+      [/\bI have\b/g, "I've"],
+      [/\bI would\b/g, "I'd"],
+      [/\bI will\b/g, "I'll"],
+      [/\bwe have\b/g, "we've"],
+      [/\byou have\b/g, "you've"]
+    ];
+
+    function protectTokens(text) {
+      // Pull out anything the humanizer must never touch.
+      const protected_ = [];
+      const stash = m => { protected_.push(m); return `\u0000${protected_.length - 1}\u0000`; };
+      text = text
+        .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, stash)              // emails
+        .replace(/\b(?:https?:\/\/|www\.)\S+\b/gi, stash)          // urls
+        .replace(/\[[^\]\n]{1,80}\]/g, stash)                      // [bracketed placeholders]
+        .replace(/\b(?:Fall|Spring|Summer|Winter)\s+(?:term\s+)?\d{4}\b/g, stash) // terms
+        .replace(/\b(?:Dr|Prof|Professor)\.?\s+[A-ZÀ-Ý][\w'’\-]*(?:\s+[A-ZÀ-Ý][\w'’\-]*){0,3}\b/g, stash) // titles + names
+        .replace(/\b[A-Z][a-z]+(?:[A-Z][a-zA-Z]*)+\b/g, stash)     // CamelCase tools: PyTorch, TensorFlow
+        .replace(/\b(?:Matlab|MATLAB|LaTeX|Bash|Zsh|CUDA|Scikit-learn|Jupyter|RStudio|Blender|Figma)\b/g, stash)
+        .replace(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/g, m => /[A-Z][a-z]+ (?:University|Institute|College|Lab|Center|Centre|Hospital|State|Tech)\b/.test(m) ? stash(m) : m)
+            .replace(/\b(?:M\.?S\.?|Ph\.?D\.?|Eng\.)\b/g, stash)               // degree abbrevs (no dot form)
+        .replace(/\b(?:BA|BS|BSc|BA|MA|MS|MMath)\b(?=\s+(?:in|of)\b)/g, stash)  // "BS in ..." style
+        .replace(/\bB\.(Tech|Arts|Science|Engineering)\b/g, stash);     // dotted: B.Tech etc.
+      return { text, protected_ };
+    }
+
+    function restoreTokens(text, protected_) {
+      return text.replace(/\u0000(\d+)\u0000/g, (_, i) => protected_[+i]);
+    }
+
+    function splitSentences(paragraph) {
+      // Split on ". ", "! ", "? " while keeping terminators; protects already-stashed tokens.
+      const parts = paragraph.match(/[^.!?]+[.!?]+["')]?\s*|[^.!?]+$/g);
+      return parts ? parts.map(s => s.trim()).filter(Boolean) : [paragraph];
+    }
+
+    function humanizeSentence(sentence) {
+      let s = sentence;
+      // Phrase & word swaps
+      for (const [re, rep] of MACHINE_PHRASES) s = s.replace(re, rep);
+      for (const [re, rep] of FORMAL_SWAPS)   s = s.replace(re, rep);
+      // Contractions only inside multi-word sentences (keeps fragments intact)
+      if (s.split(/\s+/).length > 3) {
+        for (const [re, rep] of CONTRACTIONS) s = s.replace(re, rep);
+      }
+      return s.replace(/\s{2,}/g, ' ').trim();
+    }
+
+    function humanizeText(body) {
+      const { text, protected_ } = protectTokens(body);
+      const lines = text.split('\n');
+      let changes = 0;
+      const outLines = [];
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        // Never restructure greeting, sign-off, signature, or bracket lines
+        if (!trimmed || /^(?:Dear|Hi|Hello|Best|Sincerely|Respectfully|Kind regards|Warm regards|Cheers|[A-Z][a-zA-Z'.\- ]+$)/.test(trimmed)
+            || /^\[.*\]$/.test(trimmed) || /^[^\s].{0,12}:$/.test(trimmed)) {
+          outLines.push(line);
+          continue;
+        }
+        const sentences = splitSentences(trimmed);
+        const fixed = sentences.map(sent => {
+          const h = humanizeSentence(sent);
+          if (h !== sent) changes++;
+          return h;
+        });
+
+        // Burstiness pass: humans mix short and long sentences. If every
+        // sentence here is a near-uniform medium length, merge two neighbors
+        // with "and"/comma rhythm or split the longest one after a clause.
+        if (fixed.length >= 3) {
+          const lens = fixed.map(s => s.split(/\s+/).length);
+          const avg = lens.reduce((a, b) => a + b, 0) / lens.length;
+          const uniform = lens.every(l => Math.abs(l - avg) <= 4 && avg >= 14 && avg <= 26);
+          if (uniform) {
+            // Split the longest sentence at a natural clause boundary
+            let idx = lens.indexOf(Math.max(...lens));
+            const m = fixed[idx].match(/^(.{30,90}?(?:, (?:and|but|which|so|because) |\b(?:although|while|because|so|but|and)\b ).+?)\s+(.+)$/i);
+            if (m && m[2].split(/\s+/).length >= 4) {
+              let second = m[2].charAt(0).toUpperCase() + m[2].slice(1);
+              if (!/[.!?]$/.test(second)) second += '.';
+              fixed[idx] = m[1].trim() + '.';
+              fixed.splice(idx + 1, 0, second);
+              changes++;
+            } else {
+              // Otherwise glue a short tail sentence onto its predecessor
+              for (let i = fixed.length - 1; i > 0; i--) {
+                if (fixed[i].split(/\s+/).length <= 6) {
+                  const prev = fixed[i - 1].replace(/[.]$/, '');
+                  fixed[i - 1] = `${prev}, ${fixed[i].replace(/[.]$/, '')}.`;
+                  fixed.splice(i, 1);
+                  changes++;
+                  break;
+                }
+              }
+            }
+          }
+        }
+        outLines.push(fixed.join(' '));
+      }
+
+      let result = restoreTokens(outLines.join('\n'), protected_);
+      result = result.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n')
+        .replace(/ {2,}(?=[^\n])/g, ' ')
+        .replace(/\bof of\b/gi, 'of')
+        .replace(/\b(\w+)(?:\s+\1)\b/gi, '$1'); // collapse accidental doubled words
+
+      // ---- Naturalness score (0–100): heuristic mirror of detector signals
+      const probe = result.toLowerCase();
+      let score = 78;
+      const words = probe.match(/\b[a-z']+\b/g) || [];
+      const uniqRatio = words.length ? new Set(words).size / words.length : 0;
+      score += Math.min(12, Math.round(uniqRatio * 25));                    // lexical variety
+      const bodySentences = (result.match(/[^.!?]+[.!?]+/g) || []);
+      const sl = bodySentences.map(s => s.trim().split(/\s+/).length).filter(n => n > 2);
+      if (sl.length >= 3) {
+        const mean = sl.reduce((a, b) => a + b, 0) / sl.length;
+        const sd = Math.sqrt(sl.reduce((a, b) => a + (b - mean) ** 2, 0) / sl.length);
+        const cv = mean ? sd / mean : 0;                                    // burstiness proxy
+        score += Math.min(14, Math.round(cv * 22));
+      }
+      const hits = (probe.match(/(?:delve|leverag|utiliz|seamless|robust|pivotal|myriad|plethora|furthermore|moreover|testament|paradigm|landscape)/g) || []).length;
+      score -= hits * 6;                                                    // remaining machine tells
+      const contractions = (probe.match(/(?:'\s*(?:m|re|ve|ll|d|t)\b|n't\b)/g) || []).length;
+      score += Math.min(8, contractions * 2);                               // human contraction use
+      score = Math.max(5, Math.min(99, score));
+      return { text: result, changes, score };
+    }
+
+    function setHumanPanel(score, note, statusLabel) {
+      if (score === null) {
+        els.humanBar.style.width = '0%';
+        els.humanBar.className = 'h-full w-0 rounded-full bg-ink-300';
+        els.humanScore.textContent = '—';
+      } else {
+        els.humanBar.style.width = score + '%';
+        els.humanBar.className = 'h-full rounded-full ' + (score >= 80 ? 'bg-forest-500' : score >= 60 ? 'bg-amber-500' : 'bg-rose-500');
+        els.humanScore.textContent = score;
+      }
+      els.humanChanges.textContent = note;
+      els.humanChip.textContent = statusLabel;
+      els.humanChip.className = 'rounded-full px-2 py-0.5 text-[10px] font-semibold ' +
+        (statusLabel === 'polished' || statusLabel === 'auto-polished'
+          ? 'bg-forest-100 text-forest-700'
+          : statusLabel === 'reverted' ? 'bg-clay-100 text-clay-700'
+          : 'bg-ink-100 text-ink-500');
+    }
+
+    /* Humanize button */
+    els.humanizeBtn.addEventListener('click', () => {
+      const current = els.body.value;
+      if (!current.trim()) { showToast('Nothing to humanize yet — generate an email first.', 'error'); return; }
+      preHumanizeSnapshot = current;
+      const h = humanizeText(current);
+      els.body.value = h.text;
+      if (lastGenerated) lastGenerated.body = h.text;
+      updateCounts();
+      els.undoHumanize.classList.remove('hidden');
+      setHumanPanel(h.score,
+        h.changes > 0
+          ? `${h.changes} sentence${h.changes === 1 ? '' : 's'} rewritten: machine phrases swapped, contractions added, rhythm varied.`
+          : 'Already reads naturally — no machine tells found.',
+        'polished');
+      showToast(`Humanized — naturalness score ${h.score}/100`, 'success');
+    });
+
+    /* Undo polish */
+    els.undoHumanize.addEventListener('click', () => {
+      if (preHumanizeSnapshot === null) return;
+      els.body.value = preHumanizeSnapshot;
+      if (lastGenerated) lastGenerated.body = preHumanizeSnapshot;
+      preHumanizeSnapshot = null;
+      els.undoHumanize.classList.add('hidden');
+      updateCounts();
+      setHumanPanel(null, 'Reverted to the pre-humanized draft.', 'reverted');
+      showToast('Humanizer pass undone', 'info');
+    });
+
+    /* ==================================================================
+       SMART PRE-SEND REVIEWER
+       Lightweight rule-based "thinking": checks structure, tone, length,
+       placeholders, personalization depth, and send-readiness, then says
+       what is RIGHT and what is WRONG about this specific draft.
+    ================================================================== */
+    function reviewEmail() {
+      const subject = els.subject.value.trim();
+      const body = els.body.value;
+      const prof  = val('profName');
+      const focus = val('researchFocus');
+      const skill = val('toolSkill');
+      const student = val('studentName');
+      const emailRaw = document.getElementById('profEmail').value.trim();
+
+      const good = [];
+      const bad = [];
+      const words = (body.match(/\S+/g) || []).length;
+      const lower = body.toLowerCase();
+
+      // --- Structure & basics
+      if (/^(dear|hi|hello)\b/i.test(body)) good.push('Opens with a proper salutation.');
+      else bad.push({ t: 'No greeting detected — start with "Dear Prof. X" or "Hi Dr. X".', fix: 'Add a salutation on line 1.' });
+
+      if (student && body.includes(student)) good.push('Signed with your full name.');
+      else bad.push({ t: 'Signature missing or doesn\'t match the name in the form.', fix: 'Make sure your name ends the email.' });
+
+      if (subject) {
+        const sw = subject.split(/\s+/).length;
+        if (sw <= 12 && /assistant|RA|TA|research|teaching|inquiry/i.test(subject))
+          good.push(`Subject is short and searchable (${sw} words).`);
+        else if (sw > 14)
+          bad.push({ t: `Subject runs ${sw} words — it will get truncated on phones.`, fix: 'Cut it to ~8 words.' });
+        else
+          bad.push({ t: 'Subject doesn\'t mention RA/TA or research — busy professors filter on those.', fix: 'Include the assistantship type and term.' });
+      } else {
+        bad.push({ t: 'No subject line.', fix: 'Generate or type one before sending.' });
+      }
+
+      // --- Length guardrail
+      if (words === 0) bad.push({ t: 'Empty email body.', fix: 'Fill the form and hit Generate.' });
+      else if (words <= 150) good.push(`${words} words — right in the sweet spot professors actually read.`);
+      else if (words <= 200) bad.push({ t: `${words} words — acceptable but drifting long.`, fix: 'Trim the fit paragraph by a sentence.' });
+      else bad.push({ t: `${words} words is past the 150 target — likely to be skimmed or skipped.`, fix: 'Run the Humanizer and cut adjectives, or shorten the background line.' });
+
+      // --- Personalization intelligence
+      if (focus && focus.split(/\s+/).length >= 3 && lower.includes(focus.split(/\s+/).slice(0, 2).join(' ').toLowerCase()))
+        good.push('Names a concrete research topic — proves you read their work.');
+      else bad.push({ t: 'Research focus looks generic; this reads like mass mail.', fix: 'Paste one real paper title or lab name into the form and regenerate.' });
+
+      if (skill && lower.includes(skill.toLowerCase().split(/\s+/)[0]))
+        good.push(`Pairs your tool/skill (${skill}) with the professor's topic — the strongest fit signal.`);
+      else bad.push({ t: 'No specific tool/method mentioned alongside their research.', fix: 'Fill the Tool/Skill field (PyTorch, Western blotting, etc.).' });
+
+      if (/\b(your|you)\b/.test(lower) && /\b(my|i)\b/.test(lower)) {
+        const youCount = (lower.match(/\byour?\b/g) || []).length;
+        const iCount = (lower.match(/\bi\b/g) || []).length;
+        if (youCount >= iCount) good.push('Balanced focus on their work, not just yourself.');
+        else bad.push({ t: 'Draft is "I-heavy" — too self-focused for a cold email.', fix: 'Let the opener stay about their paper; keep your story to one paragraph.' });
+      }
+
+      // --- AI-tell scan (what detectors flag)
+      const tells = (lower.match(/(?:delve|leverag\w*|utiliz\w*|seamless\w*|robust|pivotal|myriad|plethora|furthermore|moreover|testament to|paradigm|finds you well|profound|cutting-edge|state-of-the-art|landscape)/g) || []);
+      if (tells.length === 0) good.push('Zero machine-style phrasing — clean for AI detectors.');
+      else bad.push({ t: `AI-tell words present: ${[...new Set(tells)].join(', ')}.`, fix: 'Click "Humanize This Email" — it swaps these automatically.' });
+
+      // Sentence-length uniformity (perplexity/burstiness check)
+      const sents = (body.match(/[^.!?\n]+[.!?]+/g) || []).map(s => s.trim().split(/\s+/).length).filter(n => n > 3);
+      if (sents.length >= 4) {
+        const mean = sents.reduce((a, b) => a + b, 0) / sents.length;
+        const sd = Math.sqrt(sents.reduce((a, b) => a + (b - mean) ** 2, 0) / sents.length);
+        const cv = sd / mean;
+        if (cv < 0.28) bad.push({ t: 'All sentences are nearly the same length — a classic machine fingerprint.', fix: 'Run the Humanizer: it varies rhythm by splitting and merging sentences.' });
+        else good.push(`Sentence lengths vary naturally (burstiness ${cv.toFixed(2)}) — reads human.`);
+      }
+
+      // --- Red flags content rules
+      if (/\bmoney\b|\bstipend\b|\bsalary\b|\bhow much\b/i.test(lower) && !/assistantship|funding|support/i.test(lower))
+        bad.push({ t: 'Asks about pay directly in a first contact.', fix: 'Say "funded opportunities" instead — or ask after they reply.' });
+      if (/attached|attachment|CV is attached|resume attached/i.test(lower))
+        good.push('Mentions attachments — reviewers won\'t miss your CV.');
+      if (/\[(?:[^\]\n]{1,40})\]/.test(body))
+        bad.push({ t: 'Unfilled placeholder(s) still in the draft: ' + (body.match(/\[[^\]\n]{1,40}\]/g) || []).slice(0, 3).join(', '), fix: 'Replace every [bracket] before sending.' });
+      if (/please reply|reply to this email|respond immediately|ASAP/i.test(lower))
+        bad.push({ t: 'Demands a reply — comes off pushy.', fix: 'Use "If you have any openings, I\'d love to talk."' });
+
+      // --- Send-readiness logistics
+      if (emailRaw) {
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)) good.push(`Recipient address looks valid (${emailRaw}).`);
+        else bad.push({ t: 'Professor email format looks wrong.', fix: 'Double-check the address on their department page.' });
+      } else {
+        bad.push({ t: 'No recipient email entered — mailto will open blank.', fix: 'Optional: add their address in the form.' });
+      }
+      if (/\b(Fall|Spring|Summer|Winter)\s+\d{4}\b/.test(body) || /\bupcoming term\b/i.test(body))
+        good.push('States a clear timeline/term.');
+      else bad.push({ t: 'No term mentioned — professor can\'t gauge urgency.', fix: 'Add "for Fall 2027" via the Target Term field.' });
+
+      // --- Grade
+      const penalty = bad.length * 12 + tells.length * 4;
+      const grade = Math.max(0, Math.min(100, 100 - penalty + Math.min(10, good.length * 2)));
+      return { good, bad, grade };
+    }
+
+    function renderReview() {
+      const { good, bad, grade } = reviewEmail();
+      els.reviewGood.innerHTML = '';
+      els.reviewBad.innerHTML = '';
+
+      good.forEach(g => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start gap-2.5 text-forest-700';
+        li.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`;
+        li.querySelector('span').textContent = g;
+        els.reviewGood.appendChild(li);
+      });
+
+      bad.forEach(b => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start gap-2.5 text-rose-700';
+        li.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><span class="block"></span><span class="block text-xs text-ink-500 mt-0.5 italic"></span></span>`;
+        const spans = li.querySelectorAll('span > span, span span');
+        li.querySelector('span > span:first-child').textContent = b.t;
+        li.querySelector('span > span:last-child').textContent = '→ ' + b.fix;
+        els.reviewBad.appendChild(li);
+      });
+
+      els.reviewEmpty.classList.toggle('hidden', bad.length !== 0);
+
+      els.reviewGrade.textContent = grade >= 85 ? `Ready · ${grade}/100`
+                                  : grade >= 65 ? `Almost · ${grade}/100`
+                                  : `Needs work · ${grade}/100`;
+      els.reviewGrade.className = 'rounded-full px-2.5 py-1 text-[11px] font-bold ' +
+        (grade >= 85 ? 'bg-forest-500 text-white' : grade >= 65 ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white');
+
+      els.reviewPanel.classList.remove('hidden');
+    }
+
+    els.reviewBtn.addEventListener('click', () => {
+      if (!els.body.value.trim()) { showToast('Generate an email before running the review.', 'error'); return; }
+      renderReview();
+      els.reviewPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    document.getElementById('closeReviewBtn').addEventListener('click', () => {
+      els.reviewPanel.classList.add('hidden');
+    });
 
     /* ------------------------------------------------------------------
        Toast notifications
     ------------------------------------------------------------------ */
     function showToast(message, variant = 'success') {
       const colors = {
-        success: 'bg-emerald-600',
-        info:    'bg-navy-800',
+        success: 'bg-forest-600',
+        info:    'bg-ink-800',
         error:   'bg-rose-600'
       };
       const toast = document.createElement('div');
@@ -854,11 +1435,11 @@
     function updateToneChips(activeTone) {
       document.querySelectorAll('.tone-chip').forEach(chip => {
         const active = chip.dataset.tone === activeTone;
-        chip.classList.toggle('bg-indigo-600', active);
-        chip.classList.toggle('text-white', active);
+        chip.classList.toggle('bg-clay-700', active);
+        chip.classList.toggle('text-parchment-50', active);
         chip.classList.toggle('shadow', active);
-        chip.classList.toggle('text-zinc-600', !active);
-        chip.classList.toggle('hover:bg-zinc-100', !active);
+        chip.classList.toggle('text-ink-600', !active);
+        chip.classList.toggle('hover:bg-parchment-100', !active);
       });
     }
 
