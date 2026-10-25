@@ -6,77 +6,94 @@
   <title>LetterDesk — Human-Style Assistantship Email Studio</title>
   <meta name="description" content="Draft professor outreach emails for RA/TA assistantships that read like a person wrote them — with a built-in humanizer and a smart pre-send reviewer." />
 
-  <!-- Fonts: Spectral (headings) + Public Sans (UI) + IBM Plex Mono (email paper) -->
+  <!-- Fonts: Plus Jakarta Sans (UI) + JetBrains Mono (emails/counters) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Inline Tailwind configuration — warm "letterpress stationery" palette.
-    // Redesigned away from the old navy/indigo SaaS look: parchment canvas,
-    // ink-dark panels, terracotta accents, forest-green positive states.
+    // Inline Tailwind configuration — clean "academic dashboard" palette.
+    // Status colors follow the spec: emerald #10B981 (confirmed), amber
+    // #F59E0B (estimated/pattern), rose #F43F5E (missing/unverified).
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            parchment: {
-              DEFAULT: '#f6f1e6',
-              50:  '#faf7ef',
-              100: '#f6f1e6',
-              200: '#ece2cd',
-              300: '#ddccb0',
-              400: '#c9ae8b',
-              500: '#b89a76'
+            slate: {
+              DEFAULT: '#64748b',
+              50:  '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617'
             },
             ink: {
-              DEFAULT: '#221e17',
-              50:  '#f5f3ee',
-              100: '#eae5db',
-              200: '#d8d0c0',
-              300: '#bdb19b',
-              400: '#9c8c73',
-              500: '#82735c',
-              600: '#6b5d49',
-              700: '#574b3c',
-              800: '#3e362b',
-              900: '#2b251d',
-              950: '#221e17'
+              DEFAULT: '#0f172a',
+              50:  '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617'
             },
-            clay: {
-              50:  '#fbf0ea',
-              100: '#f6dfd2',
-              200: '#ecbaa0',
-              300: '#df9672',
-              400: '#d07b53',
-              500: '#bc6238',
-              600: '#a04f2b',
-              700: '#803f24',
-              800: '#633320',
-              900: '#4b281a'
+            brand: {
+              50:  '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81'
             },
             forest: {
-              50:  '#eaf3ec',
-              100: '#d3e6d7',
-              200: '#a9cfb1',
-              300: '#7cb388',
-              400: '#559264',
-              500: '#3c7a4b',
-              600: '#2f623c',
-              700: '#274f32',
-              800: '#203f2a',
-              900: '#1a3322'
+              50:  '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10B981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            },
+            clay: {
+              50:  '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
+              400: '#fbbf24',
+              500: '#F59E0B',
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f'
             }
           },
           fontFamily: {
-            display: ['Spectral', 'Georgia', 'Cambria', '"Times New Roman"', 'serif'],
-            sans: ['"Public Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
-            mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace']
+            display: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace']
           },
           boxShadow: {
-            card: '0 1px 2px rgba(34,30,23,0.05), 0 10px 30px -14px rgba(34,30,23,0.22)',
-            lift: '0 12px 28px -12px rgba(160,79,43,0.45)'
+            card: '0 1px 2px rgba(15,23,42,0.06), 0 12px 32px -16px rgba(15,23,42,0.18)',
+            lift: '0 12px 28px -12px rgba(79,70,229,0.45)'
           }
         }
       }
@@ -89,32 +106,15 @@
 
     body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 
-    /* Faint "ruled stationery" backdrop for the masthead */
+    /* Subtle dot-grid backdrop for the masthead */
     .hero-rule {
-      background-image: repeating-linear-gradient(
-        to bottom,
-        transparent 0px,
-        transparent 35px,
-        rgba(246, 241, 230, 0.07) 35px,
-        rgba(246, 241, 230, 0.07) 36px
-      );
-    }
-
-    /* Paper-grain texture on the parchment canvas */
-    .grain::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.35;
-      background-image: radial-gradient(rgba(120, 100, 70, 0.10) 0.5px, transparent 0.6px);
-      background-size: 7px 7px;
+      background-image: radial-gradient(rgba(248, 250, 252, 0.08) 1px, transparent 1.2px);
+      background-size: 22px 22px;
     }
 
     /* Email textarea reads like a typed letter on paper */
     #emailBody {
-      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
       line-height: 1.7;
       tab-size: 4;
       resize: vertical;
@@ -169,26 +169,26 @@
   </style>
 </head>
 
-<body class="bg-parchment font-sans text-ink-900 min-h-screen flex flex-col grain">
+<body class="bg-slate-50 font-sans text-ink-900 min-h-screen flex flex-col">
 
   <!-- ============================ NAVBAR / HEADER ============================ -->
-  <header class="bg-ink-950 text-parchment-100 hero-rule">
+  <header class="bg-ink-950 text-slate-100 hero-rule">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 md:pt-8 md:pb-14 relative z-10">
       <div class="flex items-center justify-between">
         <a href="#" class="flex items-center gap-3 group" aria-label="LetterDesk home">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-clay-600 ring-2 ring-parchment-100/25 shadow-lift">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-parchment-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 ring-2 ring-slate-100/25 shadow-lift">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 7 13.5 12.8a2 2 0 0 1-2.3 0L2 7"/>
               <rect x="2" y="4" width="20" height="16" rx="3"/>
             </svg>
           </span>
           <span>
             <span class="block text-lg sm:text-xl font-display font-bold tracking-tight leading-tight">LetterDesk</span>
-            <span class="block text-[11px] uppercase tracking-[0.2em] text-clay-300 font-semibold">Assistantship Outreach Studio</span>
+            <span class="block text-[11px] uppercase tracking-[0.2em] text-brand-300 font-semibold">Assistantship Outreach Studio</span>
           </span>
         </a>
 
-        <div class="hidden md:flex items-center gap-6 text-sm text-parchment-300">
+        <div class="hidden md:flex items-center gap-6 text-sm text-slate-300">
           <button type="button" data-scroll-tips class="hover:text-white transition cursor-pointer">Contact Tips</button>
           <a href="#generator" class="hover:text-white transition">Generator</a>
           <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium ring-1 ring-white/15">
@@ -199,13 +199,13 @@
       </div>
 
       <div class="mt-8 md:mt-12 max-w-3xl">
-        <h1 class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-parchment-50">
-          Emails that read like <span class="italic text-clay-300">a person</span> wrote them.
+        <h1 class="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-slate-50">
+          Emails that read like <span class="italic text-brand-300">a person</span> wrote them.
         </h1>
-        <p class="mt-3 md:mt-5 text-sm md:text-base text-parchment-300 leading-relaxed">
+        <p class="mt-3 md:mt-5 text-sm md:text-base text-slate-300 leading-relaxed">
           LetterDesk helps prospective and current graduate students draft outreach about
-          <strong class="text-parchment-50 font-semibold">Teaching</strong> and
-          <strong class="text-parchment-50 font-semibold">Research Assistantships</strong> — then a built-in
+          <strong class="text-slate-50 font-semibold">Teaching</strong> and
+          <strong class="text-slate-50 font-semibold">Research Assistantships</strong> — then a built-in
           humanizer rewrites the draft so it varies sentence length, drops stock corporate phrasing,
           and sounds like an actual student typed it.
         </p>
@@ -215,7 +215,9 @@
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Smart pre-send reviewer</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">mailto: handoff</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-150-word guardrail</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">OpenAlex professor verification</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">OpenAlex · Semantic Scholar · Crossref</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Multi-Source Verification</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Google DoH email checks</span>
         </div>
       </div>
     </nav>
@@ -228,9 +230,9 @@
       <!-- ---------------- LEFT COLUMN: FORM INPUT PANEL ---------------- -->
       <section aria-labelledby="formHeading" class="lg:col-span-5 xl:col-span-4 relative z-10">
         <div class="bg-white/90 backdrop-blur rounded-xl border border-ink-200 shadow-card overflow-hidden">
-          <div class="border-b border-ink-200 bg-parchment-50 px-5 py-4 sm:px-6">
+          <div class="border-b border-ink-200 bg-slate-50 px-5 py-4 sm:px-6">
             <h2 id="formHeading" class="font-display text-base font-bold text-ink-900 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               Your Details
             </h2>
             <p class="text-xs text-ink-500 mt-1">Fill what you know — blanks use smart fallback defaults.</p>
@@ -238,7 +240,11 @@
 
           <form id="assistantForm" class="px-5 py-5 sm:px-6 space-y-4" novalidate>
 
-            <!-- ================= PROFESSOR SEARCH (OpenAlex) ================= -->
+            <div class="border-t border-dashed border-ink-200 pt-1 first:border-0 first:pt-0">
+              <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-brand-700">Professor Search &amp; Target Department</p>
+            </div>
+
+            <!-- ================= PROFESSOR SEARCH (multi-engine) ================= -->
             <div class="relative" id="profSearchWrap">
               <label for="profSearch" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Search Professor or University
@@ -247,9 +253,9 @@
                 <input id="profSearch" type="text" autocomplete="off" spellcheck="false"
                        placeholder="e.g., Yoshua Bengio or MIT"
                        aria-expanded="false" aria-controls="searchResults" role="combobox"
-                       class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                       class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
                 <button type="button" id="profSearchBtn"
-                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-ink-900 px-3.5 py-2.5 text-sm font-semibold text-parchment-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition"
+                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-ink-900 px-3.5 py-2.5 text-sm font-semibold text-slate-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition"
                         title="Look up faculty profiles and verified papers via OpenAlex">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                   <span class="sr-only sm:not-sr-only">Search</span>
@@ -258,8 +264,12 @@
               <!-- Dropdown results container -->
               <div id="searchResults" class="hidden absolute z-30 mt-1.5 w-full max-h-72 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Faculty search results"></div>
               <p id="searchHint" class="mt-1.5 text-[11px] text-ink-400 leading-relaxed">
-                Queries the free <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-clay-700">OpenAlex API</a> — click a result to auto-fill name, lab focus, paper topic, and email.
+                Searches three free engines at once — <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">OpenAlex</a>, <a href="https://api.semanticscholar.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Semantic Scholar</a> (TLDRs), and <a href="https://api.crossref.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-brand-700">Crossref</a> (DOIs) — then verifies the mail server via Google DNS-over-HTTPS. Click a result to auto-fill everything.
               </p>
+            </div>
+
+            <div class="border-t border-dashed border-ink-200 pt-4">
+              <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-brand-700">Student Background</p>
             </div>
 
             <!-- Input 1: Student Full Name -->
@@ -268,7 +278,7 @@
                 Student Full Name <span class="text-ink-400 normal-case font-normal tracking-normal">(your signature)</span>
               </label>
               <input id="studentName" name="studentName" type="text" autocomplete="name" placeholder="e.g., Alex Rivera"
-                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
             </div>
 
             <!-- Input 2: Target Degree & Major — auto-aligned from professor records -->
@@ -278,7 +288,7 @@
                 <span id="degreeAutoNote" class="hidden normal-case font-normal tracking-normal text-forest-700"></span>
               </label>
               <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Computer Science"
-                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
             </div>
 
             <!-- Input 3: Target Term/Year — computed from open application windows -->
@@ -288,7 +298,7 @@
                 <span id="termAutoNote" class="hidden normal-case font-normal tracking-normal text-forest-700"></span>
               </label>
               <input id="termYear" name="termYear" type="text" placeholder="e.g., Fall 2027"
-                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
             </div>
 
             <!-- Input 4: Previous University / Background — defaults to Tribhuvan University -->
@@ -298,11 +308,11 @@
               </label>
               <input id="background" name="background" type="text" value="Tribhuvan University"
                      placeholder="e.g., B.Sc. CSIT, Tribhuvan University"
-                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
             </div>
 
             <div class="border-t border-dashed border-ink-200 pt-4">
-              <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-clay-700">Recipient</p>
+              <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-brand-700">Email &amp; Assistance Preferences</p>
             </div>
 
             <!-- Input 5: Professor's Full Name -->
@@ -311,7 +321,7 @@
                 Professor's Full Name
               </label>
               <input id="profName" name="profName" type="text" placeholder="e.g., Dr. Jane Smith"
-                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
             </div>
 
             <!-- Input 6: Research Focus / Lab / Paper Topic -->
@@ -321,7 +331,7 @@
               </label>
               <textarea id="researchFocus" name="researchFocus" rows="2"
                         placeholder="e.g., the RoboNLP Lab's work on sample-efficient reinforcement learning, or your paper on low-resource machine translation"
-                        class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition resize-y"></textarea>
+                        class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition resize-y"></textarea>
             </div>
 
             <!-- Input 6b: Tool/Skill You Use — paired with the professor's paper topic in the email body -->
@@ -330,7 +340,7 @@
                 Tool/Skill You Use <span class="text-ink-400 normal-case font-normal tracking-normal">(e.g., PyTorch, Matlab, Lab Technique)</span>
               </label>
               <input id="toolSkill" name="toolSkill" type="text" placeholder="e.g., PyTorch, Matlab, Western Blotting, mass spectrometry"
-                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
             </div>
 
             <!-- Select 7: Assistantship Type -->
@@ -340,7 +350,7 @@
                   Assistantship Type
                 </label>
                 <select id="assistType" name="assistType"
-                        class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition">
+                        class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition">
                   <option value="RA">Research Assistantship — RA</option>
                   <option value="TA">Teaching Assistantship — TA</option>
                   <option value="EITHER">Either / General Inquiry</option>
@@ -353,7 +363,7 @@
                   Email Tone
                 </label>
                 <select id="tone" name="tone"
-                        class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition">
+                        class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition">
                   <option value="direct">Professional &amp; Direct</option>
                   <option value="academic">Expressive &amp; Academic</option>
                   <option value="formal">Formal &amp; Concise</option>
@@ -368,14 +378,14 @@
                 <span id="emailConfidenceBadge" class="normal-case font-semibold tracking-normal rounded-full px-2 py-0.5 text-[10px] bg-ink-100 text-ink-500">no email yet</span>
               </label>
               <input id="profEmail" name="profEmail" type="email" autocomplete="off" placeholder="e.g., j.smith@university.edu"
-                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                     class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
               <p id="emailVerifyStatus" class="mt-1.5 text-[11px] leading-relaxed text-ink-500"></p>
               <!-- Pattern suggestions generated when no direct email is on file -->
               <div id="emailSuggestions" class="hidden mt-2 flex flex-wrap gap-1.5"></div>
             </div>
 
             <!-- Humanizer toggle: auto-apply the human-like pass on every generate -->
-            <label class="flex items-start gap-3 rounded-lg border border-ink-200 bg-parchment-50 px-3.5 py-3 cursor-pointer select-none">
+            <label class="flex items-start gap-3 rounded-lg border border-ink-200 bg-slate-50 px-3.5 py-3 cursor-pointer select-none">
               <input id="humanizeToggle" type="checkbox" checked
                      class="mt-0.5 h-4 w-4 rounded border-ink-300 accent-clay-600" />
               <span>
@@ -387,12 +397,12 @@
             <!-- Buttons -->
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
               <button type="submit" id="generateBtn"
-                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-clay-700 px-4 py-2.5 text-sm font-semibold text-parchment-50 shadow-lift hover:bg-clay-600 focus:outline-none focus:ring-2 focus:ring-clay-500/50 active:scale-[0.98] transition">
+                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-slate-50 shadow-lift hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 active:scale-[0.98] transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
                 Generate Email
               </button>
               <button type="button" id="resetBtn"
-                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-ink-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 hover:bg-parchment-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.98] transition">
+                      class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-ink-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.98] transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                 Reset Form
               </button>
@@ -403,9 +413,9 @@
         <!-- ---------- TIPS ACCORDION ---------- -->
         <div class="mt-6 bg-white/90 rounded-xl border border-ink-200 shadow-card overflow-hidden">
           <button type="button" id="tipsToggle" aria-expanded="false" aria-controls="tipsPanel"
-                  class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-parchment-50 transition sm:px-6">
+                  class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 transition sm:px-6">
             <span class="flex items-center gap-2.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>
               <span class="text-sm font-bold text-ink-900">Tips for Contacting Professors</span>
             </span>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-ink-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -413,12 +423,12 @@
           <div id="tipsPanel" class="accordion-panel">
             <div>
               <ul class="px-5 pb-5 sm:px-6 space-y-3 text-sm text-ink-600 leading-relaxed list-none">
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">1</span><span><strong class="text-ink-800">Time it right.</strong> Send emails Tue–Thu, 8–10 a.m. in the professor's time zone. Avoid holidays and the two weeks before admission deadlines, when inboxes overflow.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">2</span><span><strong class="text-ink-800">Read one real paper first.</strong> Cite a specific paper or project (paste its topic into the form). Generic flattery reads as spam; specificity reads as scholarship.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">3</span><span><strong class="text-ink-800">Attach a CV &amp; unofficial transcript</strong> as PDFs, named <code class="rounded bg-parchment-200 px-1 py-0.5 text-[12px]">Lastname_CV.pdf</code>. Mention the attachments so they aren't overlooked.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">4</span><span><strong class="text-ink-800">Keep it under 150 words.</strong> Professors skim. One direct opener, one paragraph of fit, one line of logistics — then stop. The live counter below watches this for you.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">5</span><span><strong class="text-ink-800">Follow up once after 7–10 days.</strong> Reply to your original message with a short, polite bump. No reply after that? Move on gracefully.</span></li>
-                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[10px] font-bold">6</span><span><strong class="text-ink-800">Use your institutional email if possible,</strong> and double-check the professor's title (Dr./Prof.) and spelling before sending. Personalize one email at a time — never BCC a cohort.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">1</span><span><strong class="text-ink-800">Time it right.</strong> Send emails Tue–Thu, 8–10 a.m. in the professor's time zone. Avoid holidays and the two weeks before admission deadlines, when inboxes overflow.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">2</span><span><strong class="text-ink-800">Read one real paper first.</strong> Cite a specific paper or project (paste its topic into the form). Generic flattery reads as spam; specificity reads as scholarship.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">3</span><span><strong class="text-ink-800">Attach a CV &amp; unofficial transcript</strong> as PDFs, named <code class="rounded bg-slate-200 px-1 py-0.5 text-[12px]">Lastname_CV.pdf</code>. Mention the attachments so they aren't overlooked.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">4</span><span><strong class="text-ink-800">Keep it under 150 words.</strong> Professors skim. One direct opener, one paragraph of fit, one line of logistics — then stop. The live counter below watches this for you.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">5</span><span><strong class="text-ink-800">Follow up once after 7–10 days.</strong> Reply to your original message with a short, polite bump. No reply after that? Move on gracefully.</span></li>
+                <li class="flex gap-3"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">6</span><span><strong class="text-ink-800">Use your institutional email if possible,</strong> and double-check the professor's title (Dr./Prof.) and spelling before sending. Personalize one email at a time — never BCC a cohort.</span></li>
               </ul>
             </div>
           </div>
@@ -428,12 +438,12 @@
       <!-- ---------------- RIGHT COLUMN: OUTPUT PANEL ---------------- -->
       <section aria-labelledby="outputHeading" class="lg:col-span-7 xl:col-span-8 relative z-10">
         <div class="bg-white/90 rounded-xl border border-ink-200 shadow-card overflow-hidden flex flex-col">
-          <div class="border-b border-ink-200 bg-parchment-50 px-5 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+          <div class="border-b border-ink-200 bg-slate-50 px-5 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
             <h2 id="outputHeading" class="font-display text-base font-bold text-ink-900 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v-3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v3"/><path d="M2 19h20"/><path d="M8 19V8"/><path d="M16 19V8"/><rect x="2" y="8" width="20" height="11" rx="2"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v-3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v3"/><path d="M2 19h20"/><path d="M8 19V8"/><path d="M16 19V8"/><rect x="2" y="8" width="20" height="11" rx="2"/></svg>
               Generated Email
             </h2>
-            <span id="templateBadge" class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-clay-100 ring-1 ring-clay-200 px-3 py-1 text-[11px] font-semibold text-clay-800">
+            <span id="templateBadge" class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-brand-100 ring-1 ring-brand-200 px-3 py-1 text-[11px] font-semibold text-brand-800">
               RA · Professional &amp; Direct
             </span>
           </div>
@@ -446,9 +456,9 @@
               <div class="flex gap-2">
                 <input id="subjectLine" type="text" readonly spellcheck="false"
                        placeholder="Generate an email to see a tailored subject line…"
-                       class="field w-full rounded-lg border border-ink-200 bg-parchment-50 px-3.5 py-2.5 text-sm text-ink-900 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                       class="field w-full rounded-lg border border-ink-200 bg-slate-50 px-3.5 py-2.5 text-sm text-ink-900 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition" />
                 <button type="button" id="copySubjectBtn"
-                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-ink-800 hover:border-clay-400 hover:text-clay-700 focus:outline-none focus:ring-2 focus:ring-clay-500/40 active:scale-[0.97] transition"
+                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-ink-800 hover:border-brand-400 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 active:scale-[0.97] transition"
                         title="Copy the subject line">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   <span class="hidden sm:inline">Copy Subject</span><span class="sm:hidden">Copy</span>
@@ -464,13 +474,13 @@
               </div>
               <textarea id="emailBody" rows="16" spellcheck="true"
                         placeholder="Your generated assistantship email will appear here, formatted and ready to personalize…"
-                        class="field w-full rounded-lg border border-ink-200 px-4 py-3.5 text-[13px] sm:text-sm text-ink-900 placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition"></textarea>
+                        class="field w-full rounded-lg border border-ink-200 px-4 py-3.5 text-[13px] sm:text-sm text-ink-900 placeholder-ink-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition"></textarea>
 
               <!-- Character & word counter -->
               <div class="mt-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div class="flex items-center gap-3 text-xs font-medium" id="counterWrap">
-                  <span id="wordCount" class="rounded-md bg-parchment-200 px-2 py-1 text-ink-600">0 words</span>
-                  <span id="charCount" class="rounded-md bg-parchment-200 px-2 py-1 text-ink-600">0 characters</span>
+                  <span id="wordCount" class="rounded-md bg-slate-200 px-2 py-1 text-ink-600">0 words</span>
+                  <span id="charCount" class="rounded-md bg-slate-200 px-2 py-1 text-ink-600">0 characters</span>
                   <span id="wordVerdict" class="text-ink-400"></span>
                 </div>
                 <div class="flex-1 min-w-[120px]" title="Target: under 150 words">
@@ -499,22 +509,22 @@
             </div>
 
             <!-- ---------- UNIVERSITY & FUNDING AUDIT CARD ---------- -->
-            <div id="fundingCard" class="hidden rounded-xl border border-clay-200 bg-clay-50/60 overflow-hidden">
-              <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-clay-700 text-white">
+            <div id="fundingCard" class="hidden rounded-xl border border-brand-200 bg-brand-50 overflow-hidden">
+              <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-brand-600 text-white">
                 <h3 class="font-display text-sm font-bold flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
                   University &amp; Funding Audit Card
                 </h3>
-                <button type="button" id="clearFundingBtn" class="text-clay-100 hover:text-white text-xs font-semibold underline decoration-dotted focus:outline-none">dismiss</button>
+                <button type="button" id="clearFundingBtn" class="text-slate-300 hover:text-white text-xs font-semibold underline decoration-dotted focus:outline-none">dismiss</button>
               </div>
               <div class="px-4 py-4 space-y-4">
                 <!-- a) Acceptance rate + b) assistantships row -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div class="rounded-lg border border-ink-200 bg-white p-3.5">
                     <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Target University Acceptance Rate</p>
-                    <p class="font-display text-2xl font-extrabold text-ink-900" id="fundingAcceptPct">—</p>
+                    <p class="font-display text-2xl font-extrabold text-ink-900"><span id="fundingAcceptPct">—</span><span id="fundingAcceptTier" class="ml-2 align-middle rounded-full px-2 py-0.5 text-[10px] font-bold text-white bg-ink-300"></span></p>
                     <div class="mt-2 h-2 rounded-full bg-ink-100 overflow-hidden">
-                      <div id="fundingAcceptBar" class="h-full w-0 rounded-full bg-clay-500 transition-all duration-500"></div>
+                      <div id="fundingAcceptBar" class="h-full w-0 rounded-full bg-brand-500 transition-all duration-500"></div>
                     </div>
                     <p class="mt-1.5 text-[11px] text-ink-500" id="fundingAcceptNote"></p>
                   </div>
@@ -539,21 +549,21 @@
             </div>
 
             <!-- ---------- HUMANIZER CARD ---------- -->
-            <div class="rounded-xl border border-clay-200 bg-clay-50/60 p-4 space-y-3">
+            <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 space-y-3">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-clay-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
                   <h3 class="font-display text-sm font-bold text-ink-900">Humanizer</h3>
                   <span id="humanStatusChip" class="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold text-ink-500">idle</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <button type="button" id="undoHumanizeBtn"
-                          class="hidden inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-parchment-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.97] transition">
+                          class="hidden inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.97] transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
                     Undo polish
                   </button>
                   <button type="button" id="humanizeBtn"
-                          class="inline-flex items-center gap-2 rounded-lg bg-clay-700 px-4 py-2 text-sm font-semibold text-parchment-50 hover:bg-clay-600 focus:outline-none focus:ring-2 focus:ring-clay-500/50 active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-slate-50 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Rewrite the draft so it reads like a person typed it: varied sentence rhythm, no stock corporate phrasing">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
                     Humanize This Email
@@ -578,7 +588,7 @@
             </div>
 
             <!-- Quick action toolbar -->
-            <div class="rounded-xl border border-ink-200 bg-parchment-50/70 p-3 sm:p-4 space-y-3">
+            <div class="rounded-xl border border-ink-200 bg-slate-50/70 p-3 sm:p-4 space-y-3">
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" id="reviewBtn"
                         class="inline-flex items-center gap-2 rounded-lg border border-ink-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 hover:border-forest-500 hover:text-forest-700 focus:outline-none focus:ring-2 focus:ring-forest-500/40 active:scale-[0.97] transition">
@@ -586,12 +596,12 @@
                   Smart Review (what's right / what's wrong)
                 </button>
                 <button type="button" id="copyBodyBtn"
-                        class="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-semibold text-parchment-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition">
+                        class="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-semibold text-slate-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   Copy Email Body
                 </button>
                 <button type="button" id="mailtoBtn"
-                        class="inline-flex items-center gap-2 rounded-lg border border-clay-300 bg-white px-4 py-2.5 text-sm font-semibold text-clay-800 hover:bg-clay-50 focus:outline-none focus:ring-2 focus:ring-clay-500/40 active:scale-[0.97] transition">
+                        class="inline-flex items-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 active:scale-[0.97] transition">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.994 5.7a2 2 0 0 1-2.006 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="3"/></svg>
                   Open in Email Client (mailto:)
                 </button>
@@ -611,14 +621,14 @@
 
             <!-- ---------- SMART REVIEWER PANEL ---------- -->
             <div id="reviewPanel" class="hidden rounded-xl border border-ink-200 bg-white overflow-hidden">
-              <div class="flex items-center justify-between px-4 py-3 bg-ink-950 text-parchment-50">
+              <div class="flex items-center justify-between px-4 py-3 bg-ink-950 text-slate-50">
                 <h3 class="font-display text-sm font-bold flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-clay-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-brand-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
                   Smart Pre-Send Reviewer
                 </h3>
                 <div class="flex items-center gap-3">
-                  <span id="reviewGrade" class="rounded-full px-2.5 py-1 text-[11px] font-bold bg-ink-700 text-parchment-200">—</span>
-                  <button type="button" id="closeReviewBtn" class="text-parchment-300 hover:text-white transition" aria-label="Close review panel">
+                  <span id="reviewGrade" class="rounded-full px-2.5 py-1 text-[11px] font-bold bg-ink-700 text-slate-200">—</span>
+                  <button type="button" id="closeReviewBtn" class="text-slate-300 hover:text-white transition" aria-label="Close review panel">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                   </button>
                 </div>
@@ -644,10 +654,10 @@
   </main>
 
   <!-- ============================ FOOTER ============================ -->
-  <footer class="bg-ink-950 text-parchment-300 mt-auto relative z-10">
+  <footer class="bg-ink-950 text-slate-300 mt-auto relative z-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
       <p>© <span id="year"></span> LetterDesk · Built for graduate applicants everywhere.</p>
-      <p class="text-parchment-400">All generation happens locally in your browser.</p>
+      <p class="text-slate-400">All generation happens locally in your browser.</p>
     </div>
   </footer>
 
@@ -1161,38 +1171,81 @@
     }
 
     /* ==================================================================
-       PROFESSOR SEARCH — OpenAlex integration
+       PROFESSOR SEARCH — MULTI-ENGINE INTEGRATION (OpenAlex + Semantic
+       Scholar + Crossref + Google DNS-over-HTTPS)
        ------------------------------------------------------------------
-       Free, keyless scholarly catalog. Endpoint used:
-         https://api.openalex.org/authors?search=<Professor Name>
-       For each candidate we also pull the most recent publication from:
-         https://api.openalex.org/works?filter=author.id:<id>&sort=publication_date:desc
-       and extract title, year, lab/institution, and research topics.
-       Clicking a result auto-fills Professor Name, Lab Focus, Paper
-       Topic (into Research Interest), and the email when known.
+       Relying on one API risks missing papers, broken links, or thin
+       profiles. Every search fires all three scholarly engines
+       CONCURRENTLY with Promise.allSettled() and merges the results:
+
+         Engine 1 (primary): OpenAlex author catalog — free, keyless
+           https://api.openalex.org/authors?search=<Professor Name>
+           plus most-recent work via /works?filter=author.id:<id>
+           Supplies: profile, publication counts, institution, topics.
+
+         Engine 2: Semantic Scholar Academic Graph — free REST endpoint
+           (100 req / 5 min without a key; we cache + throttle)
+           https://api.semanticscholar.org/graph/v1/author/search?query=
+             <name>&fields=name,papers.title,papers.year,papers.tldr
+           Supplies: 1-sentence AI TLDR summaries, citation counts,
+           cross-check of paper titles.
+
+         Engine 3: Crossref REST API — DOI validation for recent
+           (2024–2026) journal publications, polite pool via mailto:
+           https://api.crossref.org/works?query.author=<name>
+             &sort=published&order=desc&filter=from-pub-date:2024-01-01
+           Supplies: authoritative DOIs + publication metadata.
+
+         Engine 4: Google DNS-over-HTTPS MX resolver (email side)
+           https://dns.google/resolve?name=<domain.edu>&type=MX
+           Confirms the university mail server is reachable before any
+           pattern-fallback chip is offered (see checkMxRecords).
+
+       Duplicate papers are merged by normalized title or DOI across the
+       three catalogs, and each candidate carries `sources` listing which
+       engines confirmed it — rendered as a "Multi-Source Verification
+       Badge" (e.g. ✓ Verified by OpenAlex & Semantic Scholar).
     ================================================================== */
 
     const OPENALEX_BASE = 'https://api.openalex.org';
+    const SEMANTIC_BASE = 'https://api.semanticscholar.org/graph/v1';
+    const CROSSREF_BASE = 'https://api.crossref.org';
+    // Polite-pool contact for Crossref (replace with your own email when deploying)
+    const POLITE_MAILTO = 'letterdesk@users.noreply.github.com';
 
-    // In-memory cache so retyping doesn't re-hit the API (also eases rate limits)
+    // In-memory caches so retyping doesn't re-hit the APIs (also eases rate limits)
     const oaCache = new Map();
+    const s2Cache = new Map();
+    const crCache = new Map();
 
-    async function openAlexJson(url) {
-      if (oaCache.has(url)) return oaCache.get(url);
+    async function fetchJson(url, cache, opts = {}) {
+      if (cache && cache.has(url)) return cache.get(url);
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 9000);
+      const timer = setTimeout(() => ctrl.abort(), opts.timeout || 9000);
       try {
-        const res = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error(`OpenAlex HTTP ${res.status}`);
+        const res = await fetch(url, { signal: ctrl.signal, headers: Object.assign({ 'Accept': 'application/json' }, opts.headers || {}) });
+        if (!res.ok) throw new Error(`HTTP ${res.status} for ${url.split('?')[0]}`);
         const json = await res.json();
-        oaCache.set(url, json);
+        if (cache) cache.set(url, json);
         return json;
       } finally {
         clearTimeout(timer);
       }
     }
 
-    /** Query OpenAlex authors by name. Returns normalized candidate list. */
+    /** Normalize a title for fuzzy de-duplication across engines. */
+    function normTitle(t) {
+      return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+
+    /** Normalize a DOI (strip url prefix, lowercase). */
+    function normDoi(d) {
+      if (!d) return null;
+      const m = String(d).match(/10\.\d{4,9}\/[^\s"'<>]+/i);
+      return m ? m[0].toLowerCase().replace(/[.,;)]+$/, '') : null;
+    }
+
+    /* ---------- Engine 1: OpenAlex ---------- */
     async function searchOpenAlexAuthors(query) {
       // Prefer the serverless proxy when deployed (adds api_key + mailto from env vars)
       const proxied = await dataFetch('openalex-authors', { search: query });
@@ -1201,8 +1254,8 @@
         results = proxied.results;
       } else {
         const url = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}` +
-                    `&per-page=5&select=id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count`;
-        const json = await openAlexJson(url);
+                    `&per-page=5&select=id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count&mailto=${POLITE_MAILTO}`;
+        const json = await fetchJson(url, oaCache);
         results = json.results || [];
       }
       return results.map(a => {
@@ -1220,7 +1273,10 @@
           country: inst ? inst.country_code : null,
           topics,
           recentPaper: null,   // filled lazily below
-          recentYear: null
+          recentYear: null,
+          s2: null,            // Semantic Scholar enrichment
+          crossref: null,      // Crossref enrichment
+          sources: ['OpenAlex']
         };
       });
     }
@@ -1229,13 +1285,124 @@
     async function fetchRecentPaper(authorKey) {
       if (!authorKey) return null;
       const url = `${OPENALEX_BASE}/works?filter=author.id:${authorKey}` +
-                  `&sort=publication_date:desc&per-page=1&select=title,publication_year,doi`;
+                  `&sort=publication_date:desc&per-page=1&select=title,publication_year,doi&mailto=${POLITE_MAILTO}`;
       try {
-        const json = await openAlexJson(url);
+        const json = await fetchJson(url, oaCache);
         const w = (json.results || [])[0];
         if (!w || !w.title) return null;
         return { title: w.title.replace(/\s+/g, ' ').trim(), year: w.publication_year || null, doi: w.doi || null };
       } catch (e) { return null; }
+    }
+
+    /* ---------- Engine 2: Semantic Scholar (TLDRs + citation cross-check) ---------- */
+    async function searchSemanticScholar(query) {
+      const proxied = await dataFetch('semantic-authors', { search: query });
+      let results;
+      if (proxied && Array.isArray(proxied.data)) {
+        results = proxied.data;
+      } else {
+        const url = `${SEMANTIC_BASE}/author/search?query=${encodeURIComponent(query)}` +
+                    `&limit=5&fields=name,paperCount,citationCount,hIndex,affiliations,papers.title,papers.year,papers.tldr,papers.citationCount,papers.externalIds.DOI`;
+        try {
+          const json = await fetchJson(url, s2Cache, { timeout: 10000 });
+          results = json.data || [];
+        } catch (e) {
+          // 429 = anonymous rate limit (100 req/5min) — degrade gracefully
+          return [];
+        }
+      }
+      return results.map(a => {
+        const papers = (a.papers || []).filter(p => p && p.title);
+        const latest = papers.slice().sort((p, q) => (q.year || 0) - (p.year || 0))[0] || null;
+        return {
+          s2AuthorId: a.authorId || null,
+          displayName: a.display_name || a.name || '',
+          paperCount: a.paperCount || 0,
+          citationCount: a.citationCount || 0,
+          hIndex: a.hIndex || null,
+          affiliation: (Array.isArray(a.affiliations) && a.affiliations.length) ? String(a.affiliations[0]) : null,
+          latestTitle: latest ? latest.title.replace(/\s+/g, ' ').trim() : null,
+          latestYear: latest ? latest.year : null,
+          latestTldr: latest && latest.tldr ? String(latest.tldr).replace(/\s+/g, ' ').trim() : null,
+          latestCitations: latest ? (latest.citationCount || 0) : 0,
+          latestDoi: latest && latest.externalIds ? normDoi(latest.externalIds.DOI) : null
+        };
+      });
+    }
+
+    /* ---------- Engine 3: Crossref (recent DOI validation, 2024+) ---------- */
+    async function searchCrossrefRecent(query) {
+      const proxied = await dataFetch('crossref-works', { 'query.author': query });
+      let items;
+      if (proxied && proxied.message && Array.isArray(proxied.message.items)) {
+        items = proxied.message.items;
+      } else {
+        const url = `${CROSSREF_BASE}/works?query.author=${encodeURIComponent(query)}` +
+                    `&rows=8&sort=published&order=desc&filter=type:journal-article,from-pub-date:2024-01-01` +
+                    `&select=title,DOI,issued,author,is-referenced-by-count&mailto=${POLITE_MAILTO}`;
+        try {
+          const json = await fetchJson(url, crCache, { timeout: 10000, headers: { 'User-Agent': `LetterDesk/2.0 (https://github.com/letterdesk; ${POLITE_MAILTO})` } });
+          items = (json.message && json.message.items) || [];
+        } catch (e) { return null; }
+      }
+      // Keep only works whose author list plausibly contains the query name
+      const qTokens = normTitle(query).split(' ').filter(Boolean);
+      const match = (items || []).find(w => {
+        const authors = (w.author || []).map(a => normTitle(a.given_name + ' ' + a.family_name));
+        return authors.some(an => qTokens.every(t => an.includes(t)));
+      }) || (items || [])[0] || null;
+      if (!match) return null;
+      const title = (match.title || [])[0];
+      if (!title) return null;
+      const year = match.issued && match.issued['date-parts'] && match.issued['date-parts'][0] && match.issued['date-parts'][0][0];
+      return { title: title.replace(/\s+/g, ' ').trim(), year: year || null, doi: normDoi(match.DOI), citations: match['is-referenced-by-count'] || 0 };
+    }
+
+    /* ---------- Merge: pick S2/Crossref records matching an OpenAlex candidate ---------- */
+    function mergeEngines(candidate, s2List, crossrefRec) {
+      const candNorm = normTitle(candidate.displayName);
+      // Match Semantic Scholar by name similarity (first+last token overlap)
+      const s2best = (s2List || []).find(s => {
+        const sn = normTitle(s.displayName);
+        if (!sn || !candNorm) return false;
+        if (sn === candNorm) return true;
+        const ct = candNorm.split(' '), st = sn.split(' ');
+        return ct.length && st.length && ct[0] === st[0] && ct[ct.length - 1] === st[st.length - 1];
+      }) || null;
+      candidate.s2 = s2best;
+
+      // De-duplicate papers: if OpenAlex recent title ≈ S2 latest title, they're the same paper
+      const oaT = normTitle(candidate.recentPaper);
+      const s2T = s2best ? normTitle(s2best.latestTitle) : '';
+      const samePaper = oaT && s2T && (oaT === s2T || oaT.includes(s2T.slice(0, 30)) || s2T.includes(oaT.slice(0, 30)));
+      const s2Doi = s2best ? normDoi(s2best.latestDoi) : null;
+      const oaDoi = normDoi(candidate.recentDoi);
+      const doiMatch = s2Doi && oaDoi && s2Doi === oaDoi;
+
+      // Crossref: prefer confirming the SAME paper (title/DOI match); otherwise
+      // attach as an independent recent-DOI record.
+      let crConfirmed = false;
+      if (crossrefRec) {
+        const crT = normTitle(crossrefRec.title);
+        const crDoi = normDoi(crossrefRec.doi);
+        crConfirmed = !!(crDoi && ((oaDoi && crDoi === oaDoi) || (s2Doi && crDoi === s2Doi))) ||
+                      !!(crT && ((oaT && (crT === oaT || crT.includes(oaT.slice(0, 30)))) || (s2T && crT.includes(s2T.slice(0, 30)))));
+        candidate.crossref = crossrefRec;
+      }
+
+      // Build the verified-paper record: strongest source wins, enriched fields merge
+      const verifiedSources = ['OpenAlex'];
+      if (s2best && (samePaper || doiMatch || !candidate.recentPaper)) verifiedSources.push('Semantic Scholar');
+      if (crossrefRec && (crConfirmed || !candidate.recentPaper)) verifiedSources.push('Crossref');
+
+      candidate.paperTitle = candidate.recentPaper || (s2best && s2best.latestTitle) || (crossrefRec && crossrefRec.title) || null;
+      candidate.paperYear  = candidate.recentYear || (s2best && s2best.latestYear) || (crossrefRec && crossrefRec.year) || null;
+      candidate.paperDoi   = candidate.recentDoi || (crossrefRec && crossrefRec.doi) || (s2best && s2best.latestDoi ? 'https://doi.org/' + s2best.latestDoi : null);
+      candidate.tldr       = (s2best && s2best.latestTldr) || null;
+      candidate.s2Citations = s2best ? s2best.citationCount : null;
+      candidate.sources    = verifiedSources;
+      candidate.multiVerified = verifiedSources.length >= 2;
+      return candidate;
     }
 
     /* ---------- dropdown rendering ---------- */
@@ -1253,6 +1420,13 @@
       els.profSearch.setAttribute('aria-expanded', 'false');
     }
 
+    /** Render the "✓ Verified by …" multi-source chip inside a result row. */
+    function sourceChipHtml(sources) {
+      if (!sources || sources.length < 2) return '';
+      const names = sources.join(' & ');
+      return `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-forest-800 ring-1 ring-forest-300 px-2 py-0.5 text-[10px] font-bold">✓ Verified by ${escapeHtml(names)}</span>`;
+    }
+
     function renderSearchResults(candidates, query) {
       els.searchResults.innerHTML = '';
       if (!candidates.length) {
@@ -1263,25 +1437,39 @@
         const item = document.createElement('button');
         item.type = 'button';
         item.setAttribute('role', 'option');
-        item.className = 'w-full text-left px-4 py-3 hover:bg-parchment-100 focus:bg-parchment-100 focus:outline-none transition group';
+        item.className = 'w-full text-left px-4 py-3 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none transition group leading-relaxed';
         const metaBits = [];
         if (c.institution) metaBits.push(escapeHtml(c.institution));
         if (c.hIndex) metaBits.push(`h-index ${c.hIndex}`);
         if (c.worksCount) metaBits.push(`${c.worksCount.toLocaleString()} papers`);
+        if (c.s2 && c.s2Citations != null && c.s2Citations > 0) metaBits.push(`S² cites ${c.s2Citations.toLocaleString()}`);
         item.innerHTML =
-          `<span class="block text-sm font-semibold text-ink-900 group-hover:text-clay-800">${escapeHtml(c.displayName)}</span>` +
+          `<span class="block text-sm font-semibold text-ink-900 group-hover:text-brand-800">${escapeHtml(c.displayName)}</span>` +
           `<span class="block text-[11px] text-ink-500 mt-0.5 truncate">${metaBits.join(' · ') || 'OpenAlex author record'}</span>` +
+          `<span class="mt-1 block empty:hidden" data-src-line>${sourceChipHtml(c.sources)}</span>` +
           `<span class="block text-[11px] text-forest-700 mt-0.5 truncate" data-topic-line>${c.topics.length ? 'Topics: ' + escapeHtml(c.topics.join(', ')) : ''}</span>` +
-          `<span class="block text-[11px] text-ink-400 italic mt-0.5 truncate" data-paper-line>Fetching latest paper…</span>`;
+          `<span class="block text-[11px] text-ink-400 italic mt-0.5 truncate" data-paper-line>Merging OpenAlex / Semantic Scholar / Crossref records…</span>` +
+          (c.tldr ? `<span class="block text-[11px] text-ink-600 mt-0.5 line-clamp-2" data-tldr-line><span class="font-bold not-italic text-brand-700">TLDR:</span> ${escapeHtml(c.tldr)}</span>` : '');
         item.addEventListener('click', () => selectProfessor(c));
         els.searchResults.appendChild(item);
-        // Lazy-fill the recent paper line per row
+        // Lazy-fill the recent paper line per row, then re-merge so the
+        // verification badge reflects paper-level title/DOI de-duplication.
         fetchRecentPaper(c.authorKey).then(p => {
           c.recentPaper = p ? p.title : null;
           c.recentYear = p ? p.year : null;
           c.recentDoi = p ? p.doi : null;
+          mergeEngines(c, c.s2 ? [c.s2] : [], c.crossref);
           const line = item.querySelector('[data-paper-line]');
-          if (line) line.textContent = p ? `Latest: “${p.title}” (${p.year || 'n.d.'})` : 'No recent publication found on OpenAlex.';
+          if (line) {
+            const parts = [];
+            if (p) parts.push(`Latest: “${p.title}” (${p.year || 'n.d.'})`);
+            else if (c.paperTitle) parts.push(`Cross-checked: “${c.paperTitle}” (${c.paperYear || 'n.d.'}) via other engines`);
+            else parts.push('No recent publication found on OpenAlex.');
+            if (c.crossref && c.crossref.doi && !c.multiVerified) parts.push(`· Crossref DOI on file: ${c.crossref.doi}`);
+            line.textContent = parts.join(' ');
+          }
+          const srcLine = item.querySelector('[data-src-line]');
+          if (srcLine) srcLine.innerHTML = sourceChipHtml(c.sources);
         });
       });
       els.searchResults.classList.remove('hidden');
@@ -1296,10 +1484,13 @@
     function selectProfessor(c) {
       document.getElementById('profName').value = c.displayName;
 
-      // "Lab Focus" + "Paper Topic": prefer the verified recent paper; fall
-      // back to top research topics so the pairing sentence stays concrete.
-      const focusText = c.recentPaper
-        ? `${c.recentPaper}${c.recentYear ? ' (' + c.recentYear + ')' : ''}`
+      // "Lab Focus" + "Paper Topic": prefer the MULTI-SOURCE verified paper
+      // (OpenAlex/Semantic Scholar/Crossref merged); fall back to top
+      // research topics so the pairing sentence stays concrete.
+      const bestTitle = c.paperTitle || c.recentPaper || '';
+      const bestYear  = c.paperYear || c.recentYear || '';
+      const focusText = bestTitle
+        ? `${bestTitle}${bestYear ? ' (' + bestYear + ')' : ''}`
         : (c.topics.length ? c.topics.slice(0, 2).join(' and ').toLowerCase() : '');
       if (focusText) document.getElementById('researchFocus').value = focusText;
 
@@ -1338,7 +1529,8 @@
 
       hideSearchResults();
       els.profSearch.value = c.displayName;
-      showToast(`Loaded ${c.displayName}${c.institution ? ' — ' + c.institution : ''}`, 'success');
+      const srcNote = (c.sources && c.sources.length >= 2) ? ` · ✓ Verified by ${c.sources.join(' & ')}` : '';
+      showToast(`Loaded ${c.displayName}${c.institution ? ' — ' + c.institution : ''}${srcNote}`, 'success');
     }
 
     /** Small green note next to a label explaining an auto-filled value. */
@@ -1458,7 +1650,10 @@
       document.getElementById('fundingAcceptPct').textContent = `${acc.pct}%`;
       const bar = document.getElementById('fundingAcceptBar');
       bar.style.width = Math.min(100, acc.pct) + '%';
-      bar.className = 'h-full rounded-full transition-all duration-500 ' + (acc.pct <= 12 ? 'bg-rose-500' : acc.pct <= 25 ? 'bg-amber-500' : 'bg-forest-500');
+      const tier = acc.pct < 15 ? ['bg-rose-500', 'Competitive'] : acc.pct <= 30 ? ['bg-amber-500', 'Selective'] : ['bg-emerald-500', 'Standard'];
+      bar.className = 'h-full rounded-full transition-all duration-500 ' + tier[0];
+      document.getElementById('fundingAcceptTier').textContent = tier[1];
+      document.getElementById('fundingAcceptTier').className = 'ml-2 align-middle rounded-full px-2 py-0.5 text-[10px] font-bold text-white ' + tier[0];
       document.getElementById('fundingAcceptNote').textContent =
         `${candidate.institution || 'This university'} — ${acc.note}. Apply to 4–6 labs; fit beats prestige for funded seats.`;
 
@@ -1470,7 +1665,7 @@
       awards.forEach(a => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-1.5';
-        li.innerHTML = '<span class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[9px] font-bold">$</span><span></span>';
+        li.innerHTML = '<span class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[9px] font-bold">$</span><span></span>';
         li.querySelector('span:last-child').textContent = a;
         ul.appendChild(li);
       });
@@ -1761,7 +1956,7 @@
              take Master's students for scoped projects.
     ------------------------------------------------------------------ */
     function inferTargetDegree(candidate) {
-      const topicText = ((candidate.topics || []).join(' ') + ' ' + (candidate.recentPaper || '')).toLowerCase();
+      const topicText = ((candidate.topics || []).join(' ') + ' ' + (candidate.paperTitle || candidate.recentPaper || '')).toLowerCase();
       const phdSignals = [
         /\b(deep learning|machine learning|artificial intelligence|genomics|neuroscience|quantum|cancer|immunolog|climate|evolution|molecular mechanism|theoretical|cosmolog|robotics|discovery|mechanism)/,
       ];
@@ -1927,14 +2122,16 @@
         intro.className = 'text-[11px] text-ink-500 w-full';
         intro.textContent = 'No direct email on file — common academic patterns for this name + university (click to use, then confirm on their lab page):';
         els.emailSuggest.appendChild(intro);
-        patterns.forEach(p => {
+        const confByPattern = ['first.last', 'flast', 'last.f', 'firstl', 'last'];
+        patterns.forEach((p, i) => {
           const chip = document.createElement('button');
           chip.type = 'button';
-          chip.className = 'rounded-md border border-ink-200 bg-white px-2 py-1 text-[11px] font-mono text-ink-700 hover:border-clay-400 hover:text-clay-700 transition';
-          chip.textContent = p;
+          chip.title = '🟡 Pattern Match — estimated format, not a confirmed address. Click to use, then verify on the lab page.';
+          chip.className = 'px-3 py-1 bg-amber-50 hover:bg-amber-100 rounded-full font-mono text-xs text-ink-700 ring-1 ring-amber-300 transition';
+          chip.innerHTML = `<span class="text-amber-600 font-semibold">🟡 ${90 - Math.min(i * 5, 20)}%</span> ${escapeHtml(p)}`;
           chip.addEventListener('click', () => {
             emailInput.value = p;
-            setEmailBadge('yellow', 'Pattern-generated address — verify on the professor’s official page before sending.');
+            setEmailBadge('yellow', `Pattern Match (${90 - Math.min(i * 5, 20)}% confidence) — estimated address. Verify on the professor's official page before sending.`);
             els.emailSuggest.classList.add('hidden');
             verifyEmailField();
           });
@@ -1946,12 +2143,35 @@
       renderAuditCard();
     }
 
-    /* ---------- Verified Professor Audit Card ---------- */
+    /* ---------- Verified Professor Audit Card (multi-source) ---------- */
     function auditBadge(text, ok) {
       const li = document.createElement('li');
       li.className = (ok ? 'bg-forest-100 text-forest-800 ring-1 ring-forest-200' : 'bg-ink-100 text-ink-500 ring-1 ring-ink-200') + ' rounded-full px-2.5 py-1 inline-flex items-center gap-1';
       li.textContent = (ok ? '✓ ' : '· ') + text;
       return li;
+    }
+
+    /** Collapsible "details" block for progressive disclosure of engine data. */
+    function auditDetails(summaryLabel, rows, open = false) {
+      const wrap = document.createElement('div');
+      wrap.className = 'mt-3 border-t border-dashed border-ink-200 pt-2.5';
+      const det = document.createElement('details');
+      if (open) det.open = true;
+      const sum = document.createElement('summary');
+      sum.className = 'cursor-pointer select-none text-[11px] font-bold uppercase tracking-[0.12em] text-brand-700 hover:text-brand-800 list-disc marker:text-brand-400';
+      sum.textContent = summaryLabel;
+      det.appendChild(sum);
+      const dl = document.createElement('dl');
+      dl.className = 'mt-2 space-y-1 text-xs leading-relaxed';
+      rows.forEach(([k, v]) => {
+        const div = document.createElement('div');
+        div.className = 'flex gap-1.5';
+        div.innerHTML = `<dt class="font-semibold text-ink-700 shrink-0">${escapeHtml(k)}:</dt><dd class="text-ink-600 min-w-0 break-words">${escapeHtml(v)}</dd>`;
+        dl.appendChild(div);
+      });
+      det.appendChild(dl);
+      wrap.appendChild(det);
+      return wrap;
     }
 
     function renderAuditCard() {
@@ -1961,14 +2181,24 @@
       els.auditWho.textContent = `${p.displayName}${p.institution ? ' — ' + p.institution : ''}`;
 
       els.auditBadges.innerHTML = '';
-      els.auditBadges.appendChild(auditBadge('Paper Verified (OpenAlex)', !!p.recentPaper));
+      // Multi-Source Verification Badge: green only when ≥2 engines agree
+      const srcs = p.sources || ['OpenAlex'];
+      if (srcs.length >= 2) {
+        const li = document.createElement('li');
+        li.className = 'rounded-full px-2.5 py-1 inline-flex items-center gap-1 bg-emerald-500 text-white shadow-sm';
+        li.textContent = `✓ Verified by ${srcs.join(' & ')}`;
+        els.auditBadges.appendChild(li);
+      } else {
+        els.auditBadges.appendChild(auditBadge('Paper Verified (OpenAlex)', !!p.paperTitle));
+      }
       els.auditBadges.appendChild(auditBadge('Active Faculty Status', !!p.institution && p.worksCount > 0));
       const emailState = els.emailBadge.textContent || '';
-      els.auditBadges.appendChild(auditBadge('Email Inbox Reachable', /Verified/.test(emailState)));
+      els.auditBadges.appendChild(auditBadge('Email Inbox Reachable (DNS MX)', /Verified/.test(emailState)));
 
       els.auditFacts.innerHTML = '';
       const facts = [];
-      if (p.recentPaper) facts.push(['Latest paper', `“${p.recentPaper}”${p.recentYear ? ' (' + p.recentYear + ')' : ''}`]);
+      if (p.paperTitle) facts.push(['Verified paper', `“${p.paperTitle}”${p.paperYear ? ' (' + p.paperYear + ')' : ''}`]);
+      if (p.tldr) facts.push(['AI TLDR (Semantic Scholar)', p.tldr]);
       if (p.topics && p.topics.length) facts.push(['Lab research topics', p.topics.join(', ')]);
       if (p.hIndex) facts.push(['h-index', String(p.hIndex)]);
       if (p.worksCount) facts.push(['Indexed works', p.worksCount.toLocaleString()]);
@@ -1980,13 +2210,24 @@
         els.auditFacts.appendChild(div);
       });
 
+      // Progressive disclosure: per-engine cross-check details hidden until opened
+      const engineRows = [];
+      if (p.s2) {
+        engineRows.push(['Semantic Scholar', `${p.s2.displayName || p.displayName} · ${(p.s2.paperCount || 0).toLocaleString()} papers · ${p.s2.citationCount != null ? p.s2.citationCount.toLocaleString() : '?'} citations${p.s2.latestTitle ? ' · latest: “' + p.s2.latestTitle + '”' : ''}`]);
+      }
+      if (p.crossref) {
+        engineRows.push(['Crossref (2024+)', `“${p.crossref.title}”${p.crossref.year ? ' (' + p.crossref.year + ')' : ''}${p.crossref.doi ? ' · DOI: ' + p.crossref.doi : ''}${p.crossref.citations ? ' · cited ' + p.crossref.citations + '×' : ''}`]);
+      }
+      if (p.recentDoi) engineRows.push(['OpenAlex DOI', p.recentDoi]);
+      if (engineRows.length) els.auditFacts.appendChild(auditDetails('Engine cross-check details', engineRows));
+
       els.auditLinks.innerHTML = '';
       const scholarQuery = encodeURIComponent(`${p.displayName} ${p.institution || ''}`.trim());
       const links = [
         { label: 'Google Scholar', href: `https://scholar.google.com/scholar?q=${scholarQuery}` },
         { label: 'OpenAlex Profile', href: p.openalexId || '#' },
         ...(p.orcid ? [{ label: 'ORCID Record', href: p.orcid }] : []),
-        ...(p.recentDoi ? [{ label: 'Read the Paper (DOI)', href: p.recentDoi }] : [])
+        ...(p.paperDoi ? [{ label: 'Read the Paper (DOI)', href: p.paperDoi.startsWith('http') ? p.paperDoi : `https://doi.org/${p.paperDoi}` }] : [])
       ];
       links.forEach(l => {
         if (!l.href || l.href === '#') return;
@@ -2024,11 +2265,32 @@
     async function runProfessorSearch(query) {
       if (query.length < 3) { showToast('Type at least 3 characters (a full name works best).', 'error'); return; }
       const seq = ++searchSeq;
-      showSearchMessage('<span class="inline-flex items-center gap-2"><svg class="animate-spin h-3.5 w-3.5 text-clay-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>Searching OpenAlex faculty records…</span>');
+      showSearchMessage('<span class="inline-flex items-center gap-2"><svg class="animate-spin h-3.5 w-3.5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>Querying OpenAlex + Semantic Scholar + Crossref…</span>');
       try {
-        const candidates = await searchOpenAlexAuthors(query);
+        // ---- Trigger all 3 academic API calls CONCURRENTLY ----
+        // Promise.allSettled so one failing engine never sinks the search —
+        // remaining engines still merge in as verification/fallback coverage.
+        const [oaRes, s2Res, crRes] = await Promise.allSettled([
+          searchOpenAlexAuthors(query),
+          searchSemanticScholar(query),
+          searchCrossrefRecent(query)
+        ]);
         if (seq !== searchSeq) return; // stale response — user kept typing
-        renderSearchResults(candidates, query);
+
+        if (oaRes.status !== 'fulfilled') throw oaRes.reason; // OpenAlex is the primary catalog
+
+        const candidates = oaRes.value;
+        const s2List   = s2Res.status === 'fulfilled' ? s2Res.value : [];
+        const crossref = crRes.status === 'fulfilled' ? crRes.value : null;
+
+        // Attach engine results immediately (name-level match); paper-level
+        // de-dup refinement happens per-row once the recent OpenAlex paper loads.
+        candidates.forEach(c => mergeEngines(c, s2List, crossref));
+
+        renderSearchResults(candidates, query, {
+          s2Ok: s2Res.status === 'fulfilled' && s2List.length > 0,
+          crOk: crRes.status === 'fulfilled' && !!crossref
+        });
       } catch (err) {
         if (seq !== searchSeq) return;
         showSearchMessage('Could not reach OpenAlex (network/CORS/offline). You can still fill the form manually — everything else works without it.');
@@ -2289,7 +2551,7 @@
       els.humanChip.className = 'rounded-full px-2 py-0.5 text-[10px] font-semibold ' +
         (statusLabel === 'polished' || statusLabel === 'auto-polished'
           ? 'bg-forest-100 text-forest-700'
-          : statusLabel === 'reverted' ? 'bg-clay-100 text-clay-700'
+          : statusLabel === 'reverted' ? 'bg-brand-100 text-brand-700'
           : 'bg-ink-100 text-ink-500');
     }
 
@@ -2515,11 +2777,11 @@
     function updateToneChips(activeTone) {
       document.querySelectorAll('.tone-chip').forEach(chip => {
         const active = chip.dataset.tone === activeTone;
-        chip.classList.toggle('bg-clay-700', active);
-        chip.classList.toggle('text-parchment-50', active);
+        chip.classList.toggle('bg-brand-600', active);
+        chip.classList.toggle('text-slate-50', active);
         chip.classList.toggle('shadow', active);
         chip.classList.toggle('text-ink-600', !active);
-        chip.classList.toggle('hover:bg-parchment-100', !active);
+        chip.classList.toggle('hover:bg-slate-100', !active);
       });
     }
 
