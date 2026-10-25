@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,12 +18,12 @@
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.openalex.org https://api.semanticscholar.org https://api.crossref.org https://dns.google https://cdn.jsdelivr.net; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" />
 
-  <!-- Fonts (Ocean theme): Source Serif 4 (display/letters) + Source Sans 3
-       (UI) + JetBrains Mono (counters/code). Inter remains loaded as the
-       Tailwind-config fallback family. -->
+  <!-- Simple-theme fonts: Inter (UI text) + JetBrains Mono (counters and
+       code chips only). No display serif — the wordmark and headings use
+       the same sans family for a clean, uniform look. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS via CDN. §6 Supply chain: the Play CDN is an UNPINNED
        build (its bytes change over time), so a static SRI hash would break
@@ -32,176 +32,135 @@
        renderer (js/app.js) and DOMPurify are checksum-verified below. -->
   <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
   <script>
-    // Inline Tailwind configuration — clean "academic dashboard" palette.
-    // Status colors follow the spec: emerald #10B981 (confirmed), amber
-    // #F59E0B (estimated/pattern), rose #F43F5E (missing/unverified).
+    // Inline Tailwind configuration — SIMPLE theme.
+    // Neutral slate grays + one restrained blue accent. Status colors follow
+    // the spec: emerald #10B981 (confirmed), amber #F59E0B (estimated /
+    // pattern), rose #F43F5E (missing / unverified). No decorative shadows or
+    // custom display fonts — flat borders and system-style typography only.
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            /* Ocean theme — slate ramp retinted to cool blue-gray */
-            slate: {
-              DEFAULT: '#64748b',
-              50:  '#f6f8fb',
-              100: '#eef2f7',
-              200: '#dfe6ee',
-              300: '#c3cfdd',
-              400: '#94a3b8',
-              500: '#64748b',
-              600: '#46586e',
-              700: '#334155',
-              800: '#1d3350',
-              900: '#102033',
-              950: '#081a2e'
-            },
             ink: {
-              DEFAULT: '#102033',
-              50:  '#f6f8fb',
-              100: '#eef2f7',
-              200: '#dfe6ee',
-              300: '#c3cfdd',
+              DEFAULT: '#1e293b',
+              50:  '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
               400: '#94a3b8',
               500: '#64748b',
-              600: '#46586e',
+              600: '#475569',
               700: '#334155',
-              800: '#1d3350',
-              900: '#102033',
-              950: '#081a2e'
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617'
             },
             brand: {
-              50:  '#ecf8fc',
-              100: '#d6ecf6',
-              200: '#a8d8ea',
-              300: '#7fc4de',
-              400: '#47aacd',
-              500: '#0e7490',
-              600: '#155e75',
-              700: '#0b5f79',
-              800: '#164e63',
-              900: '#0c3a4d'
+              50:  '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
             },
             forest: {
-              50:  '#e7f6ef',
-              100: '#d9efe6',
-              200: '#b5e2cd',
-              300: '#9fd6bf',
-              400: '#6cc4a4',
-              500: '#0f9d76',
-              600: '#0b7a5c',
-              700: '#0f6b52',
-              800: '#0a5240',
-              900: '#063a30'
+              50:  '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
             },
             clay: {
-              50:  '#fdf3d8',
-              100: '#fbeacb',
-              200: '#f5d78f',
-              300: '#ecd28a',
+              50:  '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
               400: '#fbbf24',
-              500: '#eab308',
-              600: '#ca8a04',
-              700: '#a16207',
-              800: '#8a6414',
-              900: '#713f12'
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f'
             },
             rose: {
-              50:  '#fdeef1',
-              100: '#fbe4e7',
-              200: '#f0b6be',
-              300: '#e88fa0',
-              400: '#e26d84',
-              500: '#d94f68',
-              600: '#c43c55',
-              700: '#a63446',
-              800: '#8c2a3a',
-              900: '#6f2130'
+              50:  '#fff1f2',
+              100: '#ffe4e6',
+              200: '#fecdd3',
+              300: '#fda4af',
+              400: '#fb7185',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+              800: '#9f1239',
+              900: '#881337'
             }
           },
           fontFamily: {
-            display: ['"Source Serif 4"', '"Iowan Old Style"', 'Georgia', '"Times New Roman"', 'ui-serif', 'serif'],
-            sans: ['"Source Sans 3"', '"Inter"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+            display: ['"Inter"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+            sans: ['"Inter"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
             mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace']
           },
           boxShadow: {
-            card: '0 1px 2px rgba(16,32,51,0.05), 0 14px 34px -16px rgba(16,32,51,0.16)',
-            lift: '0 12px 28px -12px rgba(14,116,144,0.45)'
+            card: 'none',
+            lift: 'none'
           }
         }
       }
     };
   </script>
 
-  <!-- External stylesheet: interaction & accessibility layer (sticky nav,
-       focus rings, reveals, back-to-top, shortcut modal). See css/styles.css -->
+  <!-- External stylesheet: minimal interaction & accessibility layer (sticky
+       nav, focus rings, back-to-top, shortcut modal). See css/styles.css -->
   <link rel="stylesheet" href="css/styles.css" />
 
-  <!-- Ocean Academic theme (v2 redesign): palette, typography, elevation and
-       micro-interactions. Loaded before the inline layers below so those
-       blocks re-assert structural rules (layout, steps visibility) while
-       this file owns every color, radius, shadow and font decision. -->
-  <link rel="stylesheet" href="css/theme-ocean.css" />
-
   <style>
-    /* ---------- Custom styles (kept light; Tailwind does the heavy lifting) ---------- */
+    /* ---------- Custom styles (SIMPLE theme: no animations, flat surfaces) ---------- */
     :root { color-scheme: light; }
 
     body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 
-    /* Subtle dot-grid backdrop for the masthead */
-    .hero-rule {
-      background-image: radial-gradient(rgba(248, 250, 252, 0.08) 1px, transparent 1.2px);
-      background-size: 22px 22px;
-    }
-
     /* Email textarea reads like a typed letter on paper */
     #emailBody {
-      font-family: 'Source Serif 4', Georgia, 'Times New Roman', ui-serif, serif;
       line-height: 1.75;
       tab-size: 4;
       resize: vertical;
-      background-color: #fffdf8;
+      background-color: #ffffff;
     }
 
-    /* Toast animation */
-    @keyframes toast-in {
-      from { opacity: 0; transform: translateY(12px) scale(0.98); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes toast-out {
-      from { opacity: 1; transform: translateY(0) scale(1); }
-      to   { opacity: 0; transform: translateY(12px) scale(0.98); }
-    }
-    .toast-enter { animation: toast-in 0.22s ease-out forwards; }
-    .toast-exit  { animation: toast-out 0.25s ease-in forwards; }
+    /* Toasts appear/disappear instantly (no entrance/exit animation). The
+       classes are kept because the toast lifecycle code adds/removes them —
+       they simply carry no visual transition in this theme. */
+    .toast-enter { opacity: 1; }
+    .toast-exit  { opacity: 0; }
 
-    /* Accordion transition */
+    /* Accordion panels open/collapse instantly (no animated height). The
+       grid-rows trick still clips closed panels; without a transition it
+       simply snaps between 0fr and 1fr. */
     .accordion-panel {
       display: grid;
       grid-template-rows: 0fr;
-      transition: grid-template-rows 0.3s ease;
     }
     .accordion-panel.open { grid-template-rows: 1fr; }
     .accordion-panel > div { overflow: hidden; }
 
-    /* Chevron rotation */
-    .accordion-trigger svg { transition: transform 0.3s ease; }
-    .accordion-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+    /* Static chevron indicators (no rotation animation) */
 
-    /* Gentle pulse used when regenerating output */
-    @keyframes soft-flash {
-      0%   { box-shadow: 0 0 0 0 rgba(188, 98, 56, 0.35); }
-      100% { box-shadow: 0 0 0 10px rgba(188, 98, 56, 0); }
-    }
-    .flash { animation: soft-flash 0.7s ease-out; }
+    /* Regeneration highlight: instant flat tint instead of an animated pulse */
+    .flash { background-color: #eff6ff; }
 
     /* Focus rings consistent across inputs */
     .field:focus { outline: none; }
 
-    /* Word-count bar */
-    #countBar { transition: width 0.35s ease, background-color 0.35s ease; }
-
-    /* Polish progress meter */
-    #humanBar { transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s ease; }
+    /* Word-count bar / polish meter: plain width updates, no easing */
 
     /* Inline field-help bubble (the small ℹ️ buttons next to labels) */
     .ld-tip { position: relative; border: 0; background: transparent; cursor: help; padding: 0; line-height: 1; }
@@ -216,9 +175,9 @@
       content: attr(data-tip);
       position: fixed; top: var(--ld-tip-top, auto); bottom: var(--ld-tip-bottom, calc(100% + 8px));
       left: var(--ld-tip-left, 50%); transform: translateX(-50%);
-      width: min(260px, 72vw); background: #2b2926; color: #f8fafc; font-size: var(--fs-sm);
+      width: min(260px, 72vw); background: #1e293b; color: #f8fafc; font-size: var(--fs-sm);
       font-weight: 500; line-height: 1.45; text-align: left; letter-spacing: normal; text-transform: none;
-      padding: 8px 16px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .15s ease; z-index: 90;
+      padding: 8px 16px; border-radius: 6px; opacity: 0; pointer-events: none; z-index: 90;
     }
     .ld-tip:hover::after, .ld-tip:focus-visible::after { opacity: 1; }
   </style>
@@ -269,46 +228,45 @@
   </script>
 
   <style>
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-    }
-
     /* ====================================================================
-       LETTERDESK DESIGN TOKENS — single accent, three font sizes,
-       8/16/32 spacing ramp, borders instead of shadows.
+       LETTERDESK DESIGN TOKENS — SIMPLE theme: one blue accent, three font
+       sizes, 8/16/32 spacing ramp, flat borders instead of shadows, and no
+       animations or transitions anywhere.
        ==================================================================== */
     :root {
-      --accent: #4f46e5;          /* indigo 600 — the ONLY accent color */
-      --accent-dark: #4338ca;     /* indigo 700 */
-      --page-bg: #fafaf8;         /* off-white page background */
+      --accent: #2563eb;          /* blue 600 — the ONLY accent color */
+      --accent-dark: #1d4ed8;     /* blue 700 */
+      --page-bg: #f8fafc;         /* cool light page background */
       --panel-bg: #ffffff;        /* white panels */
-      --line-1: #e7e5e0;          /* tinted-neutral border ramp (light) */
-      --line-2: #d6d3cc;          /* tinted-neutral border ramp (strong) */
-      --text-1: #1f2937;
-      --text-2: #57534e;
-      --text-3: #8b8680;
+      --line-1: #e2e8f0;          /* slate border ramp (light) */
+      --line-2: #cbd5e1;          /* slate border ramp (strong) */
+      --text-1: #1e293b;
+      --text-2: #475569;
+      --text-3: #64748b;
       --fs-lg: 1.35rem;           /* page / step headings   (size 1 of 3) */
       --fs-md: 0.95rem;           /* body, labels, fields, draft (size 2) */
       --fs-sm: 0.78rem;           /* metadata, helper text, hints (size 3) */
-      --sp-1: 8px;                /* label ↔ field */
+      --sp-1: 8px;                /* label <-> field */
       --sp-2: 16px;               /* between elements inside a section */
       --sp-3: 32px;               /* between major sections */
     }
     body { background-color: var(--page-bg); }
 
-    /* ---------- Backdrop-blur loading overlay (search + AI generate) ---- */
+    /* ---------- Plain loading overlay (search + AI generate) -------------
+       No backdrop blur and no rotating spinner graphic: the overlay dims
+       the page and shows a static "Loading…" word mark styled by the
+       .ld-spinner rule below (kept as a hook so app.js's busy-state logic
+       continues to work unchanged). */
     #ldLoadingOverlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center;
-                        background: rgba(15, 23, 42, 0.45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+                        background: rgba(15, 23, 42, 0.45); }
     #ldLoadingOverlay[hidden] { display: none !important; }
-    @keyframes ld-spin { to { transform: rotate(360deg); } }
     .ld-spinner { width: 34px; height: 34px; border-radius: 9999px; border: 3px solid rgba(255,255,255,0.25);
-                  border-top-color: #a5b4fc; animation: ld-spin 0.8s linear infinite; }
+                  border-top-color: #bfdbfe; }
 
     /* ---------- Professor profile cards (short-card grid under search) -- */
     .ld-prof-card { text-align: left; width: 100%; background: var(--panel-bg); border: 1px solid var(--line-1);
-                    border-radius: 10px; padding: 12px 14px; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
-    .ld-prof-card:hover { border-color: var(--accent); box-shadow: 0 8px 20px -12px rgba(79,70,229,.35); transform: translateY(-1px); }
+                    border-radius: 8px; padding: 12px 14px; }
+    .ld-prof-card:hover { border-color: var(--accent); }
     .ld-prof-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* ---------- Two-mode shell: Write | Track ---------- */
@@ -341,63 +299,33 @@
     .ld-panel { background: var(--panel-bg); border: 1px solid var(--line-1); border-radius: 8px; box-shadow: none !important; }
     /* The `overflow-hidden` utility on these panels existed only to clip the
        square header strip against the rounded corners. It also clipped and
-       hid other content (ℹ️ tooltips, focus rings, dropdowns) — so instead of
+       hid other content (info tooltips, focus rings, dropdowns) — so instead of
        clipping everything, round just the first/last child so it follows the
        panel's radius. Content is now fully visible and reachable. */
     .ld-panel > :first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
     .ld-panel > :last-child  { border-end-start-radius: inherit; border-end-end-radius: inherit; }
     main section > div:hover { box-shadow: none !important; }
-    .shadow-card, .shadow-lift { box-shadow: none !important; }
-    .bg-ink-950 { background-color: #2b2926 !important; }
+    .shadow-card, .shadow-lift, .shadow-lg { box-shadow: none !important; }
+    .bg-ink-950 { background-color: #0f172a !important; }
     header.bg-ink-950 { background-image: none; }
-    .hero-rule { background-image: none; }
     #emailBody { background-color: #ffffff; line-height: 1.65; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 
-    /* ---------- Single accent enforcement (muted blue everywhere) ---------- */
-    :root {
-      --brand-50:#eef2ff;  --brand-100:#e0e7ff; --brand-200:#c7d2fe; --brand-300:#a5b4fc;
-      --brand-400:#818cf8; --brand-500:var(--accent); --brand-600:var(--accent-dark); --brand-700:#4338ca; --brand-800:#3730a3;
-      --forest-50:#eef2ff; --forest-100:#e0e7ff; --forest-200:#c7d2fe; --forest-500:var(--accent);
-      --forest-600:var(--accent-dark); --forest-700:#4338ca;
-      --amber-50:#faf6ec;  --amber-100:#f3ecd9;  --amber-300:#ddd0a8;  --amber-400:#c9b877;
-      --amber-500:#b3a05c; --amber-700:#8a7a45;  --amber-800:#6f6238;
-      --rose-50:#fdf1f1;   --rose-200:#f3caca;   --rose-600:#c05555;   --rose-700:#a34848;
-      --clay-500:var(--accent); --clay-600:var(--accent-dark);
-    }
-    [class*="bg-brand"], [class*="text-brand"], [class*="ring-brand"], [class*="border-brand"] {
-      background-color: unset; color: unset; border-color: unset; box-shadow: unset;
-    }
-    [class*="bg-brand"]   { background-color: var(--brand-100) !important; }
-    [class*="text-brand"] { color: var(--brand-700) !important; }
-    [class*="border-brand"] { border-color: var(--brand-200) !important; }
-    button[class*="bg-brand"], a[class*="bg-brand"] { background-color: var(--accent) !important; }
-    button[class*="text-brand"], a[class*="text-brand"] { color: var(--brand-700) !important; }
-    [class*="bg-forest"]   { background-color: var(--brand-100) !important; }
-    [class*="text-forest"] { color: var(--brand-700) !important; }
-    [class*="border-forest"] { border-color: var(--brand-200) !important; }
-    button[class*="bg-forest"] { background-color: var(--accent) !important; }
-    [class*="bg-amber"]   { background-color: var(--amber-50) !important; }
-    [class*="text-amber"] { color: var(--amber-800) !important; }
-    [class*="border-amber"] { border-color: var(--amber-300) !important; }
-    .bg-amber-400 { background-color: var(--amber-400) !important; }
-    [class*="bg-rose"]   { background-color: var(--rose-50) !important; }
-    [class*="text-rose"] { color: var(--rose-700) !important; }
-    [class*="border-rose"] { border-color: var(--rose-200) !important; }
-    #reviewGrade[class*="bg-forest"], #reviewGrade[class*="bg-amber"], #reviewGrade[class*="bg-rose"] {
-      background-color: var(--accent) !important; color: #fff !important;
-    }
-    #countBar { background-color: var(--accent) !important; }
+    /* ---------- Single accent enforcement (calm blue everywhere) ---------
+       NOTE: this used to be a blanket [class*=...] !important override that
+       fought the Tailwind palette and the old Ocean theme. Now the Tailwind
+       config itself defines the simple palette, so these rules only map the
+       legacy amber/clay utilities onto the standard ramps and reserve the
+       accent for primary actions. */
+    [class*="bg-amber"]   { background-color: #fef3c7 !important; }
+    [class*="text-amber"] { color: #92400e !important; }
+    [class*="border-amber"] { border-color: #fde68a !important; }
+    .bg-amber-400 { background-color: #fbbf24 !important; }
     .accent-emerald-500, .accent-clay-600 { accent-color: var(--accent) !important; }
-    /* Secondary buttons: neutral — the accent is reserved for the primary action */
-    button[class*="border-brand"][class*="bg-white"], a[class*="border-brand"][class*="bg-white"] {
-      background-color: #fff !important; color: var(--text-2) !important; border-color: var(--line-2) !important;
-    }
     /* Dark ink buttons (search / copy) → neutral charcoal, not accent */
-    button[class*="bg-ink-900"] { background-color: #2b2926 !important; }
+    button[class*="bg-ink-900"] { background-color: #0f172a !important; }
     /* Generate pill + review bar use inline style="background:var(--accent)" already */
 
     /* ---------- Typography tokens on key surfaces ---------- */
-    h1, .font-display { letter-spacing: -0.01em; }
     #stepIndicator, #modeSwitchWrap, .ld-hint-row, #showAllPanelsLink, #manualEntryLink { font-size: var(--fs-sm); }
 
     /* ---------- Contextual inline hint + persistent Generate pill ---------- */
@@ -416,8 +344,17 @@
     body.ld-show-all .ld-step { opacity: 1; visibility: visible; height: auto; pointer-events: auto; }
     body.ld-show-all .ld-step[hidden] { display: block !important; }
 
+    /* ---------- Mobile usability ---------- */
+    @media (max-width: 640px) {
+      #emailBody { min-height: 300px; }
+      #ldStickyNav { height: 48px; }
+      :root { --ld-sticky-h: 48px; }
+      .ld-step-chip { padding: 8px; }
+    }
+  </style>
+
+  <script>
     /* ---------- Wire the "Show all panels" toggle (the class had no JS) --- */
-    <script>
     (function () {
       function bind() {
         var link = document.getElementById('showAllPanelsLink');
@@ -438,40 +375,20 @@
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
       else bind();
     })();
-    </script>
-
-    /* ---------- Mobile usability ---------- */
-    @media (max-width: 640px) {
-      #emailBody { min-height: 300px; }
-      #ldStickyNav { height: 48px; }
-      :root { --ld-sticky-h: 48px; }
-      .ld-step-chip { padding: 8px; }
-    }
-  </style>
+  </script>
 </head>
 
 <body class="bg-slate-50 font-sans text-ink-900 min-h-screen flex flex-col">
 
   <!-- ============================ NAVBAR / HEADER ============================ -->
-  <header class="bg-ink-950 text-slate-100 hero-rule">
+  <header class="bg-ink-950 text-slate-100">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 md:pt-8 md:pb-14 relative z-10">
       <div class="flex items-center justify-between">
-        <!-- Logo lockup: fixed-size mark + vertically centered wordmark. The
-             mark is capped (h-9/w-9) and the subtitle line-height is tightened
-             so neither can overlap neighbouring nav items or clip on small
-             screens; flex-wrap lets the tagline drop below instead of
-             colliding with the links at narrow widths. -->
-        <a href="#" class="flex flex-wrap items-center gap-2.5 group min-w-0" aria-label="LetterDesk home">
-          <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 ring-2 ring-slate-100/25 shadow-lift">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M22 7 13.5 12.8a2 2 0 0 1-2.3 0L2 7"/>
-              <rect x="2" y="4" width="20" height="16" rx="3"/>
-            </svg>
-          </span>
-          <span class="leading-none">
-            <span class="block font-display font-bold tracking-tight leading-none" style="font-size:var(--fs-lg)">LetterDesk</span>
-            <span class="mt-1 block uppercase tracking-[0.16em] text-brand-300 font-semibold leading-none whitespace-nowrap" style="font-size:var(--fs-sm)">Geoscience Outreach Studio</span>
-          </span>
+        <!-- Simple wordmark only — the decorative logo mark (circle badge +
+             envelope icon) has been removed per the "make it simple" pass. -->
+        <a href="#" class="flex flex-wrap items-baseline gap-x-3 gap-y-1 min-w-0" aria-label="LetterDesk home">
+          <span class="font-display font-bold tracking-tight leading-none" style="font-size:var(--fs-lg)">LetterDesk</span>
+          <span class="uppercase tracking-[0.16em] text-slate-400 font-semibold leading-none whitespace-nowrap" style="font-size:var(--fs-sm)">Geoscience Outreach Studio</span>
         </a>
 
         <div class="hidden md:flex items-center gap-6 text-sm text-slate-300">
@@ -4621,8 +4538,9 @@ Alex Rivera</pre>
       setTimeout(() => {
         toast.classList.remove('toast-enter');
         toast.classList.add('toast-exit');
-        toast.addEventListener('animationend', () => toast.remove(), { once: true });
-        setTimeout(() => toast.remove(), 400); // safety net
+        // Simple theme: toasts have no exit animation, so remove them on a
+        // short fixed delay instead of waiting for an animationend event.
+        setTimeout(() => toast.remove(), 200);
       }, 2400);
     }
 
