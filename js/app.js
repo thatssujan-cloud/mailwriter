@@ -322,6 +322,103 @@
   }
 
   /* ------------------------------------------------------------------
+     8. Write-flow step navigation — adapted from the proposed switchStep
+        snippet so it matches this page's real markup:
+          • Steps are toggled with .ld-step / .is-active (opacity +
+            visibility), NOT display/hidden classes — the inline styles in
+            the original snippet clash with Tailwind `hidden` utilities and
+            would break dropdowns like #searchResults.
+          • Nav items are the [data-goto-step] chips inside
+            ol[aria-label='Write flow steps']; the arrow <li>s carry no chip
+            and must be skipped, so index mapping is derived from
+            data-goto-step instead of forEach position.
+          • The tracker is #trackModePanel (a sibling mode panel toggled via
+            the `hidden` attribute by the core script); it is only shown for
+            a dedicated "tracker" request, never as an extra write step.
+  ------------------------------------------------------------------ */
+  var WRITE_STEPS = ['stepSearch', 'stepDetails', 'stepDraft', 'stepVerify'];
+
+  // Expose a global switchStep(stepIndex) contract (0 = Search … 3 = Verify,
+  // 4 = tracker view) so other scripts/tests can drive the flow directly.
+  window.switchStep = function switchStep(stepIndex) {
+    if (stepIndex === 4) { showTrackerView(); return; }
+    var targetId = WRITE_STEPS[stepIndex];
+    if (!targetId) return;
+
+    // Show exactly one step section (class-based — never touch style.display)
+    doc.querySelectorAll('.ld-step').forEach(function (sec) {
+      sec.classList.toggle('is-active', sec.id === targetId);
+    });
+
+    // Sync the active state of the step chips in the indicator bar
+    doc.querySelectorAll('#stepIndicator [data-goto-step]').forEach(function (chip) {
+      chip.classList.toggle('is-active', Number(chip.dataset.gotoStep) === stepIndex + 1);
+    });
+
+    // Keep the Write mode visible; leave Track mode to its own toggle
+    var writePanel = $('writeModePanel');
+    if (writePanel) writePanel.hidden = false;
+    var trackPanel = $('trackModePanel');
+    if (trackPanel) trackPanel.hidden = true;
+
+    var main = doc.querySelector('main');
+    if (main) main.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  };
+
+  // Explicitly jump to the tracker view (index 4 / Track tab button)
+  function showTrackerView() {
+    doc.querySelectorAll('.ld-step').forEach(function (sec) {
+      sec.classList.remove('is-active');
+    });
+    var writePanel = $('writeModePanel');
+    if (writePanel) writePanel.hidden = true;
+    var trackPanel = $('trackModePanel');
+    if (trackPanel) trackPanel.hidden = false;
+    var main = doc.querySelector('main');
+    if (main) main.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  }
+
+  function bindStepNav() {
+    // Step chips: map through data-goto-step (1-based) → array index (0-based).
+    // Arrow <li>s in the ordered list carry no chip and are skipped naturally.
+    doc.querySelectorAll('#stepIndicator [data-goto-step]').forEach(function (chip) {
+      chip.style.cursor = 'pointer';
+      chip.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.switchStep(Number(chip.dataset.gotoStep) - 1);
+      });
+    });
+
+    // Mode tabs: Write returns to Step 1, Track reveals the tracker panel
+    on($('modeWriteBtn'), 'click', function () { window.switchStep(0); });
+    on($('modeTrackBtn'), 'click', showTrackerView);
+
+    // Inline transition links ("← Back to draft", "Edit details", …).
+    // Only plain href="#" anchors are scanned so real deep links stay intact.
+    // Order matters: check verify/pre-send before draft before details.
+    var linkTargets = [
+      { re: /verify|pre-?send/i,   idx: 3 },
+      { re: /\bdraft\b/i,          idx: 2 },
+      { re: /\bdetails\b|manual/i, idx: 1 }
+    ];
+    doc.querySelectorAll("a[href='#']").forEach(function (link) {
+      var text = (link.innerText || link.textContent || '').toLowerCase();
+      for (var i = 0; i < linkTargets.length; i++) {
+        if (linkTargets[i].re.test(text)) {
+          (function (idx) {
+            link.addEventListener('click', function (e) {
+              e.preventDefault();
+              window.switchStep(idx);
+            });
+          })(linkTargets[i].idx);
+          break;
+        }
+      }
+    });
+  }
+
+
+  /* ------------------------------------------------------------------
      Init
   ------------------------------------------------------------------ */
   function init() {
@@ -332,6 +429,7 @@
     buildHelpModal();
     bindShortcuts();
     bindAutoSave();
+    bindStepNav();
     polishButtons();
   }
 
