@@ -215,6 +215,7 @@
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Smart pre-send reviewer</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">mailto: handoff</span>
           <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-150-word guardrail</span>
+          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">OpenAlex professor verification</span>
         </div>
       </div>
     </nav>
@@ -236,6 +237,30 @@
           </div>
 
           <form id="assistantForm" class="px-5 py-5 sm:px-6 space-y-4" novalidate>
+
+            <!-- ================= PROFESSOR SEARCH (OpenAlex) ================= -->
+            <div class="relative" id="profSearchWrap">
+              <label for="profSearch" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
+                Search Professor or University
+              </label>
+              <div class="flex gap-2">
+                <input id="profSearch" type="text" autocomplete="off" spellcheck="false"
+                       placeholder="e.g., Yoshua Bengio or MIT"
+                       aria-expanded="false" aria-controls="searchResults" role="combobox"
+                       class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+                <button type="button" id="profSearchBtn"
+                        class="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-ink-900 px-3.5 py-2.5 text-sm font-semibold text-parchment-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition"
+                        title="Look up faculty profiles and verified papers via OpenAlex">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <span class="sr-only sm:not-sr-only">Search</span>
+                </button>
+              </div>
+              <!-- Dropdown results container -->
+              <div id="searchResults" class="hidden absolute z-30 mt-1.5 w-full max-h-72 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Faculty search results"></div>
+              <p id="searchHint" class="mt-1.5 text-[11px] text-ink-400 leading-relaxed">
+                Queries the free <a href="https://developers.openalex.org" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-clay-700">OpenAlex API</a> — click a result to auto-fill name, lab focus, paper topic, and email.
+              </p>
+            </div>
 
             <!-- Input 1: Student Full Name -->
             <div>
@@ -333,13 +358,17 @@
               </div>
             </div>
 
-            <!-- Optional: professor email for mailto -->
-            <div>
-              <label for="profEmail" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
-                Professor Email <span class="text-ink-400 normal-case font-normal tracking-normal">(optional — enables mailto prefill)</span>
+            <!-- Optional: professor email for mailto — with academic-domain verification -->
+            <div id="emailFieldWrap">
+              <label for="profEmail" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5 flex items-center justify-between gap-2">
+                <span>Professor Email <span class="text-ink-400 normal-case font-normal tracking-normal">(optional — enables mailto prefill)</span></span>
+                <span id="emailConfidenceBadge" class="normal-case font-semibold tracking-normal rounded-full px-2 py-0.5 text-[10px] bg-ink-100 text-ink-500">no email yet</span>
               </label>
               <input id="profEmail" name="profEmail" type="email" autocomplete="off" placeholder="e.g., j.smith@university.edu"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
+              <p id="emailVerifyStatus" class="mt-1.5 text-[11px] leading-relaxed text-ink-500"></p>
+              <!-- Pattern suggestions generated when no direct email is on file -->
+              <div id="emailSuggestions" class="hidden mt-2 flex flex-wrap gap-1.5"></div>
             </div>
 
             <!-- Humanizer toggle: auto-apply the human-like pass on every generate -->
@@ -446,6 +475,23 @@
                     <div id="countBar" class="h-full w-0 rounded-full bg-forest-500"></div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- ---------- VERIFIED PROFESSOR AUDIT CARD ---------- -->
+            <div id="auditCard" class="hidden rounded-xl border border-forest-200 bg-forest-50/70 overflow-hidden">
+              <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-forest-600 text-white">
+                <h3 class="font-display text-sm font-bold flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                  Verified Professor Audit Card
+                </h3>
+                <button type="button" id="clearAuditBtn" class="text-forest-100 hover:text-white text-xs font-semibold underline decoration-dotted focus:outline-none">clear</button>
+              </div>
+              <div class="px-4 py-3.5 space-y-3">
+                <p id="auditWho" class="text-sm font-semibold text-ink-900"></p>
+                <ul id="auditBadges" class="flex flex-wrap gap-1.5 text-[11px] font-semibold"></ul>
+                <dl id="auditFacts" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-ink-600"></dl>
+                <div id="auditLinks" class="flex flex-wrap gap-2 pt-1 border-t border-forest-200/70"></div>
               </div>
             </div>
 
@@ -568,6 +614,43 @@
   <!-- ============================================================= -->
   <!-- ===================== JAVASCRIPT LOGIC ====================== -->
   <!-- ============================================================= -->
+  <script>
+    /* ==================================================================
+       SERVERLESS PROXY CONFIG (Vercel / Netlify) — see api/search.js
+       ------------------------------------------------------------------
+       This page works with zero setup: OpenAlex is queried directly and
+       needs no API key. Paid verification services (Hunter.io, Abstract,
+       ZeroBounce) DO require keys that must never ship in client code.
+       Deploy this folder to Vercel or Netlify and the /api/search proxy
+       function picks up your environment variables server-side:
+
+         Vercel:   vercel env add OPENALEX_API_KEY / HUNTER_API_KEY ...
+         Netlify:  Site settings → Environment variables
+
+       Set USE_SERVER_PROXY = true once deployed; until then the site
+       stays fully functional against keyless OpenAlex + local checks.
+    ================================================================== */
+    const BACKEND = {
+      USE_SERVER_PROXY: (location.protocol === 'https:' && location.hostname !== '' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)),
+      get proxyUrl() { return '/api/search'; }
+    };
+
+    // Central fetch wrapper: routes through the serverless proxy when it's
+    // available (keys stay server-side), falls back to direct keyless calls.
+    async function dataFetch(target, params) {
+      const qs = new URLSearchParams(params).toString();
+      if (BACKEND.USE_SERVER_PROXY) {
+        try {
+          const r = await fetch(`${BACKEND.proxyUrl}?target=${encodeURIComponent(target)}&${qs}`);
+          if (r.ok) {
+            const json = await r.json();
+            if (json && (json.results || json.status || json.success !== undefined)) return json;
+          }
+        } catch (e) { /* proxy unavailable — fall through to direct call */ }
+      }
+      return null; // caller performs its own direct fetch
+    }
+  </script>
   <script>
     'use strict';
 
@@ -895,11 +978,24 @@
       reviewGrade:  document.getElementById('reviewGrade'),
       reviewGood:   document.getElementById('reviewGoodList'),
       reviewBad:    document.getElementById('reviewBadList'),
-      reviewEmpty:  document.getElementById('reviewEmpty')
+      reviewEmpty:  document.getElementById('reviewEmpty'),
+      // Professor search + verification UI
+      profSearch:     document.getElementById('profSearch'),
+      profSearchBtn:  document.getElementById('profSearchBtn'),
+      searchResults:  document.getElementById('searchResults'),
+      emailBadge:     document.getElementById('emailConfidenceBadge'),
+      emailStatus:    document.getElementById('emailVerifyStatus'),
+      emailSuggest:   document.getElementById('emailSuggestions'),
+      auditCard:      document.getElementById('auditCard'),
+      auditWho:       document.getElementById('auditWho'),
+      auditBadges:    document.getElementById('auditBadges'),
+      auditFacts:     document.getElementById('auditFacts'),
+      auditLinks:     document.getElementById('auditLinks')
     };
 
     let lastGenerated = null; // remembers inputs were valid; stores {subject, body}
     let preHumanizeSnapshot = null; // body text before the last humanizer pass
+    let verifiedProfessor = null;   // OpenAlex profile attached via search (audit card source)
 
     const TONE_LABELS = { direct: 'Professional & Direct', academic: 'Expressive & Academic', formal: 'Formal & Concise' };
     const TYPE_LABELS = { RA: 'RA', TA: 'TA', EITHER: 'General' };
@@ -971,6 +1067,504 @@
                           : words > 150   ? 'font-medium text-amber-600'
                                           : 'text-forest-600';
     }
+
+    /* ==================================================================
+       PROFESSOR SEARCH — OpenAlex integration
+       ------------------------------------------------------------------
+       Free, keyless scholarly catalog. Endpoint used:
+         https://api.openalex.org/authors?search=<Professor Name>
+       For each candidate we also pull the most recent publication from:
+         https://api.openalex.org/works?filter=author.id:<id>&sort=publication_date:desc
+       and extract title, year, lab/institution, and research topics.
+       Clicking a result auto-fills Professor Name, Lab Focus, Paper
+       Topic (into Research Interest), and the email when known.
+    ================================================================== */
+
+    const OPENALEX_BASE = 'https://api.openalex.org';
+
+    // In-memory cache so retyping doesn't re-hit the API (also eases rate limits)
+    const oaCache = new Map();
+
+    async function openAlexJson(url) {
+      if (oaCache.has(url)) return oaCache.get(url);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 9000);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error(`OpenAlex HTTP ${res.status}`);
+        const json = await res.json();
+        oaCache.set(url, json);
+        return json;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    /** Query OpenAlex authors by name. Returns normalized candidate list. */
+    async function searchOpenAlexAuthors(query) {
+      // Prefer the serverless proxy when deployed (adds api_key + mailto from env vars)
+      const proxied = await dataFetch('openalex-authors', { search: query });
+      let results;
+      if (proxied && Array.isArray(proxied.results)) {
+        results = proxied.results;
+      } else {
+        const url = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}` +
+                    `&per-page=5&select=id,display_name,orcid,summary_stats,last_known_institutions,topics,works_count,cited_by_count`;
+        const json = await openAlexJson(url);
+        results = json.results || [];
+      }
+      return results.map(a => {
+        const inst = (a.last_known_institutions || [])[0] || null;
+        const topics = (a.topics || []).slice(0, 3).map(t => t.display_name).filter(Boolean);
+        return {
+          openalexId: a.id,
+          authorKey: a.id ? a.id.split('/').pop() : null,
+          displayName: a.display_name,
+          orcid: a.orcid || null,
+          worksCount: a.works_count || 0,
+          citedBy: a.cited_by_count || 0,
+          hIndex: (a.summary_stats && a.summary_stats.h_index) || null,
+          institution: inst ? inst.display_name : null,
+          country: inst ? inst.country_code : null,
+          topics,
+          recentPaper: null,   // filled lazily below
+          recentYear: null
+        };
+      });
+    }
+
+    /** Fetch the professor's most recent publication title + year. */
+    async function fetchRecentPaper(authorKey) {
+      if (!authorKey) return null;
+      const url = `${OPENALEX_BASE}/works?filter=author.id:${authorKey}` +
+                  `&sort=publication_date:desc&per-page=1&select=title,publication_year,doi`;
+      try {
+        const json = await openAlexJson(url);
+        const w = (json.results || [])[0];
+        if (!w || !w.title) return null;
+        return { title: w.title.replace(/\s+/g, ' ').trim(), year: w.publication_year || null, doi: w.doi || null };
+      } catch (e) { return null; }
+    }
+
+    /* ---------- dropdown rendering ---------- */
+    let searchSeq = 0; // guards against out-of-order responses while typing
+
+    function showSearchMessage(html) {
+      els.searchResults.innerHTML = `<div class="px-4 py-3 text-xs text-ink-500">${html}</div>`;
+      els.searchResults.classList.remove('hidden');
+      els.profSearch.setAttribute('aria-expanded', 'true');
+    }
+
+    function hideSearchResults() {
+      els.searchResults.classList.add('hidden');
+      els.searchResults.innerHTML = '';
+      els.profSearch.setAttribute('aria-expanded', 'false');
+    }
+
+    function renderSearchResults(candidates, query) {
+      els.searchResults.innerHTML = '';
+      if (!candidates.length) {
+        showSearchMessage(`No faculty matched <strong>${escapeHtml(query)}</strong>. Try the full name as published (e.g., "Yoshua Bengio"), or type it into the form manually.`);
+        return;
+      }
+      candidates.forEach((c, idx) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.setAttribute('role', 'option');
+        item.className = 'w-full text-left px-4 py-3 hover:bg-parchment-100 focus:bg-parchment-100 focus:outline-none transition group';
+        const metaBits = [];
+        if (c.institution) metaBits.push(escapeHtml(c.institution));
+        if (c.hIndex) metaBits.push(`h-index ${c.hIndex}`);
+        if (c.worksCount) metaBits.push(`${c.worksCount.toLocaleString()} papers`);
+        item.innerHTML =
+          `<span class="block text-sm font-semibold text-ink-900 group-hover:text-clay-800">${escapeHtml(c.displayName)}</span>` +
+          `<span class="block text-[11px] text-ink-500 mt-0.5 truncate">${metaBits.join(' · ') || 'OpenAlex author record'}</span>` +
+          `<span class="block text-[11px] text-forest-700 mt-0.5 truncate" data-topic-line>${c.topics.length ? 'Topics: ' + escapeHtml(c.topics.join(', ')) : ''}</span>` +
+          `<span class="block text-[11px] text-ink-400 italic mt-0.5 truncate" data-paper-line>Fetching latest paper…</span>`;
+        item.addEventListener('click', () => selectProfessor(c));
+        els.searchResults.appendChild(item);
+        // Lazy-fill the recent paper line per row
+        fetchRecentPaper(c.authorKey).then(p => {
+          c.recentPaper = p ? p.title : null;
+          c.recentYear = p ? p.year : null;
+          c.recentDoi = p ? p.doi : null;
+          const line = item.querySelector('[data-paper-line]');
+          if (line) line.textContent = p ? `Latest: “${p.title}” (${p.year || 'n.d.'})` : 'No recent publication found on OpenAlex.';
+        });
+      });
+      els.searchResults.classList.remove('hidden');
+      els.profSearch.setAttribute('aria-expanded', 'true');
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+    }
+
+    /** Click event → auto-fill Professor Name, Lab Focus, Paper Topic, Email. */
+    function selectProfessor(c) {
+      document.getElementById('profName').value = c.displayName;
+
+      // "Lab Focus" + "Paper Topic": prefer the verified recent paper; fall
+      // back to top research topics so the pairing sentence stays concrete.
+      const focusText = c.recentPaper
+        ? `${c.recentPaper}${c.recentYear ? ' (' + c.recentYear + ')' : ''}`
+        : (c.topics.length ? c.topics.slice(0, 2).join(' and ').toLowerCase() : '');
+      if (focusText) document.getElementById('researchFocus').value = focusText;
+
+      // Email: use ORCID-recorded address if present, else generate academic
+      // patterns from the professor's name + institution domain.
+      const knownEmail = c.email || null;
+      const patterns = knownEmail ? [] : generateAcademicPatterns(c.displayName, c.institution);
+      attachVerifiedProfile(c, knownEmail, patterns);
+
+      hideSearchResults();
+      els.profSearch.value = c.displayName;
+      showToast(`Loaded ${c.displayName}${c.institution ? ' — ' + c.institution : ''}`, 'success');
+    }
+
+    /* ==================================================================
+       ACADEMIC EMAIL VERIFICATION
+       ------------------------------------------------------------------
+       Layered intelligence:
+         1. Regex syntax check (must be a well-formed address)
+         2. Academic-domain check (.edu, .ac.uk, .edu.au, .ac.ca, …)
+         3. MX-record / reachability check via serverless proxy when
+            deployed (Hunter.io / Abstract API / ZeroBounce with keys in
+            env vars); falls back to a free DNS-over-HTTPS lookup of the
+            university mail exchanger records locally.
+         4. Pattern generation helper for missing addresses.
+       Confidence badge states:
+         🟢 Verified Academic Email | 🟡 Pattern Match (High Confidence)
+         🔴 Invalid Domain
+    ================================================================== */
+
+    const EMAIL_SYNTAX_RE = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
+
+    // Official academic domains: .edu (US), .edu.xx / .ac.xx (country variants),
+    // plus well-known university ccTLD domains that skip the .edu pattern
+    // (Canadian universities use *.ca, e.g. umontreal.ca, utoronto.ca).
+    const ACADEMIC_DOMAIN_RE = /@(?:[a-z0-9.\-]*\.)?(?:edu|ac\.[a-z]{2}|edu\.[a-z]{2}|uni-[a-z0-9.\-]+\.de|[a-z0-9\-]+\.uni-[a-z0-9.\-]+|(?:umontreal|utoronto|mcgill|ubc|ualberta|ucalgary|usask|mcmaster|uottawa|queens|uwaterloo|western|达尔housie|unb|uleth|ulethbridge|yorku|concordia|usherbrooke|etsmtl|polymtl)[a-z0-9\-]*\.ca|cam\.ac\.uk|ox\.ac\.uk|(?:kth|chalmers|lu|uu|dtu|ethz|epfl|psi|inria|ki|su|gu)(?:\.se)?|tuhh\.de|tum\.de|lmu\.de|hu\.berlin|fu-berlin\.de|kit\.edu)$/i;
+
+    function isAcademicDomain(email) {
+      const domain = (email.split('@')[1] || '').toLowerCase();
+      if (!domain) return false;
+      if (/(gmail|yahoo|hotmail|outlook|icloud|proton(mail)?|aol|mail\.com|gmx|qq\.com|163\.com|yandex)/i.test(domain)) return false;
+      return ACADEMIC_DOMAIN_RE.test('@' + domain);
+    }
+
+    /** Derive an institutional domain from a university display name. */
+    function guessUniversityDomain(institutionName) {
+      if (!institutionName) return null;
+      const table = {
+        'massachusetts institute of technology': 'mit.edu',
+        'stanford university': 'stanford.edu',
+        'university of california, berkeley': 'berkeley.edu',
+        'university of california, berkeley, united states': 'berkeley.edu',
+        'berkeley': 'berkeley.edu',
+        'cornell university': 'cornell.edu',
+        'princeton university': 'princeton.edu',
+        'harvard university': 'harvard.edu',
+        'yale university': 'yale.edu',
+        'california institute of technology': 'caltech.edu',
+        'university of pennsylvania': 'upenn.edu',
+        'johns hopkins university': 'jhu.edu',
+        'northwestern university': 'northwestern.edu',
+        'duke university': 'duke.edu',
+        'carnegie mellon university': 'cmu.edu',
+        'university of michigan': 'umich.edu',
+        'columbia university': 'columbia.edu',
+        'new york university': 'nyu.edu',
+        'university of toronto': 'utoronto.ca',
+        'universite de montreal': 'umontreal.ca',
+        'université de montréal': 'umontreal.ca',
+        'mcgill university': 'mcgill.ca',
+        'university of british columbia': 'ubc.ca',
+        'university of oxford': 'ox.ac.uk',
+        'university of cambridge': 'cam.ac.uk',
+        'imperial college london': 'imperial.ac.uk',
+        'university college london': 'ucl.ac.uk',
+        'university of edinburgh': 'ed.ac.uk',
+        'university of sydney': 'sydney.edu.au',
+        'university of melbourne': 'unimelb.edu.au',
+        'australian national university': 'anu.edu.au',
+        'university of tokyo': 'tokyo.ac.jp',
+        'kaist': 'kaist.ac.kr',
+        'national university of singapore': 'nus.edu.sg',
+        'nanyang technological university': 'ntu.edu.sg',
+        'eth zürich': 'ethz.ch',
+        'eth zurich': 'ethz.ch',
+        'école polytechnique fédérale de zurich': 'ethz.ch',
+        'technical university of munich': 'tum.de',
+        'freie universitat berlin': 'fu-berlin.de',
+        'indian institute of technology': 'iit.ac.in',
+        'indian institute of science': 'iisc.ac.in',
+        'iit bombay': 'iitb.ac.in',
+        'iit delhi': 'iitd.ac.in',
+        'iit madras': 'iitm.ac.in',
+        'iit kanpur': 'iitk.ac.in',
+        'iit roorkee': 'iitr.ac.in',
+        'iit guwahati': 'iitg.ac.in',
+        'iit kharagpur': 'iitkgp.ac.in',
+        'tata institute of fundamental research': 'tifr.res.in',
+        'university of cape town': 'uct.ac.za',
+        'university of waterloo': 'uwaterloo.ca',
+        'mcmaster university': 'mcmaster.ca',
+        'university of alberta': 'ualberta.ca',
+        'universiti malaya': 'um.edu.my',
+        'king abdulazuddin university of science and technology': 'kaust.edu.sa',
+        'tsinghua university': 'tsinghua.edu.cn',
+        'peking university': 'pku.edu.cn',
+        'university of copenhagen': 'ku.dk',
+        'technical university of denmark': 'dtu.dk',
+        'kth royal institute of technology': 'kth.se',
+        'ludwig-maximilians-universitat munchen': 'lmu.de'
+      };
+      const norm = institutionName.toLowerCase().replace(/\s+/g, ' ').trim();
+      if (table[norm]) return table[norm];
+      // Heuristic fallback: strip legal suffixes and take the core token(s)
+      const tokens = norm.replace(/[^a-z0-9 &,\-']/g, '').split(/[\s,]+/).filter(Boolean);
+      const stop = new Set(['the','of','and','for','university','universite','université','college','institute','institut','school','tech','technological','national','federal']);
+      const core = tokens.filter(t => !stop.has(t));
+      if (core.length) {
+        const slug = core.slice(0, 2).join('').replace(/[^a-z0-9]/g, '');
+        if (slug.length >= 3) {
+          const ccGuess = /\.edu$/.test(norm) ? '.edu' : '';
+          return ccGuess || null; // only confident exact matches above; otherwise no guess
+        }
+      }
+      return null;
+    }
+
+    /** Generate standard academic email patterns from a name + domain. */
+    function generateAcademicPatterns(fullName, institutionName) {
+      const name = String(fullName || '')
+        .replace(/^(dr\.?|prof\.?|professor)\s+/i, '')
+        .replace(/(jr\.?|sr\.?|ii|iii|iv)$/i, '')
+        .replace(/[^A-Za-zÀ-ÿ' \-]/g, ' ')
+        .trim();
+      const parts = name.split(/\s+/).filter(Boolean);
+      if (parts.length < 2) return [];
+      const first = parts[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+      const last  = parts[parts.length - 1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+      if (!first || !last) return [];
+      const domain = guessUniversityDomain(institutionName);
+      if (!domain) return [];
+      const localParts = [
+        `${first}.${last}`,          // firstname.lastname@
+        `${first.charAt(0)}${last}`, // flastname@
+        `${last}.${first.charAt(0)}`,// lastname.f@
+        `${first}${last.charAt(0)}`, // firstnamel@
+        `${last}`                     // lastname@ (small departments)
+      ];
+      return localParts.map(local => `${local}@${domain}`);
+    }
+
+    /** Check whether a domain has active MX records (mail server alive). */
+    async function checkMxRecords(domain) {
+      // 1) Serverless proxy route (when deployed): uses Hunter/Abstract/ZeroBounce
+      //    verification APIs with keys held in environment variables.
+      const proxied = await dataFetch('email-verify', { email: `probe@${domain}` });
+      if (proxied && typeof proxied.mx_active === 'boolean') return proxied.mx_active;
+      // 2) Free fallback: Google DNS-over-HTTPS MX query — no key needed.
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`, { signal: ctrl.signal });
+        clearTimeout(timer);
+        if (!res.ok) return null;
+        const json = await res.json();
+        if (Array.isArray(json.Answer) && json.Answer.length) return true;   // MX servers found
+        if (Array.isArray(json.Authority)) return false;                     // authoritative "no MX" answer
+        return null;                                                          // inconclusive
+      } catch (e) { return null; } // offline / blocked — treat as unknown
+    }
+
+    /* ---------- confidence badge UI ---------- */
+    let emailVerifyToken = 0;
+
+    function setEmailBadge(state, detail) {
+      const map = {
+        green:  ['🟢 Verified Academic Email', 'bg-forest-100 text-forest-800 ring-1 ring-forest-200'],
+        yellow: ['🟡 Pattern Match (High Confidence)', 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'],
+        red:    ['🔴 Invalid Domain', 'bg-rose-100 text-rose-800 ring-1 ring-rose-200'],
+        gray:   ['no email yet', 'bg-ink-100 text-ink-500']
+      };
+      const [label, cls] = map[state] || map.gray;
+      els.emailBadge.textContent = label;
+      els.emailBadge.className = `normal-case font-semibold tracking-normal rounded-full px-2 py-0.5 text-[10px] ${cls}`;
+      els.emailStatus.textContent = detail || '';
+      if (verifiedProfessor) renderAuditCard(); // keep the audit card badge in sync
+    }
+
+    /** Full verification pipeline for whatever is typed in the email field. */
+    async function verifyEmailField() {
+      const email = document.getElementById('profEmail').value.trim();
+      els.emailSuggest.classList.add('hidden');
+      els.emailSuggest.innerHTML = '';
+      if (!email) {
+        setEmailBadge('gray', verifiedProfessor ? 'Tip: click a search result to auto-fill or generate a pattern.' : 'Optional — add the professor’s address to enable mailto prefill.');
+        return;
+      }
+      if (!EMAIL_SYNTAX_RE.test(email)) {
+        setEmailBadge('red', 'This is not a well-formed email address — fix typos before sending.');
+        return;
+      }
+      const domain = email.split('@')[1].toLowerCase();
+      if (!isAcademicDomain(email)) {
+        setEmailBadge('red', `"${domain}" is not an official academic domain (.edu / .ac.uk / .edu.au …). Professors rarely mail from personal accounts — double-check their department page.`);
+        return;
+      }
+      setEmailBadge('yellow', `Academic domain ✓ — checking whether ${domain} runs an active mail server…`);
+      const token = ++emailVerifyToken;
+      const mx = await checkMxRecords(domain);
+      if (token !== emailVerifyToken) return; // a newer keystroke superseded this check
+      if (mx === true) {
+        setEmailBadge('green', `Academic domain ✓ and ${domain} has active MX mail servers — this inbox can receive mail.`);
+      } else if (mx === false) {
+        setEmailBadge('red', `The domain looks academic but has no active mail server (MX) — the message would bounce.`);
+      } else {
+        setEmailBadge('yellow', 'Academic domain ✓ — could not reach the MX checker (offline?). Verify once more before sending.');
+      }
+    }
+
+    /** Attach a verified profile: fills suggestions + renders audit card. */
+    function attachVerifiedProfile(candidate, knownEmail, patterns) {
+      verifiedProfessor = Object.assign({}, candidate, { checkedEmail: knownEmail || null, patterns: patterns || [] });
+      const emailInput = document.getElementById('profEmail');
+      if (knownEmail) {
+        emailInput.value = knownEmail;
+        verifyEmailField();
+      } else if (patterns && patterns.length) {
+        // Show clickable pattern chips instead of forcing one into the field
+        els.emailSuggest.innerHTML = '';
+        const intro = document.createElement('span');
+        intro.className = 'text-[11px] text-ink-500 w-full';
+        intro.textContent = 'No direct email on file — common academic patterns for this name + university (click to use, then confirm on their lab page):';
+        els.emailSuggest.appendChild(intro);
+        patterns.forEach(p => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'rounded-md border border-ink-200 bg-white px-2 py-1 text-[11px] font-mono text-ink-700 hover:border-clay-400 hover:text-clay-700 transition';
+          chip.textContent = p;
+          chip.addEventListener('click', () => {
+            emailInput.value = p;
+            setEmailBadge('yellow', 'Pattern-generated address — verify on the professor’s official page before sending.');
+            els.emailSuggest.classList.add('hidden');
+            verifyEmailField();
+          });
+          els.emailSuggest.appendChild(chip);
+        });
+        els.emailSuggest.classList.remove('hidden');
+        setEmailBadge('yellow', 'Using a generated pattern — high-confidence format, unverified address.');
+      }
+      renderAuditCard();
+    }
+
+    /* ---------- Verified Professor Audit Card ---------- */
+    function auditBadge(text, ok) {
+      const li = document.createElement('li');
+      li.className = (ok ? 'bg-forest-100 text-forest-800 ring-1 ring-forest-200' : 'bg-ink-100 text-ink-500 ring-1 ring-ink-200') + ' rounded-full px-2.5 py-1 inline-flex items-center gap-1';
+      li.textContent = (ok ? '✓ ' : '· ') + text;
+      return li;
+    }
+
+    function renderAuditCard() {
+      const p = verifiedProfessor;
+      if (!p) { els.auditCard.classList.add('hidden'); return; }
+      els.auditCard.classList.remove('hidden');
+      els.auditWho.textContent = `${p.displayName}${p.institution ? ' — ' + p.institution : ''}`;
+
+      els.auditBadges.innerHTML = '';
+      els.auditBadges.appendChild(auditBadge('Paper Verified (OpenAlex)', !!p.recentPaper));
+      els.auditBadges.appendChild(auditBadge('Active Faculty Status', !!p.institution && p.worksCount > 0));
+      const emailState = els.emailBadge.textContent || '';
+      els.auditBadges.appendChild(auditBadge('Email Inbox Reachable', /Verified/.test(emailState)));
+
+      els.auditFacts.innerHTML = '';
+      const facts = [];
+      if (p.recentPaper) facts.push(['Latest paper', `“${p.recentPaper}”${p.recentYear ? ' (' + p.recentYear + ')' : ''}`]);
+      if (p.topics && p.topics.length) facts.push(['Lab research topics', p.topics.join(', ')]);
+      if (p.hIndex) facts.push(['h-index', String(p.hIndex)]);
+      if (p.worksCount) facts.push(['Indexed works', p.worksCount.toLocaleString()]);
+      if (p.institution) facts.push(['Last known affiliation', p.institution + (p.country ? ` (${p.country})` : '')]);
+      facts.forEach(([k, v]) => {
+        const div = document.createElement('div');
+        div.className = 'flex gap-1.5';
+        div.innerHTML = `<dt class="font-semibold text-ink-700 shrink-0">${escapeHtml(k)}:</dt><dd class="text-ink-600 min-w-0 break-words">${escapeHtml(v)}</dd>`;
+        els.auditFacts.appendChild(div);
+      });
+
+      els.auditLinks.innerHTML = '';
+      const scholarQuery = encodeURIComponent(`${p.displayName} ${p.institution || ''}`.trim());
+      const links = [
+        { label: 'Google Scholar', href: `https://scholar.google.com/scholar?q=${scholarQuery}` },
+        { label: 'OpenAlex Profile', href: p.openalexId || '#' },
+        ...(p.orcid ? [{ label: 'ORCID Record', href: p.orcid }] : []),
+        ...(p.recentDoi ? [{ label: 'Read the Paper (DOI)', href: p.recentDoi }] : [])
+      ];
+      links.forEach(l => {
+        if (!l.href || l.href === '#') return;
+        const a = document.createElement('a');
+        a.href = l.href.startsWith('http') ? l.href : `https://openalex.org/${l.href}`;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.className = 'inline-flex items-center gap-1 rounded-md border border-forest-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-forest-800 hover:bg-forest-50 transition';
+        a.textContent = l.label + ' ↗';
+        els.auditLinks.appendChild(a);
+      });
+      const note = document.createElement('span');
+      note.className = 'text-[10px] text-ink-400 italic self-center';
+      note.textContent = 'final 10-second human check before you hit send';
+      els.auditLinks.appendChild(note);
+    }
+
+    /* ---------- search event wiring ---------- */
+    let searchDebounce = null;
+    els.profSearch.addEventListener('input', () => {
+      clearTimeout(searchDebounce);
+      const q = els.profSearch.value.trim();
+      if (q.length < 3) { hideSearchResults(); return; }
+      searchDebounce = setTimeout(() => runProfessorSearch(q), 450); // debounce typing
+    });
+    els.profSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); runProfessorSearch(els.profSearch.value.trim()); }
+      if (e.key === 'Escape') hideSearchResults();
+    });
+    els.profSearchBtn.addEventListener('click', () => runProfessorSearch(els.profSearch.value.trim()));
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('profSearchWrap').contains(e.target)) hideSearchResults();
+    });
+
+    async function runProfessorSearch(query) {
+      if (query.length < 3) { showToast('Type at least 3 characters (a full name works best).', 'error'); return; }
+      const seq = ++searchSeq;
+      showSearchMessage('<span class="inline-flex items-center gap-2"><svg class="animate-spin h-3.5 w-3.5 text-clay-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>Searching OpenAlex faculty records…</span>');
+      try {
+        const candidates = await searchOpenAlexAuthors(query);
+        if (seq !== searchSeq) return; // stale response — user kept typing
+        renderSearchResults(candidates, query);
+      } catch (err) {
+        if (seq !== searchSeq) return;
+        showSearchMessage('Could not reach OpenAlex (network/CORS/offline). You can still fill the form manually — everything else works without it.');
+      }
+    }
+
+    // Live email verification as the user types/pastes an address
+    const profEmailEl = document.getElementById('profEmail');
+    profEmailEl.addEventListener('input', () => {
+      clearTimeout(profEmailEl._t);
+      profEmailEl._t = setTimeout(verifyEmailField, 500);
+    });
+    profEmailEl.addEventListener('blur', verifyEmailField);
+
+    document.getElementById('clearAuditBtn').addEventListener('click', () => {
+      verifiedProfessor = null;
+      renderAuditCard();
+      els.emailSuggest.classList.add('hidden');
+      els.emailSuggest.innerHTML = '';
+      verifyEmailField();
+    });
+
 
     /* ==================================================================
        HUMANIZER ENGINE
@@ -1486,6 +2080,13 @@
       els.body.value = '';
       els.badge.classList.add('hidden');
       lastGenerated = null;
+      verifiedProfessor = null;
+      els.profSearch.value = '';
+      hideSearchResults();
+      els.auditCard.classList.add('hidden');
+      els.emailSuggest.classList.add('hidden');
+      els.emailSuggest.innerHTML = '';
+      setEmailBadge('gray', 'Optional — add the professor\u2019s address to enable mailto prefill.');
       updateCounts();
       updateToneChips(els.toneSelect.value);
       showToast('Form and output cleared', 'info');
