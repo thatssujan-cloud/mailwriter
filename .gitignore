@@ -1,3 +1,4 @@
+.env.local
+.env.*.local
+*.log
 *.tmp
-*.tmp2
-*.tmp3
