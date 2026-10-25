@@ -414,8 +414,18 @@
             </div>
             <!-- Dropdown results container (interactive live-search menu;
                  shows a pulsing skeleton while OpenAlex / Semantic Scholar
-                 requests resolve) -->
-            <div id="searchResults" class="hidden absolute z-30 mt-2 w-full max-h-80 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Geoscience faculty search results"></div>
+                 requests resolve). Static skeleton fallback so the listbox
+                 is never empty on initial render. -->
+            <div id="searchResults" class="hidden absolute z-30 mt-2 w-full max-h-80 overflow-y-auto rounded-xl border border-ink-200 bg-white shadow-card divide-y divide-ink-100" role="listbox" aria-label="Geoscience faculty search results">
+              <div class="px-4 py-3" aria-hidden="true">
+                <div class="animate-pulse space-y-3">
+                  <div class="h-3 w-1/2 rounded bg-ink-100"></div>
+                  <div class="h-3 w-3/4 rounded bg-ink-100"></div>
+                  <div class="h-3 w-2/3 rounded bg-ink-100"></div>
+                </div>
+                <p class="mt-2 text-xs text-ink-500">Loading geoscience faculty results…</p>
+              </div>
+            </div>
           </div>
           <p class="mt-2 text-ink-400 leading-relaxed" style="font-size:var(--fs-sm)">
             Examples: <em>"seismology at Cornell"</em> · <em>"Marcia Bjornerud"</em> · <em>"isotope geochemistry"</em>
@@ -843,9 +853,15 @@ Alex Rivera</pre>
                 </button>
               </div>
 
-              <!-- Tone quick-toggle buttons -->
-              <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-ink-200/80">
+              <!-- Tone quick-toggle buttons (fallback content; JS re-binds these .tone-chip elements) -->
+              <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-ink-200/80" role="group" aria-label="Quick tone toggle fallback">
+                <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-ink-500 mr-1">Quick re-tone:</span>
+                <button type="button" data-tone="direct" class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Direct</button>
+                <button type="button" data-tone="academic" class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Academic</button>
+                <button type="button" data-tone="formal" class="tone-chip rounded-md px-3 py-1.5 text-xs font-semibold transition">Formal</button>
               </div>
+              </div><!-- /.rounded-xl card -->
+            </div><!-- /#reviewLaunchDetails content wrapper -->
             </details>
 
             <p class="ld-hint-row text-ink-400 italic" style="font-size:var(--fs-sm)" id="draftHintRow" aria-live="polite"></p>
@@ -922,7 +938,19 @@ Alex Rivera</pre>
                           <th scope="col" class="px-2 py-1.5 font-bold">Remaining action</th>
                         </tr>
                       </thead>
-                      <tbody id="fundingAuditBody" class="divide-y divide-ink-100 text-ink-700"></tbody>
+                      <tbody id="fundingAuditBody" class="divide-y divide-ink-100 text-ink-700">
+                        <!-- Static skeleton fallback rows; replaced by the verification-checklist JS when a target is selected -->
+                        <tr aria-hidden="true">
+                          <td class="px-2 py-1.5" colspan="4">
+                            <div class="animate-pulse space-y-2">
+                              <div class="h-3 w-full rounded bg-ink-100"></div>
+                              <div class="h-3 w-5/6 rounded bg-ink-100"></div>
+                              <div class="h-3 w-4/6 rounded bg-ink-100"></div>
+                            </div>
+                            <p class="mt-2 text-[10px] text-ink-500">Select a professor to load the verification checklist…</p>
+                          </td>
+                        </tr>
+                      </tbody>
                     </table>
                   </div>
                   <p class="mt-2 text-[10px] text-ink-500">Status legend: 🟢 Verified = confirmed on an official page for your intake · 🟡 Needs Confirmation = unreviewed or unclear · ⚪ Not Found = no reliable evidence located (does not mean unavailable).</p>
@@ -974,8 +1002,8 @@ Alex Rivera</pre>
                 <ul id="reviewBadList"  class="space-y-2 text-sm"></ul>
                 <p id="reviewEmpty" class="hidden text-sm text-ink-500 italic">Nothing to flag — this draft looks clean.</p>
               </div>
-            </div>
-          </div>
+            </div><!-- /#reviewPanel -->
+
             <p class="rounded-lg border border-ink-200 bg-white px-4 py-3 leading-relaxed text-ink-500" style="font-size:var(--fs-sm)">
               <strong class="text-ink-800">Before you send:</strong> verify the professor's name spelling and title, confirm their current lab page,
               attach your CV/transcript as PDFs, and replace any bracketed placeholders. This tool drafts — you own the final read-through.
@@ -987,9 +1015,9 @@ Alex Rivera</pre>
               </button>
             </div>
             <p class="ld-hint-row text-ink-400 italic" style="font-size:var(--fs-sm)" id="verifyHintRow" aria-live="polite"></p>
-          </div>
-        </div>
-      </section>
+          </div><!-- /.px-4.py-4.space-y-4 (Step 4 panel body) -->
+        </div><!-- /.ld-panel -->
+      </section><!-- /#stepVerify -->
     </div><!-- /writeModePanel -->
 
     <!-- ==================== TRACK MODE ==================== -->
@@ -1069,7 +1097,18 @@ Alex Rivera</pre>
                         <th class="px-3 py-2 font-bold text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody id="trackerBody" class="divide-y divide-ink-100 text-ink-700"></tbody>
+                    <tbody id="trackerBody" class="divide-y divide-ink-100 text-ink-700">
+                      <!-- Static skeleton fallback row; replaced by the tracker JS (localStorage) on load -->
+                      <tr aria-hidden="true">
+                        <td class="px-3 py-2" colspan="5">
+                          <div class="animate-pulse space-y-2">
+                            <div class="h-3 w-2/3 rounded bg-ink-100"></div>
+                            <div class="h-3 w-1/2 rounded bg-ink-100"></div>
+                          </div>
+                          <p class="mt-2 text-[10px] text-ink-500">Loading your saved outreach contacts…</p>
+                        </td>
+                      </tr>
+                    </tbody>
                   </table>
                 </div>
               </div>
@@ -1080,11 +1119,10 @@ Alex Rivera</pre>
                     class="inline-flex items-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-3 font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition" style="font-size:var(--fs-md)">
               Zoom Interview Cheat Sheet
             </button>
-          </div>
-        </div>
+          </div><!-- /.px-4.py-4.space-y-4 (Track panel body) -->
+        </div><!-- /.ld-panel -->
       </section>
     </div><!-- /trackModePanel -->
-    </div>
   </main>
 
   <!-- ============================ FOOTER ============================ -->
