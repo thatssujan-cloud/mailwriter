@@ -344,7 +344,7 @@
             </div>
 
             <!-- Select 7: Assistantship Type -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label for="assistType" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                   Assistantship Type
@@ -357,7 +357,22 @@
                 </select>
               </div>
 
-              <!-- Select 8: Email Tone -->
+              <!-- Select 8b: High-Conversion Email Format ("Grant Me Acceptance" engine) -->
+              <div>
+                <label for="emailFormat" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
+                  Email Format <span class="text-ink-400 normal-case font-normal tracking-normal">(high-conversion pitches)</span>
+                </label>
+                <select id="emailFormat" name="emailFormat"
+                        class="field w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 transition">
+                  <option value="auto">Classic tone-driven template (auto)</option>
+                  <option value="tool">Tool / Methodology Match — RA</option>
+                  <option value="grant">Grant-Funded Project Pitch</option>
+                  <option value="ta">Teaching Assistantship Pitch</option>
+                  <option value="short">Ultra-Short Mobile Pitch (&lt;90 words)</option>
+                </select>
+              </div>
+
+            <!-- Select 8: Email Tone -->
               <div>
                 <label for="tone" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                   Email Tone
@@ -407,6 +422,14 @@
                 Reset Form
               </button>
             </div>
+
+            <!-- 10-Day Follow-Up Generator toggle: switch between the initial
+                 inquiry and a polite 2-sentence bump (reply to original thread) -->
+            <button type="button" id="draftModeOn" aria-pressed="false"
+                    class="hidden w-full inline-flex items-center justify-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-400/40 active:scale-[0.98] transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <span id="draftModeLabel">Draft mode: Initial inquiry — click to switch to 10-day follow-up bump</span>
+            </button>
           </form>
         </div>
 
@@ -533,6 +556,21 @@
                     <ul id="fundingAwards" class="space-y-1.5 text-[11px] leading-snug text-ink-700"></ul>
                   </div>
                 </div>
+                <!-- d) Acceptance Possibility Bar — dynamic fit score 0–100% -->
+                <div class="rounded-lg border border-ink-200 bg-white p-3.5">
+                  <div class="flex items-center justify-between gap-2 mb-1.5">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500">Acceptance Possibility Bar</p>
+                    <span id="fitScoreTier" class="rounded-full px-2 py-0.5 text-[10px] font-bold text-white bg-ink-300">—</span>
+                  </div>
+                  <div class="flex items-baseline gap-2">
+                    <p class="font-display text-2xl font-extrabold text-ink-900"><span id="fitScorePct">—</span><span class="text-sm font-bold text-ink-400">/100</span></p>
+                    <p class="text-[11px] text-ink-500" id="fitScoreHeadline">Select a professor to compute your fit score.</p>
+                  </div>
+                  <div class="mt-2 h-2.5 rounded-full bg-ink-100 overflow-hidden">
+                    <div id="fitScoreBar" class="h-full w-0 rounded-full bg-ink-300 transition-all duration-700"></div>
+                  </div>
+                  <ul id="fitScoreBreakdown" class="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] leading-snug text-ink-600"></ul>
+                </div>
                 <!-- c) Deadline warning / timeline -->
                 <div class="rounded-lg border p-3.5" id="fundingDeadlineWrap">
                   <div class="flex items-start gap-2.5">
@@ -642,6 +680,71 @@
           </div>
         </div>
 
+        <!-- ---------- GRADUATE APPLICANT SUCCESS ROADMAP & TRACKER ---------- -->
+        <div class="mt-4 bg-white/90 rounded-xl border border-ink-200 shadow-card overflow-hidden relative z-10">
+          <button type="button" id="roadmapToggle" aria-expanded="false" aria-controls="roadmapPanel"
+                  class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 transition sm:px-6">
+            <span class="flex items-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3 9 3-18 3 9h3"/></svg>
+              <span class="text-sm font-bold text-ink-900">Graduate Applicant Success Roadmap &amp; Outreach Tracker</span>
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-ink-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="roadmapPanel" class="accordion-panel">
+            <div class="px-5 pb-5 sm:px-6 space-y-4">
+              <!-- Interactive multi-week timeline checklist -->
+              <ol class="space-y-2.5" id="roadmapChecklist">
+                <li class="flex items-start gap-3">
+                  <input type="checkbox" data-roadmap-step="w1" class="mt-1 h-4 w-4 rounded border-ink-300 accent-emerald-500" />
+                  <span class="text-sm text-ink-600 leading-relaxed"><strong class="text-ink-800">Week 1:</strong> Send the initial outreach email <span class="font-mono text-xs">Tue–Thu, 8–10 AM</span> in the professor's local time, with <code class="rounded bg-slate-200 px-1 py-0.5 text-[12px]">Lastname_CV.pdf</code> attached.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <input type="checkbox" data-roadmap-step="w2" class="mt-1 h-4 w-4 rounded border-ink-300 accent-emerald-500" />
+                  <span class="text-sm text-ink-600 leading-relaxed"><strong class="text-ink-800">Week 2 (+7–10 days):</strong> Send one polite follow-up bump replying directly to the original thread (use the 10-Day Follow-Up toggle).</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <input type="checkbox" data-roadmap-step="w34" class="mt-1 h-4 w-4 rounded border-ink-300 accent-emerald-500" />
+                  <span class="text-sm text-ink-600 leading-relaxed"><strong class="text-ink-800">Weeks 3–4:</strong> Prepare for brief 15-minute informal Zoom chats — rehearse your 60-second research pitch and open the cheat sheet below.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <input type="checkbox" data-roadmap-step="w5" class="mt-1 h-4 w-4 rounded border-ink-300 accent-emerald-500" />
+                  <span class="text-sm text-ink-600 leading-relaxed"><strong class="text-ink-800">Week 5+:</strong> Submit the official application, mentioning the professor's feedback by name in your SOP.</span>
+                </li>
+              </ol>
+              <div class="flex flex-wrap gap-2 pt-1 border-t border-ink-200/80">
+                <button type="button" id="saveTrackerBtn"
+                        class="inline-flex items-center gap-2 rounded-lg bg-forest-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-forest-500 focus:outline-none focus:ring-2 focus:ring-forest-500/50 active:scale-[0.97] transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+                  Save to Outreach Tracker
+                </button>
+                <button type="button" id="zoomCheatBtn"
+                        class="inline-flex items-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 active:scale-[0.97] transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+                  Zoom Interview Cheat Sheet
+                </button>
+              </div>
+              <!-- Local tracker table (localStorage-backed) -->
+              <div id="trackerWrap" class="hidden">
+                <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">My Outreach Tracker <span class="normal-case font-normal tracking-normal text-ink-400">(saved locally in this browser)</span></p>
+                <div class="overflow-x-auto rounded-lg border border-ink-200">
+                  <table class="w-full text-left text-[11px] leading-snug">
+                    <thead class="bg-slate-50 text-ink-600">
+                      <tr>
+                        <th class="px-3 py-2 font-bold">Professor</th>
+                        <th class="px-3 py-2 font-bold">Contacted</th>
+                        <th class="px-3 py-2 font-bold">Follow-up due</th>
+                        <th class="px-3 py-2 font-bold">Status</th>
+                        <th class="px-3 py-2 font-bold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="trackerBody" class="divide-y divide-ink-100 text-ink-700"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Compliance mini-card -->
         <div class="mt-4 flex flex-col sm:flex-row gap-3 text-xs text-ink-500 relative z-10">
           <p class="flex-1 bg-white/90 rounded-xl border border-ink-200 px-4 py-3 leading-relaxed">
@@ -660,6 +763,33 @@
       <p class="text-slate-400">All generation happens locally in your browser.</p>
     </div>
   </footer>
+
+  <!-- ==================== ZOOM INTERVIEW CHEAT SHEET MODAL ==================== -->
+  <div id="zoomModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="zoomModalTitle">
+    <div id="zoomModalBackdrop" class="absolute inset-0 bg-ink-950/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-md rounded-xl bg-white shadow-card ring-1 ring-ink-200 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3.5 bg-ink-950 text-slate-50">
+        <h3 id="zoomModalTitle" class="font-display text-sm font-bold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-brand-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+          Zoom Interview Cheat Sheet
+        </h3>
+        <button type="button" id="zoomModalClose" class="text-slate-300 hover:text-white transition" aria-label="Close cheat sheet">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="px-5 py-4 space-y-3">
+        <p class="text-xs text-ink-500 leading-relaxed">Five strategic questions to ask a professor during an informal 15-minute chat. Pick three — let the conversation breathe.</p>
+        <ol class="space-y-2.5 text-sm text-ink-700 leading-relaxed list-none counter-reset" id="zoomQuestionList">
+          <li class="flex gap-2.5"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">1</span><span>Which project would a new student most likely be plugged into first, and what does success look like there in year one?</span></li>
+          <li class="flex gap-2.5"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">2</span><span>How is that work funded right now — grant, studentship, or fellowship — and is that funding secured through my intended start term?</span></li>
+          <li class="flex gap-2.5"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">3</span><span>How do you mentor students day-to-day: weekly one-on-ones, group meetings, hands-on with senior PhDs?</span></li>
+          <li class="flex gap-2.5"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">4</span><span>What skills do your strongest recent students arrive with — and which should I sharpen before starting?</span></li>
+          <li class="flex gap-2.5"><span class="mt-0.5 shrink-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">5</span><span>Where do graduates of your group typically end up, and how visible will my name be on publications?</span></li>
+        </ol>
+        <p class="text-[11px] text-ink-500 italic border-t border-dashed border-ink-200 pt-2.5">Pro move: end with “What are the next steps on your side, and when should I follow up?” — then log the answer in your Outreach Tracker.</p>
+      </div>
+    </div>
+  </div>
 
   <!-- ============================ TOAST CONTAINER ============================ -->
   <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-[calc(100%-2rem)] max-w-sm" aria-live="polite"></div>
@@ -802,13 +932,29 @@
     const trimClause = s => String(s).replace(/\s+/g, ' ').trim();
 
     /* ------------------------------------------------------------------
-       raTemplates / taTemplates — short, direct, cliché-free template text.
-       No "delve", "testament", "pivotal", "profound enthusiasm", or
-       "I hope this email finds you well" anywhere in the generated output.
-       Each opener uses a direct academic line ("I enjoyed reading your
-       recent work on…" / "I am reaching out regarding your lab's work
-       on…") and its SECOND sentence dynamically pairs the professor's
-       paper topic with the user's specific technical tool/skill.
+       HIGH-CONVERSION "GRANT ME ACCEPTANCE" TEMPLATE ENGINE
+       Four distinct international-outreach formats:
+         1. TOOL MATCH   — RA focus: connects the candidate's specific
+                           technical skill directly to the paper's methods.
+         2. GRANT PITCH  — framed for labs with active funded projects
+                           that need hands-on help right away.
+         3. TA PITCH     — coursework mastery, grading readiness, and
+                           lab-instruction capability.
+         4. ULTRA-SHORT  — < 90 words, built for high-profile professors
+                           who skim emails on mobile.
+       Rules enforced across every format:
+         • Zero passive/submissive wording — no "available upon request",
+           no "solid foundation". Direct value assertions instead
+           ("I have attached my CV detailing my experience with [Tool]…").
+         • Immediate utility: each body states how the Tribhuvan
+           University (or typed) background lets the candidate contribute
+           to the lab from day one.
+         • No AI clichés anywhere in generated output: "delve",
+           "testament", "pivotal", "profound enthusiasm", and
+           "I hope this email finds you well" are all banned.
+       raTemplates / taTemplates remain as the classic openers; each
+       opener's SECOND sentence still pairs the professor's paper topic
+       with the user's specific technical tool/skill.
     ------------------------------------------------------------------ */
 
     // Topic phrase helper — keeps interpolated focus short so the pairing
@@ -898,56 +1044,149 @@
       }
     };
 
-    // Tone-flavored "fit" paragraphs — shortened so the whole email stays under ~150 words.
-    // Each takes the RAW background string and builds its own phrasing via bgPhrase().
+    /* ------------------------------------------------------------------
+       HIGH-CONVERSION FORMAT ENGINE ("Grant Me Acceptance")
+       Four distinct template formats selectable from the form. Every
+       format follows international academic outreach standards
+       (US/Canada/Europe/UK): direct opener referencing a specific recent
+       publication or methodology, an explicit day-one contribution
+       bridge from the candidate's home institution, a direct value
+       assertion about the attached CV — and zero passive/submissive
+       wording ("available upon request", "solid foundation" are gone).
+    ------------------------------------------------------------------ */
+    const FORMAT_LABELS = {
+      tool:   'Tool / Methodology Match (RA)',
+      grant:  'Grant-Funded Project Pitch',
+      ta:     'Teaching Assistantship Pitch',
+      short:  'Ultra-Short Mobile Pitch (<90 words)'
+    };
+
+    // Day-one contribution bridge — ties the (default Tribhuvan University)
+    // background to the professor's tools with immediate utility.
+    function dayOneBridge(rawBg, skill, focus) {
+      return trimClause(
+        `My work ${bgPhrase(rawBg)} was built on ${skill}, so I can pick up your group's ${topicRef(focus)} ` +
+        `pipeline from day one — no ramp-up quarter.`
+      );
+    }
+
+    // Direct value assertion replacing all submissive closings.
+    const CV_ASSERTION = skill => trimClause(
+      `I have attached my CV detailing my hands-on experience with ${skill}, along with my transcript.`
+    );
+
+    const FORMATS = {
+      // 1) TOOL / METHODOLOGY MATCH — RA focus: skill ↔ paper methods
+      tool: {
+        subject: (ctx, term) => `Your paper on ${shortTopic(stripTrailingPunct(ctx.focus))} — I build with ${ctx.skill}`,
+        body: ctx => [
+          raTemplates.direct(ctx.focus, ctx.skill, ctx.term),
+          '',
+          dayOneBridge(ctx.bg, ctx.skill, ctx.focus),
+          '',
+          CV_ASSERTION(ctx.skill) + ' If a funded research position is opening, I am ready to start strong.'
+        ]
+      },
+      // 2) GRANT-FUNDED PROJECT PITCH — labs with active grants needing help now
+      grant: {
+        subject: (ctx, term) => `Hands-on capacity for your funded ${shortTopic(stripTrailingPunct(ctx.focus))} project (${ctx.term})`,
+        body: ctx => {
+          const focus = stripTrailingPunct(ctx.focus);
+          return [
+            trimClause(
+              `I read your recent paper on ${focus} and saw a concrete way to add capacity to that line of work. ` +
+              `Groups delivering funded ${topicRef(focus)} projects usually need reliable ${ctx.skill} execution — that is exactly what I do well.`
+            ),
+            '',
+            trimClause(
+              `At ${stripTrailingPunct(ctx.bg)} I ran full experiment cycles independently: setup, data, analysis, write-up. ` +
+              `Your current project could use that throughput from my first month, not my last.`
+            ),
+            '',
+            CV_ASSERTION(ctx.skill) + ' If a grant-funded student position is on the horizon, I would like to apply formally.'
+          ];
+        }
+      },
+      // 3) TEACHING ASSISTANTSHIP PITCH — coursework mastery + grading readiness
+      ta: {
+        subject: (ctx, term) => `TA for core ${ctx.major || 'undergraduate'} courses — strong ${ctx.skill} background (${ctx.term})`,
+        body: ctx => [
+          taTemplates.academic(ctx.focus, ctx.skill, ctx.term),
+          '',
+          trimClause(
+            `Coursework ${bgPhrase(ctx.bg)} topped out in the core sequence, and I already grade-style problems ` +
+            `for peers weekly. I can run labs, hold office hours, and take grading load off your teaching team immediately.`
+          ),
+          '',
+          CV_ASSERTION(ctx.skill) + ' If the department is picking TAs for the next term, count me in.'
+        ]
+      },
+      // 4) ULTRA-SHORT PITCH (<90 words) — for high-profile professors skimming on mobile
+      short: {
+        subject: (ctx, term) => `${ctx.term} applicant — ${ctx.skill} + your ${shortTopic(stripTrailingPunct(ctx.focus)).split(' ').slice(0, 3).join(' ')}`,
+        body: ctx => {
+          const focus = stripTrailingPunct(ctx.focus);
+          return [
+            trimClause(
+              `I enjoyed your recent paper on ${focus}. I work in ${ctx.skill} daily and want to keep building in ${topicRef(focus)}.`
+            ),
+            '',
+            trimClause(`My research training ${bgPhrase(ctx.bg)} means I contribute from day one, not after a semester of ramp-up.`),
+            '',
+            trimClause(`CV attached with the details. Are you taking new students for ${ctx.term}?`)
+          ];
+        }
+      }
+    };
+
+    // Classic tone-flavored "fit" paragraphs (used by the raTemplates /
+    // taTemplates engine when no high-conversion format is chosen) —
+    // rewritten assertive: no "solid foundation", no "available upon request".
     const FIT_RA = {
       direct: (rawBg, major) => trimClause(
         `${bgPhrase(rawBg)} I built substantive research experience in ${major} — ` +
         `framing questions, running experiments, and iterating on results. ` +
-        `I would welcome the chance to join your lab as a Research Assistant and contribute early.`
+        `I bring that same cycle to your lab from day one as a Research Assistant.`
       ),
       academic: (rawBg, major) => trimClause(
         `My time ${bgPhrase(rawBg)} taught me to treat research as disciplined practice in ${major}: ` +
         `precise questions, careful methods, and following evidence where it leads. ` +
-        `I would like to deepen that work under your guidance as a Research Assistant.`
+        `That practice transfers straight into your group's workflow as a Research Assistant.`
       ),
       formal: (rawBg, major) => trimClause(
-        `My academic training ${bgPhrase(rawBg)} in ${major} gives me a solid foundation for laboratory research. ` +
-        `I am prepared to meet the expectations of a Research Assistant position and would be glad to contribute.`
+        `My research training ${bgPhrase(rawBg)} in ${major} covers experimental design, data analysis, and scientific writing. ` +
+        `I am prepared to meet the expectations of a Research Assistant position from the first week.`
       )
     };
 
     const FIT_TA = {
       direct: (rawBg, major) => trimClause(
-        `My studies ${bgPhrase(rawBg)} gave me firm command of the fundamentals in ${major}, and I have ` +
-        `enjoyed helping peers through difficult material. I would be glad to lead discussion ` +
-        `sections, hold office hours, and assist with grading as a Teaching Assistant.`
+        `My studies ${bgPhrase(rawBg)} gave me command of the fundamentals in ${major}, and I already ` +
+        `help peers through difficult material weekly. I can lead discussion sections, hold office ` +
+        `hours, and take over grading as a Teaching Assistant from day one.`
       ),
       academic: (rawBg, major) => trimClause(
         `Few ideas become truly mine until I explain them to someone else. My formation ${bgPhrase(rawBg)} ` +
-        `sharpened both my understanding and my patience in ${major}, and I would value the chance ` +
-        `to support instruction as a Teaching Assistant.`
+        `sharpened both my understanding and my patience in ${major} — the exact toolkit a Teaching Assistant needs.`
       ),
       formal: (rawBg, major) => trimClause(
-        `My preparation ${bgPhrase(rawBg)} qualifies me to provide dependable instructional support in ` +
-        `${major}. I would be grateful to be considered for a Teaching Assistantship in your department.`
+        `My preparation ${bgPhrase(rawBg)} qualifies me to deliver dependable instructional support in ` +
+        `${major}: lab sessions, office hours, and consistent grading. I am ready to step in this term.`
       )
     };
 
     const FIT_EITHER = {
       direct: (rawBg, major) => trimClause(
         `My background ${bgPhrase(rawBg)} has prepared me for both research and teaching in ${major}. ` +
-        `I am flexible between an RA and a TA position and would prefer to be placed wherever your ` +
-        `department's needs are greatest.`
+        `I am flexible between an RA and a TA seat and will contribute wherever your department's need is sharpest.`
       ),
       academic: (rawBg, major) => trimClause(
-        `My studies ${bgPhrase(rawBg)} cultivated both a researcher's patience and a teacher's ` +
-        `enjoyment of making hard ideas click. Whether in the lab or the classroom in ${major}, ` +
-        `I want to contribute wherever my efforts help your group most.`
+        `My studies ${bgPhrase(rawBg)} built both a researcher's patience and a teacher's knack for making hard ` +
+        `ideas click. In the lab or the classroom in ${major}, I contribute from the first week.`
       ),
       formal: (rawBg, major) => trimClause(
         `My preparation ${bgPhrase(rawBg)} supports my candidacy for either a Research or Teaching ` +
-        `Assistantship in ${major}. I am open to whichever arrangement best serves your department.`
+        `Assistantship in ${major}. I am ready to take on whichever role serves your department best.`
       )
     };
 
@@ -958,14 +1197,15 @@
       formal:  'Respectfully yours,'
     };
 
-    // Closings by tone — trimmed to one short sentence each
+    // Closings by tone — assertive value statements, never submissive.
+    // (No "available upon request" anywhere — the CV is asserted as attached.)
     const CLOSINGS = {
-      direct: () =>
-        `If there is a fit, I would welcome a brief reply or meeting. My CV and transcript are available on request.`,
-      academic: () =>
-        `Even a short conversation about your group's direction would mean a great deal; my CV and transcript are available whenever useful.`,
-      formal: () =>
-        `I would welcome a brief discussion at your convenience; my curriculum vitae is available upon request.`
+      direct: skill =>
+        `If there is a fit, I would welcome a brief reply or meeting. I have attached my CV detailing my experience with ${skill}.`,
+      academic: skill =>
+        `A short conversation about your group's direction would be valuable; I have attached my CV and transcript covering my work with ${skill}.`,
+      formal: skill =>
+        `I would welcome a brief discussion at your convenience. My CV, detailing hands-on experience with ${skill}, is attached.`
     };
 
     const SIGNOFF = { direct: 'Best regards,', academic: 'Warm regards,', formal: 'Sincerely,' };
@@ -1012,10 +1252,44 @@
     /* Major phrasing helper — "M.S. in Computer Science" reads naturally
        after "research in ..."; strip trailing punctuation only. */
 
+    /* ---------- 10-Day Follow-Up Generator ----------
+       Polite 2-sentence bump sent as a reply to the ORIGINAL thread,
+       7–10 days after the first email. Short, warm, zero pressure. */
+    function buildFollowUp(tone) {
+      const prof  = val('profName');
+      const focus = val('researchFocus');
+      const skill = stripTrailingPunct(val('toolSkill'));
+      const student = val('studentName');
+      const line1 = {
+        direct:   `Hi Prof. ${String(prof).replace(/^(dr\.?|prof\.?|professor\.?)\s+/i, '')} — floating my note about ${topicRef(focus)} back up in case it got buried.`,
+        academic: `Dear Prof. ${String(prof).replace(/^(dr\.?|prof\.?|professor\.?)\s+/i, '')} — I wanted to briefly follow up on my earlier message about your work on ${topicRef(focus)}.`,
+        formal:   `Dear Prof. ${String(prof).replace(/^(dr\.?|prof\.?|professor\.?)\s+/i, '')} — may I politely follow up on my previous email regarding your group's work on ${topicRef(focus)}.`
+      }[tone] || '';
+      const line2 = `If ${skill} capacity would help your team this cycle, my CV is attached below and I can start fast.`;
+      const type0 = document.getElementById('assistType').value;
+      const term0 = val('termYear');
+      const ctx0 = { prof, major: stripTrailingPunct(val('degreeMajor')), term: term0, bg: val('background'), focus, skill };
+      const baseSubject = (document.getElementById('emailFormat').value !== 'auto' && FORMATS[document.getElementById('emailFormat').value])
+        ? FORMATS[document.getElementById('emailFormat').value].subject(ctx0, term0)
+        : SUBJECTS[type0][tone](ctx0, term0);
+      return {
+        subject: `Re: ${baseSubject}`,
+        body: [line1, '', line2, '', 'Thank you for your time.', SIGNOFF[tone], student].join('\n')
+      };
+    }
+
     /* Build the complete email from current form state + chosen tone.
-       The opener comes from raTemplates / taTemplates so that sentence two
-       always pairs the professor's paper topic with the user's tool/skill. */
+       When a high-conversion FORMAT is selected (Tool Match / Grant Pitch /
+       TA Pitch / Ultra-Short) the format engine takes over; otherwise the
+       classic raTemplates / taTemplates engine runs, whose sentence two
+       always pairs the professor's paper topic with the user's tool/skill.
+       Draft MODE ("initial" vs "followup") switches to the 10-day bump. */
     function buildEmail(tone) {
+      const modeBtn = document.getElementById('draftModeOn');
+      if (modeBtn && !modeBtn.classList.contains('hidden') && modeBtn.getAttribute('aria-pressed') === 'true') {
+        return buildFollowUp(tone);   // follow-up bump mode is active
+      }
+
       const student = val('studentName');
       const major   = stripTrailingPunct(val('degreeMajor'));
       const term    = val('termYear');
@@ -1024,9 +1298,20 @@
       const focus   = val('researchFocus');
       const skill   = stripTrailingPunct(val('toolSkill'));
       const type    = document.getElementById('assistType').value; // RA | TA | EITHER
+      const format  = document.getElementById('emailFormat').value; // auto|tool|grant|ta|short
 
       const ctx = { prof, major, term, bg, focus, skill };
 
+      // ---- High-conversion formats (Grant Me Acceptance engine) ----
+      if (format !== 'auto' && FORMATS[format]) {
+        const fmt = FORMATS[format];
+        const parts = fmt.body(ctx);
+        const body = [greeting(prof), '', ...parts, '', THANKS[tone === 'formal' ? 'formal' : 'direct'],
+                      ...(tone === 'formal' ? [] : [SIGNOFF.direct]), student].join('\n');
+        return { subject: fmt.subject(ctx, term), body };
+      }
+
+      // ---- Classic tone-driven engine (raTemplates / taTemplates) ----
       const openerMap = { RA: raTemplates, TA: taTemplates, EITHER: raTemplates };
       const fitMap = { RA: FIT_RA, TA: FIT_TA, EITHER: FIT_EITHER };
       const typeLabel = { RA: 'Research Assistantship (RA)', TA: 'Teaching Assistantship (TA)', EITHER: 'graduate assistantship' }[type];
@@ -1044,7 +1329,7 @@
         '',
         fitMap[type][tone](bg, major),
         '',
-        CLOSINGS[tone](),
+        CLOSINGS[tone](skill),
         '',
         signoffBlock,
         '',
@@ -1295,8 +1580,39 @@
     }
 
     /* ---------- Engine 2: Semantic Scholar (TLDRs + citation cross-check) ---------- */
-    async function searchSemanticScholar(query) {
-      const proxied = await dataFetch('semantic-authors', { search: query });
+    /* ---------- Multi-field discipline coverage ----------
+       OpenAlex and Semantic Scholar both index every academic discipline
+       (STEM, Humanities, Social Sciences, Business). To keep author
+       lookups precise across all fields, we fetch each candidate's
+       OpenAlex topics dynamically and re-query Semantic Scholar with
+       "Name + topic" strings — this disambiguates common names in
+       non-STEM fields (e.g. History, Economics, Linguistics) where a
+       bare name search pulls up thousands of homonyms. */
+    const DISCIPLINE_FIELD_MAP = {
+      // OpenAlex topic domain → human-readable field label
+      stem: ['mathematics','physics','computer science','engineering','chemistry','biology','medicine','materials','geoscience','statistics'],
+      humanities: ['history','philosophy','literature','linguistics','art','archaeology','religious studies','classics'],
+      social: ['economics','political science','sociology','psychology','education','law','anthropology','geography','public health','demography'],
+      business: ['business','finance','management','marketing','accounting','entrepreneurship','supply chain','organizational behavior']
+    };
+    function disciplineOf(topics) {
+      const joined = (topics || []).join(' ').toLowerCase();
+      for (const [field, kws] of Object.entries(DISCIPLINE_FIELD_MAP)) {
+        if (kws.some(k => joined.includes(k))) return field;
+      }
+      return 'stem';
+    }
+
+    async function searchSemanticScholar(query, topicHints) {
+      // Dynamic multi-field queries: try the raw name first, then refine
+      // with up to two indexed topics when the name is ambiguous.
+      const queries = [query];
+      (topicHints || []).slice(0, 2).forEach(t => {
+        const q = `${query} ${String(t).toLowerCase()}`;
+        if (!queries.includes(q)) queries.push(q);
+      });
+      const runOne = async (q) => {
+      const proxied = await dataFetch('semantic-authors', { search: q });
       let results;
       if (proxied && Array.isArray(proxied.data)) {
         results = proxied.data;
@@ -1310,7 +1626,14 @@
           // 429 = anonymous rate limit (100 req/5min) — degrade gracefully
           return [];
         }
+      };
+      let agg = [];
+      for (const q of queries) {
+        const r = await runOne(q);
+        r.forEach(x => { if (!agg.some(y => y.s2AuthorId === x.s2AuthorId && y.displayName === x.displayName)) agg.push(x); });
+        if (agg.length >= 5) break;   // enough cross-engine coverage
       }
+      const results = agg;
       return results.map(a => {
         const papers = (a.papers || []).filter(p => p && p.title);
         const latest = papers.slice().sort((p, q) => (q.year || 0) - (p.year || 0))[0] || null;
@@ -1585,6 +1908,12 @@
         'University Graduate Scholarships (top-up awards)',
         'TA / sessional academic roles (casual rates post-confirmation)',
         'Industry-linked LPDP-style cooperative research centres'
+      ],
+      NP: [
+        'Nepal government tribhuvan-scholarship routes & TU research grants',
+        'Fulbright / AIIS / Commonwealth Scholarship (US & UK pathways)',
+        'DAAD in Nepal + Erasmus Mundus joint-programme seats',
+        'Fully funded assistantships abroad — the standard route for TU grads'
       ],
       DEFAULT: [
         'Government scholarship programs for international students',
@@ -2013,46 +2342,105 @@
        Rule: pick the next intake whose application window is currently
        OPEN with at least ~6 weeks of runway left.
     ------------------------------------------------------------------ */
-    const INTAKE_WINDOWS = [
-      // month/day = typical deadline; intake = term you'd start
-      { month: 8,  day: 15, intake: 'Spring',   lead: 0 },  // Sep 15 → Spring same year+0
-      { month: 11, day: 15, intake: 'Summer',   lead: 0 },  // Nov 15 → following Summer
-      { month: 12, day: 1,  intake: 'Fall',     lead: 1 },  // Dec 1 (funding rounds) → Fall next yr
-      { month: 12, day: 15, intake: 'Fall',     lead: 1 },  // Dec 15 (final) → Fall next yr
-      { month: 2,  day: 1,  intake: 'Fall',     lead: 1 }   // Feb 1 (many public-univ final dates)
-    ];
-    const INTAKE_MONTH = { Spring: 1, Summer: 6, Fall: 9 };
+    /* ---------- Dynamic departmental application cycles ----------
+       No more single hardcoded date list: each TARGET DOMAIN TYPE
+       (.edu US/Canada-style, .ca, .ac.uk, .edu.au, plus EU/Nepal
+       variants) is paired with the real graduate-department funding
+       and admission cycles observed at those institutions. Deadlines
+       are computed live against the current date on every lookup. */
+    const DOMAIN_CYCLES = {
+      '.edu': [        // US universities — Dec/Jan funding rounds, Feb finals
+        { month: 12, day: 1,  intake: 'Fall' },    // Dec 1 — priority/funding-review round
+        { month: 12, day: 15, intake: 'Fall' },    // Dec 15 — engineering/CS final
+        { month: 1,  day: 15, intake: 'Fall' },    // Jan 15 — most PhD programs
+        { month: 2,  day: 1,  intake: 'Fall' },    // Feb 1 — public-university final
+        { month: 8,  day: 15, intake: 'Spring' }   // Aug 15 — spring-cycle masters
+      ],
+      '.ca': [         // Canadian universities — supervisor-agreement first
+        { month: 12, day: 15, intake: 'Fall' },    // Dec 15 — UofT/UBC grad schools
+        { month: 1,  day: 15, intake: 'Fall' },    // Jan 15 — most funded PhD intakes
+        { month: 2,  day: 1,  intake: 'Fall' },    // Feb 1 — Quebec universities
+        { month: 6,  day: 1,  intake: 'Fall' }     // Jun 1 — late self-funded window
+      ],
+      '.ac.uk': [      // UK — rolling starts, but scholarship rounds gate funding
+        { month: 1,  day: 10, intake: 'Autumn' },  // Jan 10 — college/scholarship rounds
+        { month: 3,  day: 31, intake: 'Autumn' },  // Mar 31 — main studentship cut-off
+        { month: 6,  day: 30, intake: 'Winter' },  // Jun 30 — spring-start scholarships
+        { month: 7,  day: 1,  intake: 'Autumn' }   // Jul 1 — clearing / late entry
+      ],
+      '.edu.au': [     // Australia — two research intakes per year (Term 1 & Term 2)
+        { month: 10, day: 31, intake: 'Term 1 (Feb)' }, // Oct 31 — RTP round for Feb start
+        { month: 4,  day: 30, intake: 'Term 2 (Jul)' }, // Apr 30 — RTP round for Jul start
+        { month: 11, day: 30, intake: 'Term 2 (Jul)' }  // Nov 30 — course-by-course late
+      ],
+      '.edu.np': [     // Nepal (Tribhuvan et al.) — affiliated-college cycles
+        { month: 7,  day: 15, intake: 'Autumn' },  // mid-July — TU entrance-based intake
+        { month: 12, day: 20, intake: 'Spring' }   // Dec 20 — spring semester entry
+      ],
+      'EU': [          // Continental Europe — salaried postings run year-round;
+                       // structured programmes cluster around these gates
+        { month: 1,  day: 31, intake: 'Summer cohort' },
+        { month: 5,  day: 31, intake: 'Autumn cohort' },
+        { month: 11, day: 15, intake: 'Spring cohort' }
+      ]
+    };
+
+    const INTAKE_MONTH = { Spring: 1, Summer: 6, Fall: 9, Autumn: 9, Winter: 1,
+                           'Term 1 (Feb)': 2, 'Term 2 (Jul)': 7,
+                           'Summer cohort': 7, 'Autumn cohort': 9, 'Spring cohort': 2 };
+
+    /** Map a target university domain type to its real departmental cycle list. */
+    function cyclesForDomainType(domainOrCc) {
+      const d = String(domainOrCc || '').toLowerCase();
+      if (d === 'UK' || /\.ac\.uk$/.test(d)) return DOMAIN_CYCLES['.ac.uk'];
+      if (d === 'AU' || /\.edu\.au$|\.ac\.nz$|\.edu\.nz$/.test(d)) return DOMAIN_CYCLES['.edu.au'];
+      if (/\.ca$/.test(d) || d === 'CA') return DOMAIN_CYCLES['.ca'];
+      if (/\.edu\.np$/.test(d) || d === 'NP') return DOMAIN_CYCLES['.edu.np'];
+      if (/\.edu(\.|$)/.test(d) || d === 'US') return DOMAIN_CYCLES['.edu'];
+      if (['DE','NL','SE','NO','DK','FI','CH','FR','EU','AT'].includes(d.toUpperCase()) ||
+          /\.(de|nl|se|no|dk|fi|ch|fr|at|it|es|pl)$/.test(d)) return DOMAIN_CYCLES['EU'];
+      return DOMAIN_CYCLES['.edu'];  // sensible default cycle for unknown domains
+    }
+
+    /** Live deadline status indicator driven by TODAY's date (never static). */
+    function deadlineStatus(daysLeft) {
+      if (daysLeft == null || isNaN(daysLeft)) return null;
+      if (daysLeft > 90)  return { key: 'open',  icon: '🟢', label: 'Open Window',            cls: ['border-forest-300', 'bg-forest-50', 'text-forest-800'] };
+      if (daysLeft >= 60) return { key: 'early', icon: '🟢', label: 'Open Window — early',    cls: ['border-forest-300', 'bg-forest-50', 'text-forest-800'] };
+      if (daysLeft >= 30) return { key: 'prime', icon: '🟡', label: 'Prime Outreach Window',  cls: ['border-amber-300', 'bg-amber-50', 'text-amber-800'] };
+      if (daysLeft >= 15) return { key: 'tight', icon: '🟡', label: 'Closing — send today',   cls: ['border-amber-300', 'bg-amber-50', 'text-amber-800'] };
+      if (daysLeft >= 0)  return { key: 'late',  icon: '🔴', label: 'Late Cycle',             cls: ['border-rose-300', 'bg-rose-50', 'text-rose-800'] };
+      return { key: 'closed', icon: '⚫', label: 'Cycle Closed', cls: ['border-ink-300', 'bg-slate-100', 'text-ink-600'] };
+    }
 
     function computeFeasibleTerm(countryCode, today = new Date()) {
-      const southern = ['AU', 'NZ'].includes((countryCode || '').toUpperCase());
+      // Lookup table pairs the target's domain type / country with its REAL
+      // departmental application cycle — deadlines recompute from `today`.
+      const cycles = cyclesForDomainType(countryCode);
       const y = today.getFullYear();
       const options = [];
-      for (const w of INTAKE_WINDOWS) {
+      for (const w of cycles) {
         const deadline = new Date(y, w.month - 1, w.day);
         if (deadline < today) deadline.setFullYear(y + 1);
-        const monthsOut = (deadline - today) / (1000 * 60 * 60 * 24 * 30.4);
-        if (monthsOut < 1.5) continue;                       // too late to prepare a strong app
-        const intakeYear = deadline.getFullYear() + (w.intake === 'Fall' || w.intake === 'Summer' ? (w.lead || 0) : 0)
-                           + (w.intake === 'Fall' && deadline.getMonth() + 1 <= w.month ? 0 : 0);
-        // Simpler, robust computation: intake month/year directly
-        let im = INTAKE_MONTH[w.intake];
+        const daysLeft = Math.round((deadline - today) / (1000 * 60 * 60 * 24));
+        if (daysLeft < 45) continue;                         // too late to prep a strong app
+        let im = INTAKE_MONTH[w.intake] || 9;
         let iy = deadline.getFullYear();
-        if (im < deadline.getMonth() + 1) iy += 1;           // intake falls before deadline month → next year
-        options.push({ intake: w.intake, year: iy, deadline, monthsOut });
+        if (im < deadline.getMonth() + 1) iy += 1;           // intake before deadline month → next year
+        options.push({ intake: w.intake, year: iy, deadline, daysLeft, monthsOut: daysLeft / 30.4 });
       }
       if (!options.length) return { label: `Fall ${y + 1}`, note: 'Application windows for nearer intakes have closed; Fall is the earliest realistic start.' };
-      // Prefer the soonest feasible intake; Southern hemisphere swaps season names
+      // Prefer the soonest feasible deadline still inside its open window
       options.sort((a, b) => a.deadline - b.deadline);
-      let pick = options[0];
-      if (southern) {
-        const seasonal = { Fall: 'Term 1 (Feb)', Spring: 'Term 2 (Jul)', Summer: 'Nov/Dec' };
-        return { label: `${seasonal[pick.intake] || pick.intake} ${pick.year}`, note: `Southern-hemisphere cycle — apply by ${fmtDate(pick.deadline)}.` };
-      }
-      const runway = Math.round(pick.monthsOut);
+      const pick = options[0];
+      const status = deadlineStatus(pick.daysLeft);
+      const note = `Departmental cycle for this domain closes around ${fmtDate(pick.deadline)} — about ${Math.max(1, Math.round(pick.monthsOut))} month(s) of runway left.`;
       return {
         label: `${pick.intake} ${pick.year}`,
         deadline: pick.deadline,
-        note: `Applications for ${pick.intake} ${pick.year} close around ${fmtDate(pick.deadline)} — about ${runway} month${runway === 1 ? '' : 's'} of runway left.`
+        daysLeft: pick.daysLeft,
+        status,
+        note
       };
     }
 
