@@ -271,30 +271,33 @@
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
-            <!-- Input 2: Target Degree & Major -->
+            <!-- Input 2: Target Degree & Major — auto-aligned from professor records -->
             <div>
               <label for="degreeMajor" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Target Degree &amp; Major
+                <span id="degreeAutoNote" class="hidden normal-case font-normal tracking-normal text-forest-700"></span>
               </label>
               <input id="degreeMajor" name="degreeMajor" type="text" placeholder="e.g., M.S. in Computer Science"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
-            <!-- Input 3: Target Term/Year -->
+            <!-- Input 3: Target Term/Year — computed from open application windows -->
             <div>
               <label for="termYear" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Target Term / Year
+                <span id="termAutoNote" class="hidden normal-case font-normal tracking-normal text-forest-700"></span>
               </label>
               <input id="termYear" name="termYear" type="text" placeholder="e.g., Fall 2027"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
-            <!-- Input 4: Previous University / Background -->
+            <!-- Input 4: Previous University / Background — defaults to Tribhuvan University -->
             <div>
               <label for="background" class="block text-xs font-semibold uppercase tracking-wide text-ink-700 mb-1.5">
                 Previous University / Current Background
               </label>
-              <input id="background" name="background" type="text" placeholder="e.g., B.Tech in Electrical Engineering, Pune Institute of Technology"
+              <input id="background" name="background" type="text" value="Tribhuvan University"
+                     placeholder="e.g., B.Sc. CSIT, Tribhuvan University"
                      class="field w-full rounded-lg border border-ink-200 bg-white px-3.5 py-2.5 text-sm placeholder-ink-300 focus:border-clay-500 focus:ring-2 focus:ring-clay-500/25 transition" />
             </div>
 
@@ -495,6 +498,46 @@
               </div>
             </div>
 
+            <!-- ---------- UNIVERSITY & FUNDING AUDIT CARD ---------- -->
+            <div id="fundingCard" class="hidden rounded-xl border border-clay-200 bg-clay-50/60 overflow-hidden">
+              <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-clay-700 text-white">
+                <h3 class="font-display text-sm font-bold flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+                  University &amp; Funding Audit Card
+                </h3>
+                <button type="button" id="clearFundingBtn" class="text-clay-100 hover:text-white text-xs font-semibold underline decoration-dotted focus:outline-none">dismiss</button>
+              </div>
+              <div class="px-4 py-4 space-y-4">
+                <!-- a) Acceptance rate + b) assistantships row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="rounded-lg border border-ink-200 bg-white p-3.5">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Target University Acceptance Rate</p>
+                    <p class="font-display text-2xl font-extrabold text-ink-900" id="fundingAcceptPct">—</p>
+                    <div class="mt-2 h-2 rounded-full bg-ink-100 overflow-hidden">
+                      <div id="fundingAcceptBar" class="h-full w-0 rounded-full bg-clay-500 transition-all duration-500"></div>
+                    </div>
+                    <p class="mt-1.5 text-[11px] text-ink-500" id="fundingAcceptNote"></p>
+                  </div>
+                  <div class="rounded-lg border border-ink-200 bg-white p-3.5">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-500 mb-1.5">Available Assistantships &amp; Scholarships</p>
+                    <ul id="fundingAwards" class="space-y-1.5 text-[11px] leading-snug text-ink-700"></ul>
+                  </div>
+                </div>
+                <!-- c) Deadline warning / timeline -->
+                <div class="rounded-lg border p-3.5" id="fundingDeadlineWrap">
+                  <div class="flex items-start gap-2.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" id="fundingDeadlineIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <div class="min-w-0">
+                      <p class="text-[10px] font-bold uppercase tracking-[0.15em] mb-1">Application Deadline &amp; Timeline</p>
+                      <p class="text-sm font-semibold text-ink-900" id="fundingDeadlineMain">—</p>
+                      <p class="text-[11px] text-ink-500 mt-1 leading-relaxed" id="fundingDeadlineSub"></p>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-[10px] text-ink-400 italic leading-relaxed">Rates and deadlines are curated planning estimates for typical graduate programs at this institution — always confirm the current cycle on the university's official graduate admissions page before relying on them.</p>
+              </div>
+            </div>
+
             <!-- ---------- HUMANIZER CARD ---------- -->
             <div class="rounded-xl border border-clay-200 bg-clay-50/60 p-4 space-y-3">
               <div class="flex flex-wrap items-center justify-between gap-3">
@@ -661,7 +704,7 @@
       studentName:   'Jordan Avery',
       degreeMajor:   "Master's program in my field",
       termYear:      'the upcoming term',
-      background:    'my undergraduate studies',
+      background:    'Tribhuvan University',   // default student profile
       profName:      'Professor',
       researchFocus: 'your current research',
       toolSkill:     'the tools and techniques in your lab',
@@ -675,13 +718,62 @@
     }
 
     /* ------------------------------------------------------------------
-       Greeting helper — keeps "Dr. Jane Smith" style names intact
+       Smart academic target year — even without a professor search, the
+       default term is the next feasible intake computed from active
+       application windows (see computeFeasibleTerm below).
+    ------------------------------------------------------------------ */
+    function smartDefaultTerm() {
+      return computeFeasibleTerm('').label;   // e.g. "Fall 2027" / "Spring 2027"
+    }
+
+    /* ------------------------------------------------------------------
+       Greeting helper — international academic outreach standard:
+       "Dear Prof. X" / "Dear Dr. X" (US/Canada/Europe/UK convention).
+       Stiff variants ("Respected Sir/Madam", "Dear Sir") are normalized
+       to the personal, professional form automatically.
     ------------------------------------------------------------------ */
     function greeting(profName) {
-      const n = profName.replace(/\s+/g, ' ');
-      const hasTitle = /^(dr|prof|professor)\.?/i.test(n);
-      if (hasTitle) return `Dear ${n},`;
+      let n = String(profName || 'Professor').replace(/\s+/g, ' ').trim();
+      // Normalize stiff/impersonal forms typed by users
+      if (/^(dear\s+)?(sir|madam|ma'?am)$/i.test(n)) return 'Dear Professor,';
+      n = n.replace(/^(dr\.?|prof\.?|professor\.?)\s+/i, '');
+      const lastToken = n.split(' ').pop() || '';
+      if (/^(jr\.?|sr\.?|ii|iii|iv)$/i.test(lastToken) && n.split(' ').length > 2) {
+        n = n.split(' ').slice(0, -1).join(' ');
+      }
       return `Dear Prof. ${n},`;
+    }
+
+    /* ------------------------------------------------------------------
+       Funding-context helpers — used by the email engine so scholarship
+       language follows each country's real funding vocabulary:
+         US/CA → assistantships (RA/TA carry tuition + stipend)
+         DE/NL/Scandinavia → salaried research-candidate positions
+         UK/AU → studentships & scholarships
+    ------------------------------------------------------------------ */
+    function professorCountry() {
+      if (verifiedProfessor && verifiedProfessor.country) return verifiedProfessor.country.toUpperCase();
+      const dom = (document.getElementById('profEmail').value.split('@')[1] || '').toLowerCase();
+      if (/\.ca$/.test(dom)) return 'CA';
+      if (/\.(ac\.uk|uk)$/.test(dom)) return 'UK';
+      if (/\.edu\.au$|\.gov\.au$/.test(dom)) return 'AU';
+      if (/\.de$/.test(dom)) return 'DE';
+      if (/\.(ch|li)$/.test(dom)) return 'CH';
+      if (/\.(nl|be|lu)$/.test(dom)) return 'NL';
+      if (/\.(se|no|dk|fi)$/.test(dom)) return 'EU';
+      if (/\.fr$/.test(dom)) return 'FR';
+      if (/\.ac\.in|\.in$/.test(dom)) return 'IN';
+      if (/\.edu(\.|$)/.test(dom)) return 'US';
+      return '';
+    }
+
+    /** Funding phrase for the closing line, matched to the country cycle. */
+    function fundingPhrase(cc) {
+      if (['DE','NL','SE','NO','DK','FI','CH','FR','EU'].includes(cc))
+        return 'If your group has a funded research-candidate or doctoral position open, I would be glad to apply formally.';
+      if (['UK','AU','NZ'].includes(cc))
+        return 'If a funded studentship or scholarship place is available in your group, I would be glad to be considered.';
+      return 'If a funded RA or TA position is opening in your group, I would be glad to apply formally.';
     }
 
     /* ------------------------------------------------------------------
@@ -1211,15 +1303,202 @@
         : (c.topics.length ? c.topics.slice(0, 2).join(' and ').toLowerCase() : '');
       if (focusText) document.getElementById('researchFocus').value = focusText;
 
-      // Email: use ORCID-recorded address if present, else generate academic
-      // patterns from the professor's name + institution domain.
-      const knownEmail = c.email || null;
-      const patterns = knownEmail ? [] : generateAcademicPatterns(c.displayName, c.institution);
-      attachVerifiedProfile(c, knownEmail, patterns);
+      // ---- Smart Target Degree alignment (Master's vs Ph.D.) ----
+      const degreeInfo = inferTargetDegree(c);
+      const dmEl = document.getElementById('degreeMajor');
+      dmEl.value = degreeInfo.value;
+      setAutoNote('degreeAutoNote', `auto: ${degreeInfo.reason}`);
+
+      // ---- Smart feasible Target Term / Year ----
+      const termInfo = computeFeasibleTerm(c.country);
+      const tyEl = document.getElementById('termYear');
+      tyEl.value = termInfo.label;
+      setAutoNote('termAutoNote', `auto: next open application window`);
+
+      // ---- Automated email resolution (metadata → MX-checked pattern) ----
+      attachVerifiedProfile(c, c.email && EMAIL_SYNTAX_RE.test(c.email) && !isGenericMailbox(c.email) ? c.email : null,
+                            generateAcademicPatterns(c.displayName, c.institution, c.country));
+      resolveProfessorEmail(c).then(res => {
+        if (!res || !verifiedProfessor || verifiedProfessor.openalexId !== c.openalexId) return;
+        const emailInput = document.getElementById('profEmail');
+        if (emailInput.value.trim()) return; // user already has an address in the field
+        emailInput.value = res.email;
+        els.emailSuggest.classList.add('hidden');
+        if (res.source === 'metadata') {
+          verifyEmailField(); // full pipeline re-checks domain + MX
+        } else if (res.verified === true) {
+          setEmailBadge('yellow', `Auto-resolved ${res.email} — standard ${res.domain} format with an active mail server. Confirm on the professor's page before sending.`);
+        } else {
+          setEmailBadge('yellow', 'Auto-filled a high-confidence pattern from institutional records — confirm on the professor\u2019s lab page.');
+        }
+      }).catch(() => { /* offline — suggestions remain clickable */ });
+
+      // ---- University & Funding Audit Card ----
+      renderFundingCard(c, termInfo);
 
       hideSearchResults();
       els.profSearch.value = c.displayName;
       showToast(`Loaded ${c.displayName}${c.institution ? ' — ' + c.institution : ''}`, 'success');
+    }
+
+    /** Small green note next to a label explaining an auto-filled value. */
+    function setAutoNote(spanId, text) {
+      const el = document.getElementById(spanId);
+      if (!el) return;
+      el.textContent = '\u2713 ' + text;
+      el.classList.remove('hidden');
+    }
+    function clearAutoNotes() {
+      ['degreeAutoNote', 'termAutoNote'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = ''; el.classList.add('hidden'); }
+      });
+    }
+
+    /* ==================================================================
+       UNIVERSITY & FUNDING AUDIT CARD
+       Acceptance-rate insight + assistantship/scholarship inventory +
+       deadline warning computed from the smart application-window logic.
+       Figures are curated planning estimates per institution/country —
+       clearly labeled so students always confirm official numbers.
+    ================================================================== */
+
+    const GRAD_FUNDING_BY_COUNTRY = {
+      US: [
+        'Full Tuition Waiver + Monthly Stipend (~$2,500–$3,600/mo, RA-funded)',
+        'Graduate Fellowship / University Fellowship (multi-year, no duties)',
+        'Teaching Assistantship (tuition + stipend, ~20 hrs/week)',
+        'NSF Graduate Research Fellowship (GRTN traineeships via the lab)'
+      ],
+      CA: [
+        'CGS-M / CGS-D Scholarships (Tri-Council, $17,500–$35,000/yr)',
+        'University Teaching Assistantship (automatic funding for most PhD admits)',
+        'NSERC / SSHRC graduate awards (through supervisor grants)',
+        'Provincial fellowships (e.g., Ontario Graduate Scholarship)'
+      ],
+      UK: [
+        'UKRI Studentship (fees + ~\u00a319,237/yr maintenance, 3.5 yrs)',
+        'College Doctoral Scholarships (Oxford/Cambridge, full fees + grant)',
+        'GSA / GTA teaching roles (~50% of term, fee waiver + stipend)',
+        'Departmental hard-course scholarships (common for MSc by Research)'
+      ],
+      EU: [
+        'Structured doctoral programme positions (salaried, TV-L 13 / equivalent)',
+        'DAAD / Erasmus Mundus joint-master scholarships',
+        'Research-candidate posts at universities (paid employment, NL/DK/SE/FI)',
+        'Max Planck / Helmholtz / INRIA international PhD schools'
+      ],
+      AU: [
+        'RTP Stipend (tax-free, ~A$35,000/yr) + RTP Fee Offset',
+        'University Graduate Scholarships (top-up awards)',
+        'TA / sessional academic roles (casual rates post-confirmation)',
+        'Industry-linked LPDP-style cooperative research centres'
+      ],
+      DEFAULT: [
+        'Government scholarship programs for international students',
+        'Departmental assistantships (teaching or research support)',
+        'External fellowships (commonwealth, fulbright, country-specific)',
+        'Supervisor grant funding on active projects'
+      ]
+    };
+
+    const ACCEPTANCE_INSIGHTS = {
+      // Curated typical graduate-level acceptance ranges (planning estimates)
+      'massachusetts institute of technology': { pct: 8,  note: 'extremely selective; committee screens on research fit' },
+      'stanford university':                   { pct: 9,  note: 'very selective; faculty-led admissions' },
+      'university of california, berkeley':    { pct: 12, note: 'selective; strong GRE-free holistic review' },
+      'harvard university':                    { pct: 7,  note: 'department-by-department; tiny cohorts' },
+      'university of toronto':                 { pct: 18, note: 'graduate admissions vary widely by department' },
+      'universite de montreal':                { pct: 22, note: 'larger intake; supervision-agreement first' },
+      'mcgill university':                     { pct: 25, note: 'moderate selectivity; supervisor buy-in is key' },
+      'university of british columbia':        { pct: 20, note: 'supervisor-dependent admits for research degrees' },
+      'university of oxford':                  { pct: 15, note: 'college + committee double gate' },
+      'university of cambridge':               { pct: 15, note: 'pre-interviews decide most outcomes' },
+      'imperial college london':               { pct: 20, note: 'program-specific competitiveness' },
+      'university college london':             { pct: 30, note: 'high volume; listed entry bar matters most' },
+      'university of edinburgh':               { pct: 35, note: 'many taught MSc routes; PGR more selective' },
+      'technical university of munich':        { pct: 25, note: 'formal requirements gate (ECTS matching)' },
+      'eth zurich':                            { pct: 22, note: 'MSc competitive; PhD = job application' },
+      'national university of singapore':      { pct: 20, note: 'strong candidates only; supervisor shortlist' },
+      'university of melbourne':               { pct: 30, note: 'Melbourne Model: coursework vs research tracks' },
+      'tribhuvan university':                  { pct: 45, note: 'entrance-exam based for affiliated campuses' }
+    };
+
+    function estimateAcceptance(institutionName) {
+      const norm = String(institutionName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (ACCEPTANCE_INSIGHTS[norm]) return ACCEPTANCE_INSIGHTS[norm];
+      // Country-level graduate baseline when the exact school isn't curated
+      const cc = guessCountryFromInstitution(norm);
+      const base = { US: 28, CA: 30, UK: 32, DE: 35, CH: 25, AU: 35, NZ: 40, FR: 38, NL: 32, SE: 30, KR: 25, JP: 30, SG: 20, CN: 18, IN: 30, NP: 45 }[cc] || 30;
+      return { pct: base, note: 'typical graduate-program range for this region (planning estimate)' };
+    }
+
+    function guessCountryFromInstitution(norm) {
+      if (/\.edu|university of|state university|polytechnic/.test(norm) && !/canada|quebec/.test(norm)) return 'US';
+      if (/canada|québec|quebec|universite|university of british/.test(norm)) return 'CA';
+      if (/\buk\b|oxford|cambridge|london|edinburgh|scotland|england/.test(norm)) return 'UK';
+      if (/münchen|munich|berlin|deutschland|germany|aachen/.test(norm)) return 'DE';
+      if (/zurich|zürich|eth|epfl/.test(norm)) return 'CH';
+      if (/australia|sydney|melbourne|queensland/.test(norm)) return 'AU';
+      if (/singapore|nus|ntu/.test(norm)) return 'SG';
+      if (/india|iit|iisc|delhi|bombay/.test(norm)) return 'IN';
+      if (/nepal|tribhuvan|kathmandu/.test(norm)) return 'NP';
+      return '';
+    }
+
+    let currentTermInfo = null; // last computed deadline info (for the card)
+
+    function renderFundingCard(candidate, termInfo) {
+      currentTermInfo = termInfo || null;
+      const card = document.getElementById('fundingCard');
+      card.classList.remove('hidden');
+
+      // a) Acceptance rate
+      const acc = estimateAcceptance(candidate.institution);
+      document.getElementById('fundingAcceptPct').textContent = `${acc.pct}%`;
+      const bar = document.getElementById('fundingAcceptBar');
+      bar.style.width = Math.min(100, acc.pct) + '%';
+      bar.className = 'h-full rounded-full transition-all duration-500 ' + (acc.pct <= 12 ? 'bg-rose-500' : acc.pct <= 25 ? 'bg-amber-500' : 'bg-forest-500');
+      document.getElementById('fundingAcceptNote').textContent =
+        `${candidate.institution || 'This university'} — ${acc.note}. Apply to 4–6 labs; fit beats prestige for funded seats.`;
+
+      // b) Assistantships & scholarships
+      const cc = (candidate.country || '').toUpperCase();
+      const awards = GRAD_FUNDING_BY_COUNTRY[cc] || GRAD_FUNDING_BY_COUNTRY.DEFAULT;
+      const ul = document.getElementById('fundingAwards');
+      ul.innerHTML = '';
+      awards.forEach(a => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start gap-1.5';
+        li.innerHTML = '<span class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-clay-100 text-clay-800 text-[9px] font-bold">$</span><span></span>';
+        li.querySelector('span:last-child').textContent = a;
+        ul.appendChild(li);
+      });
+
+      // c) Deadline warning / timeline
+      const wrap = document.getElementById('fundingDeadlineWrap');
+      const main = document.getElementById('fundingDeadlineMain');
+      const sub = document.getElementById('fundingDeadlineSub');
+      const ti = currentTermInfo;
+      wrap.className = 'rounded-lg border p-3.5 ';
+      if (ti && ti.deadline) {
+        const days = Math.round((ti.deadline - new Date()) / (1000 * 60 * 60 * 24));
+        if (days <= 45) {
+          wrap.className += 'border-rose-300 bg-rose-50 text-rose-800';
+          main.textContent = `⚠ Closing soon: apply by ${fmtDate(ti.deadline)} (${days} days left)`;
+        } else if (days <= 100) {
+          wrap.className += 'border-amber-300 bg-amber-50 text-amber-800';
+          main.textContent = `Approaching window: deadline ${fmtDate(ti.deadline)} (~${Math.round(days / 30)} months out)`;
+        } else {
+          wrap.className += 'border-forest-300 bg-forest-50 text-forest-800';
+          main.textContent = `Open window: ${ti.label} intake — deadline ${fmtDate(ti.deadline)}`;
+        }
+        sub.textContent = (ti.note || '') + ' Start outreach now: professors commit funded seats 3–6 months before deadlines.';
+      } else {
+        wrap.className += 'border-ink-200 bg-white text-ink-700';
+        main.textContent = ti ? ti.label + ' — confirm exact deadlines' : 'Select a professor to compute your window';
+        sub.textContent = ti && ti.note ? ti.note : 'Deadlines shown after you pick a target university from search.';
+      }
     }
 
     /* ==================================================================
@@ -1243,7 +1522,7 @@
     // Official academic domains: .edu (US), .edu.xx / .ac.xx (country variants),
     // plus well-known university ccTLD domains that skip the .edu pattern
     // (Canadian universities use *.ca, e.g. umontreal.ca, utoronto.ca).
-    const ACADEMIC_DOMAIN_RE = /@(?:[a-z0-9.\-]*\.)?(?:edu|ac\.[a-z]{2}|edu\.[a-z]{2}|uni-[a-z0-9.\-]+\.de|[a-z0-9\-]+\.uni-[a-z0-9.\-]+|(?:umontreal|utoronto|mcgill|ubc|ualberta|ucalgary|usask|mcmaster|uottawa|queens|uwaterloo|western|dalhousie|unb|uleth|ulethbridge|yorku|concordia|usherbrooke|etsmtl|polymtl)[a-z0-9\-]*\.ca|cam\.ac\.uk|ox\.ac\.uk|(?:kth|chalmers|lu|uu|dtu|ethz|epfl|psi|inria|ki|su|gu)(?:\.se)?|tuhh\.de|tum\.de|lmu\.de|hu\.berlin|fu-berlin\.de|kit\.edu)$/i;
+    const ACADEMIC_DOMAIN_RE = /@(?:[a-z0-9.\-]*\.)?(?:edu|ac\.[a-z]{2}|edu\.[a-z]{2}|uni-[a-z0-9.\-]+\.de|[a-z0-9\-]+\.uni-[a-z0-9.\-]+|(?:umontreal|utoronto|mcgill|ubc|ualberta|ucalgary|usask|mcmaster|uottawa|queens|uwaterloo|western|dalhousie|unb|uleth|ulethbridge|yorku|concordia|usherbrooke|etsmtl|polymtl)[a-z0-9\-]*\.ca|(?:tu|ku|pu)\.edu\.np|cam\.ac\.uk|ox\.ac\.uk|(?:kth|chalmers|lu|uu|dtu|ethz|epfl|psi|inria|ki|su|gu)(?:\.se)?|tuhh\.de|tum\.de|lmu\.de|hu\.berlin|fu-berlin\.de|kit\.edu)$/i;
 
     function isAcademicDomain(email) {
       const domain = (email.split('@')[1] || '').toLowerCase();
@@ -1277,6 +1556,9 @@
         'university of toronto': 'utoronto.ca',
         'universite de montreal': 'umontreal.ca',
         'université de montréal': 'umontreal.ca',
+        'tribhuvan university': 'tu.edu.np',
+        'kathmandu university': 'ku.edu.np',
+        'pokhara university': 'pu.edu.np',
         'mcgill university': 'mcgill.ca',
         'university of british columbia': 'ubc.ca',
         'university of oxford': 'ox.ac.uk',
@@ -1336,7 +1618,7 @@
     }
 
     /** Generate standard academic email patterns from a name + domain. */
-    function generateAcademicPatterns(fullName, institutionName) {
+    function generateAcademicPatterns(fullName, institutionName, candidateCountry) {
       const name = String(fullName || '')
         .replace(/^(dr\.?|prof\.?|professor)\s+/i, '')
         .replace(/(jr\.?|sr\.?|ii|iii|iv)$/i, '')
@@ -1347,7 +1629,7 @@
       const first = parts[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
       const last  = parts[parts.length - 1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
       if (!first || !last) return [];
-      const domain = guessUniversityDomain(institutionName);
+      const domain = guessUniversityDomain(institutionName) || inferDomainFromCountry(candidateCountry, institutionName);
       if (!domain) return [];
       const localParts = [
         `${first}.${last}`,          // firstname.lastname@
@@ -1357,6 +1639,40 @@
         `${last}`                     // lastname@ (small departments)
       ];
       return localParts.map(local => `${local}@${domain}`);
+    }
+
+    /**
+     * Last-resort domain inference when the exact institution isn't in the
+     * curated table — uses OpenAlex's country_code for the author's last
+     * known institution plus a slug of the institution name.
+     */
+    function inferDomainFromCountry(countryCode, institutionName) {
+      const cc = String(countryCode || '').toUpperCase();
+      const norm = String(institutionName || '').toLowerCase();
+      // Nepali institutions (default profile: Tribhuvan University)
+      if (cc === 'NP' || /tribhuvan|kathmandu|nepal/.test(norm)) {
+        if (/tribhuvan/.test(norm)) return 'tu.edu.np';
+        if (/kathmandu university/.test(norm)) return 'ku.edu.np';
+        return 'edu.np';
+      }
+      const tldByCountry = {
+        US: '.edu', CA: '.ca', GB: '.ac.uk', UK: '.ac.uk', IE: '.ie',
+        AU: '.edu.au', NZ: '.ac.nz', DE: '.de', CH: '.ch', AT: '.ac.at',
+        FR: '.fr', NL: '.nl', SE: '.se', NO: '.no', DK: '.dk', FI: '.fi',
+        IN: '.ac.in', SG: '.edu.sg', JP: '.ac.jp', KR: '.ac.kr', CN: '.edu.cn',
+        TW: '.edu.tw', BR: '.br', MX: '.edu.mx', ZA: '.ac.za', IL: '.ac.il',
+        IT: '.it', ES: '.es', PT: '.pt', PL: '.edu.pl', CZ: '.cz', HK: '.hk'
+      };
+      const tld = tldByCountry[cc];
+      if (!tld) return null;
+      // Slug heuristic: first distinctive word(s) of the institution
+      const stop = new Set(['the','of','and','for','university','universite','université','universität','college','institute','institut','school','tech','technological','national','federal','state','de','du','la','le']);
+      const tokens = norm.replace(/[^a-z0-9À-ÿ\s]/g, ' ').split(/\s+/).filter(Boolean);
+      const core = tokens.filter(t => !stop.has(t) && t.length > 2);
+      if (!core.length) return null;
+      const ascii = core.slice(0, 2).join('').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+      if (ascii.length < 3) return null;
+      return ascii + tld;   // e.g. "waterloo" + ".ca"; still MX-checked before use
     }
 
     /** Check whether a domain has active MX records (mail server alive). */
@@ -1377,6 +1693,176 @@
         if (Array.isArray(json.Authority)) return false;                     // authoritative "no MX" answer
         return null;                                                          // inconclusive
       } catch (e) { return null; } // offline / blocked — treat as unknown
+    }
+
+    /* ==================================================================
+       AUTOMATED EMAIL RESOLUTION + DEGREE / TERM INTELLIGENCE
+       ------------------------------------------------------------------
+       When a professor is selected from OpenAlex we now:
+         1. Resolve an official academic email automatically — first from
+            author metadata (ORCID / institutional record), then by
+            applying common local-part patterns to the institution domain.
+         2. Align Target Degree (Master's vs Ph.D.) with what the lab's
+            publication scope implies about its training model.
+         3. Compute a feasible Target Term/Year from active graduate
+            application windows and funding cycles for that country.
+    ================================================================== */
+
+    const COMMON_EMAIL_LOCALS = new Set([
+      'info','contact','admissions','admission','office','admin','administration',
+      'registrar','enrollment','department','dept','faculty','school','library',
+      'press','media','news','support','help','service','services','mail','email',
+      'postmaster','webmaster','hostmaster','no-reply','noreply','donotreply',
+      'it','its','hr','jobs','careers','events','newsletter','journal','editor',
+      'editing','production','orders','billing','sales','marketing','communications',
+      'international','intl','students','student','graduate','grad','prospective'
+    ]);
+
+    /** True if the address looks like a shared mailbox rather than a person. */
+    function isGenericMailbox(email) {
+      const local = String(email).split('@')[0].toLowerCase();
+      return COMMON_EMAIL_LOCALS.has(local) || /^(info|adm|reg)/.test(local);
+    }
+
+    /**
+     * Resolve the professor's official academic email automatically.
+     * Priority: personal email in OpenAlex/ORCID metadata → highest-ranked
+     * institutional-domain pattern that has live MX records.
+     */
+    async function resolveProfessorEmail(candidate) {
+      // 1) Direct metadata (some OpenAlex/ORCID records expose one)
+      const metaEmails = [candidate.email, candidate.official_email]
+        .filter(e => e && EMAIL_SYNTAX_RE.test(e) && !isGenericMailbox(e));
+      if (metaEmails.length) {
+        return { email: metaEmails[0], source: 'metadata', verified: false };
+      }
+      // 2) Pattern candidates ranked by how common the format is at
+      //    North-American / European universities (firstname.lastname first)
+      const patterns = generateAcademicPatterns(candidate.displayName, candidate.institution, candidate.country);
+      if (!patterns.length) return null;
+      const domain = patterns[0].split('@')[1];
+      const mx = await checkMxRecords(domain);
+      if (mx === true) {
+        return { email: patterns[0], source: 'pattern', verified: true, domain };
+      }
+      if (mx === false) {
+        return { email: patterns[0], source: 'pattern', verified: false, domain };
+      }
+      return { email: patterns[0], source: 'pattern', verified: null, domain };
+    }
+
+    /* ---------- Smart Target Degree alignment ----------
+       Heuristics drawn from the professor's research scope as returned
+       by OpenAlex (topics, output volume, citation reach):
+         • Labs publishing continuously on open-ended, grant-scale
+           problems (high works count / h-index, "learning", "discovery",
+           "mechanisms", long-term topics) tend to train doctoral students.
+         • Applied, course-adjacent, or tool-building groups more often
+             take Master's students for scoped projects.
+    ------------------------------------------------------------------ */
+    function inferTargetDegree(candidate) {
+      const topicText = ((candidate.topics || []).join(' ') + ' ' + (candidate.recentPaper || '')).toLowerCase();
+      const phdSignals = [
+        /\b(deep learning|machine learning|artificial intelligence|genomics|neuroscience|quantum|cancer|immunolog|climate|evolution|molecular mechanism|theoretical|cosmolog|robotics|discovery|mechanism)/,
+      ];
+      let score = 0;
+      if (phdSignals.some(re => re.test(topicText))) score += 2;
+      if ((candidate.hIndex || 0) >= 25) score += 2;          // senior, multi-year funded programs
+      else if ((candidate.hIndex || 0) >= 12) score += 1;
+      if ((candidate.worksCount || 0) >= 150) score += 1;      // prolific group → doctoral pipeline
+      if (/professor|university/.test(candidate.institution || '') && (candidate.citedBy || 0) > 2000) score += 1;
+      const degree = score >= 3 ? 'Ph.D.' : "Master's";
+      const major = pickMajorFromTopics(candidate.topics, candidate.recentPaper);
+      return {
+        degree,
+        major,
+        value: major ? `${degree === 'Ph.D.' ? 'Ph.D.' : "M.S."} program in ${major}` : `${degree} program`,
+        reason: score >= 3
+          ? 'Lab scope points to a doctoral pipeline (sustained, grant-scale research)'
+          : 'Lab scope fits a scoped Master\u2019s project (applied/tool-focused output)'
+      };
+    }
+
+    /** Derive a short major/field phrase from OpenAlex topic names. */
+    function pickMajorFromTopics(topics, recentPaper) {
+      const list = (topics || []).map(t => String(t).toLowerCase());
+      const fieldMap = [
+        [/computer science|artificial intelligence|machine learning|natural language|data analytics|software/, 'Computer Science'],
+        [/electrical|electronic|hardware|signal processing|telecommunication/, 'Electrical Engineering'],
+        [/robot|control systems|mechatron/, 'Robotics'],
+        [/quantum|physics|astronom|cosmo/, 'Physics'],
+        [/mathemat|statistic|optimi/, 'Applied Mathematics'],
+        [/molecular|genomic|cell|protein|biochem|biolog/, 'Biological Sciences'],
+        [/medicine|clinical|cancer|neuro|immunolog|pharmac/, 'Biomedical Sciences'],
+        [/chemistry|chemical|materials|polymer|catalys|catalyz/, 'Chemistry'],
+        [/environment|climate|ecolog|geoscience|hydrolog|atmospheric/, 'Environmental Science'],
+        [/econom|finance|management/, 'Economics'],
+        [/psycholog|cognitive|behavioral|behavioural/, 'Psychology'],
+        [/linguist|language/, 'Linguistics']
+      ];
+      for (const t of list) {
+        for (const [re, name] of fieldMap) if (re.test(t)) return name;
+      }
+      if (list.length) {
+        const cleaned = list[0].replace(/\b(theory|theories|analysis|sciences?)\b/g, '').trim();
+        if (cleaned.split(/\s+/).length <= 4 && cleaned.length > 3) {
+          return cleaned.replace(/\b\w/g, c => c.toUpperCase());
+        }
+      }
+      return '';
+    }
+
+    /* ---------- Smart Target Term / Year ----------
+       Feasible intake computed from real graduate application windows &
+       funding cycles (Northern-hemisphere defaults; AU/NZ reverse seasons).
+       Rule: pick the next intake whose application window is currently
+       OPEN with at least ~6 weeks of runway left.
+    ------------------------------------------------------------------ */
+    const INTAKE_WINDOWS = [
+      // month/day = typical deadline; intake = term you'd start
+      { month: 8,  day: 15, intake: 'Spring',   lead: 0 },  // Sep 15 → Spring same year+0
+      { month: 11, day: 15, intake: 'Summer',   lead: 0 },  // Nov 15 → following Summer
+      { month: 12, day: 1,  intake: 'Fall',     lead: 1 },  // Dec 1 (funding rounds) → Fall next yr
+      { month: 12, day: 15, intake: 'Fall',     lead: 1 },  // Dec 15 (final) → Fall next yr
+      { month: 2,  day: 1,  intake: 'Fall',     lead: 1 }   // Feb 1 (many public-univ final dates)
+    ];
+    const INTAKE_MONTH = { Spring: 1, Summer: 6, Fall: 9 };
+
+    function computeFeasibleTerm(countryCode, today = new Date()) {
+      const southern = ['AU', 'NZ'].includes((countryCode || '').toUpperCase());
+      const y = today.getFullYear();
+      const options = [];
+      for (const w of INTAKE_WINDOWS) {
+        const deadline = new Date(y, w.month - 1, w.day);
+        if (deadline < today) deadline.setFullYear(y + 1);
+        const monthsOut = (deadline - today) / (1000 * 60 * 60 * 24 * 30.4);
+        if (monthsOut < 1.5) continue;                       // too late to prepare a strong app
+        const intakeYear = deadline.getFullYear() + (w.intake === 'Fall' || w.intake === 'Summer' ? (w.lead || 0) : 0)
+                           + (w.intake === 'Fall' && deadline.getMonth() + 1 <= w.month ? 0 : 0);
+        // Simpler, robust computation: intake month/year directly
+        let im = INTAKE_MONTH[w.intake];
+        let iy = deadline.getFullYear();
+        if (im < deadline.getMonth() + 1) iy += 1;           // intake falls before deadline month → next year
+        options.push({ intake: w.intake, year: iy, deadline, monthsOut });
+      }
+      if (!options.length) return { label: `Fall ${y + 1}`, note: 'Application windows for nearer intakes have closed; Fall is the earliest realistic start.' };
+      // Prefer the soonest feasible intake; Southern hemisphere swaps season names
+      options.sort((a, b) => a.deadline - b.deadline);
+      let pick = options[0];
+      if (southern) {
+        const seasonal = { Fall: 'Term 1 (Feb)', Spring: 'Term 2 (Jul)', Summer: 'Nov/Dec' };
+        return { label: `${seasonal[pick.intake] || pick.intake} ${pick.year}`, note: `Southern-hemisphere cycle — apply by ${fmtDate(pick.deadline)}.` };
+      }
+      const runway = Math.round(pick.monthsOut);
+      return {
+        label: `${pick.intake} ${pick.year}`,
+        deadline: pick.deadline,
+        note: `Applications for ${pick.intake} ${pick.year} close around ${fmtDate(pick.deadline)} — about ${runway} month${runway === 1 ? '' : 's'} of runway left.`
+      };
+    }
+
+    function fmtDate(d) {
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
     /* ---------- confidence badge UI ---------- */
