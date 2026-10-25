@@ -14,6 +14,20 @@
   var doc = document;
   function $(id) { return doc.getElementById(id); }
   function on(el, evt, fn, opts) { if (el) el.addEventListener(evt, fn, opts || false); }
+
+  /* §2 Sink audit: no raw innerHTML anywhere in this file. All markup below
+     is static template literals (no user data interpolated), but it is still
+     routed through the page's DOMPurify-backed safe sink when available
+     (window.ldSafeSetHtml, defined by index.html). If this script ever runs
+     standalone without the core page, we fall back to a local sanitizer that
+     strips every tag — fail-safe, never fail-open. */
+  function safeHtml(el, html) {
+    if (!el) return;
+    if (typeof window.ldSafeSetHtml === 'function') { window.ldSafeSetHtml(el, html); return; }
+    el.textContent = String(html == null ? '' : html)
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<\/?[a-zA-Z][^>]*>/g, '');   // strip markup, keep text
+  }
   var prefersReducedMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -43,13 +57,13 @@
     var nav = doc.createElement('nav');
     nav.id = 'ldStickyNav';
     nav.setAttribute('aria-label', 'Quick navigation');
-    nav.innerHTML =
+    safeHtml(nav,
       '<span class="ld-brand"><span class="ld-brand-dot" aria-hidden="true"></span>LetterDesk</span>' +
       '<a class="ld-nav-link" href="#generator" data-ld-scroll>Generator</a>' +
       '<button type="button" class="ld-nav-link" data-ld-action="tips">Contact Tips</button>' +
       '<button type="button" class="ld-nav-link" data-ld-action="humanize">Humanize</button>' +
       '<button type="button" data-ld-action="copy" title="Copy email body">Copy</button>' +
-      '<button type="button" data-ld-action="help" title="Keyboard shortcuts (?)">?</button>';
+      '<button type="button" data-ld-action="help" title="Keyboard shortcuts (?)">?</button>');
 
     var bar = doc.createElement('div');
     bar.id = 'ldScrollProgress';
@@ -120,10 +134,10 @@
     b.type = 'button';
     b.setAttribute('aria-label', 'Back to top');
     b.title = 'Back to top';
-    b.innerHTML =
+    safeHtml(b,
       '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"' +
       ' stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>';
+      '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>');
     doc.body.appendChild(b);
     on(b, 'click', function () {
       window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
@@ -180,14 +194,14 @@
       return '<li class="flex items-center justify-between gap-4 py-1.5 border-b border-slate-100 last:border-0">' +
              '<span class="text-sm text-slate-600">' + r[1] + '</span><span class="kbd">' + r[0] + '</span></li>';
     }).join('');
-    wrap.innerHTML =
+    safeHtml(wrap,
       '<div class="ld-modal">' +
       '<div class="flex items-center justify-between mb-3">' +
       '<h3 style="font-weight:800;font-size:1.05rem;">Keyboard shortcuts</h3>' +
       '<button type="button" id="ldHelpClose" aria-label="Close" style="cursor:pointer;border:none;background:#f1f5f9;border-radius:.5rem;width:2rem;height:2rem;font-weight:700;">✕</button>' +
       '</div><ul style="list-style:none;padding:0;margin:0;">' + rows + '</ul>' +
       '<p style="margin:.9rem 0 0;font-size:.72rem;color:#64748b;">Tip: press <span class="kbd">?</span> anywhere to toggle this panel.</p>' +
-      '</div>';
+      '</div>');
     doc.body.appendChild(wrap);
     on(wrap, 'click', function (e) {
       if (e.target === wrap || e.target.id === 'ldHelpClose') openHelp(false);
@@ -211,13 +225,23 @@
       var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' ||
                          t.tagName === 'SELECT' || t.isContentEditable);
 
+      // §5 Resilience / PC usability: never hijack keys while a modifier is
+      // held (Ctrl+C copy, Ctrl+G browser search, Cmd shortcuts, etc.) —
+      // except Escape and the help toggle, which are safe to intercept.
+      if ((e.ctrlKey || e.metaKey || e.altKey) && e.key !== 'Escape' && e.key !== '?') return;
+      // Never fire single-letter shortcuts inside form fields or while the
+      // Zoom cheat-sheet modal is open (prevents accidental re-generation).
+      if (typing) return;
+      var zoomModal = $('zoomModal');
+      if (zoomModal && !zoomModal.classList.contains('hidden')) return;
+
       if (e.key === 'Escape') {
         openHelp(false);
         var sr = $('searchResults');
         if (sr) sr.classList.add('hidden');
         return;
       }
-      if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (typing || e.ctrlKey || e.metaKey || e.altKey) return; // legacy guard kept for safety
 
       var map = {
         g: 'assistantForm',       // submit via requestSubmit → uses existing handler
