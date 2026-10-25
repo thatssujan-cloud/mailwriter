@@ -1,0 +1,71 @@
+/* ==========================================================================
+   LetterDesk — css/page.css
+   Page-level custom styles that complement Tailwind utilities (kept light;
+   Tailwind does the heavy lifting). For the interaction/accessibility layer
+   see css/styles.css.
+   ========================================================================== */
+/* ---------- Custom styles (kept light; Tailwind does the heavy lifting) ---------- */
+:root { color-scheme: light; }
+
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+/* Subtle dot-grid backdrop for the masthead */
+.hero-rule {
+  background-image: radial-gradient(rgba(248, 250, 252, 0.08) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+
+/* Email textarea reads like a typed letter on paper */
+#emailBody {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  line-height: 1.7;
+  tab-size: 4;
+  resize: vertical;
+  background-color: #fdfbf5;
+}
+
+/* Toast animation */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+.toast-enter { animation: toast-in 0.22s ease-out forwards; }
+.toast-exit  { animation: toast-out 0.25s ease-in forwards; }
+
+/* Accordion transition */
+.accordion-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+}
+.accordion-panel.open { grid-template-rows: 1fr; }
+.accordion-panel > div { overflow: hidden; }
+
+/* Chevron rotation */
+.accordion-trigger svg { transition: transform 0.3s ease; }
+.accordion-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* Gentle pulse used when regenerating output */
+@keyframes soft-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(188, 98, 56, 0.35); }
+  100% { box-shadow: 0 0 0 10px rgba(188, 98, 56, 0); }
+}
+.flash { animation: soft-flash 0.7s ease-out; }
+
+/* Focus rings consistent across inputs */
+.field:focus { outline: none; }
+
+/* Word-count bar */
+#countBar { transition: width 0.35s ease, background-color 0.35s ease; }
+
+/* Humanizer progress meter */
+#humanBar { transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s ease; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
