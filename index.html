@@ -280,6 +280,13 @@
     .ld-step-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--panel-bg); padding: 8px 16px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); cursor: pointer; }
     .ld-step-chip.is-active { border-color: var(--accent); color: var(--accent-dark); box-shadow: inset 0 -2px 0 var(--accent); }
     .ld-step-arrow { font-size: var(--fs-sm); color: var(--text-3); }
+    /* SIMPLE redesign: number badge + short qualifier inside each chip. The
+       qualifier is hidden on small screens so the bar never wraps into a
+       second row on phones. */
+    .ld-step-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 9999px; background: var(--line-1); color: var(--text-2); font-size: 11px; font-weight: 800; }
+    .ld-step-chip.is-active .ld-step-num { background: var(--accent); color: #fff; }
+    .ld-step-sub { font-weight: 500; color: var(--text-3); }
+    .ld-step-chip.is-active .ld-step-sub { color: var(--accent-dark); }
 
     /* ---------- One step at a time (Write flow) ----------
        Inactive steps must be fully removed from layout AND hit-testing:
@@ -350,6 +357,8 @@
       #ldStickyNav { height: 48px; }
       :root { --ld-sticky-h: 48px; }
       .ld-step-chip { padding: 8px; }
+      /* Keep the step bar on one row: drop the qualifier text on phones. */
+      .ld-step-sub { display: none; }
     }
   </style>
 
@@ -382,7 +391,9 @@
 
   <!-- ============================ NAVBAR / HEADER ============================ -->
   <header class="bg-ink-950 text-slate-100">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10 md:pt-8 md:pb-14 relative z-10">
+    <!-- SIMPLE redesign: header padding slimmed so Step 1 (the search box,
+         the main aim of the site) sits closer to the top of the viewport. -->
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-6 relative z-10">
       <div class="flex items-center justify-between">
         <!-- Simple wordmark only — the decorative logo mark (circle badge +
              envelope icon) has been removed per the "make it simple" pass. -->
@@ -391,9 +402,12 @@
           <span class="uppercase tracking-[0.16em] text-slate-400 font-semibold leading-none whitespace-nowrap" style="font-size:var(--fs-sm)">Geoscience Outreach Studio</span>
         </a>
 
+        <!-- SIMPLE redesign: the header nav keeps exactly two entry points —
+             "Contact Tips" (jumps to Step 2 and opens the tips accordion) and
+             the privacy badge (opens "How it works"). The old third link to
+             #generator was pure duplication of the hero CTA below it. -->
         <div class="hidden md:flex items-center gap-6 text-sm text-slate-300">
           <button type="button" data-scroll-tips class="hover:text-white transition cursor-pointer">Contact Tips</button>
-          <a href="#generator" class="hover:text-white transition">Generator</a>
           <button type="button" id="privacyBadge" aria-haspopup="dialog"
                   class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium ring-1 ring-white/15 cursor-pointer hover:bg-white/15 transition">
             <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
@@ -406,13 +420,22 @@
            page loads straight into Step 1 (search front-and-center), per spec. The
            "Find a Supervisor" CTA (#heroPrimaryCta) is preserved and still jumps to
            the search box; "Contact Tips" lives in the Help panel of Step 2. -->
-      <div class="mt-8 md:mt-8 max-w-3xl">
-        <h1 class="font-display text-xl sm:text-2xl font-extrabold tracking-tight leading-tight text-slate-50">
-          Find the Right Research Supervisor. Write a Better First Email.
+      <!-- SIMPLE redesign: the hero is one headline + one plain-language
+           subline. The long feature-chip strip was removed (it repeated what
+           Step 2's help panel already explains), and the four-paragraph
+           "How it works" essay was condensed into three short sentences.
+           #heroPrimaryCta and #howItWorksToggle/#howItWorksPanel keep their
+           ids so core JS references stay intact. -->
+      <div class="mt-6 md:mt-7 max-w-2xl">
+        <h1 class="font-display text-lg sm:text-xl font-extrabold tracking-tight leading-tight text-slate-50">
+          Find a geoscience supervisor. Write an email worth answering.
         </h1>
-        <div class="mt-4 flex flex-wrap items-center gap-3">
+        <p class="mt-2 text-slate-300 leading-relaxed" style="font-size:var(--fs-md)">
+          Search real publication data, draft a personalized MSc/PhD inquiry, and verify every claim before you hit send — all in your browser.
+        </p>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
           <a href="#profSearch" id="heroPrimaryCta"
-             class="hidden inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-bold text-white shadow-lift hover:bg-brand-600 transition">
+             class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white hover:bg-brand-600 transition">
             Find a Supervisor
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
@@ -420,21 +443,9 @@
                   class="text-sm font-semibold text-slate-300 hover:text-white underline underline-offset-4 decoration-slate-500 transition cursor-pointer">How it works</button>
         </div>
         <div id="howItWorksPanel" hidden class="mt-4 max-w-2xl rounded-lg bg-white/5 ring-1 ring-white/10 p-4 text-xs md:text-sm text-slate-300 leading-relaxed space-y-2">
-          <p><strong class="text-slate-100">1 · Supervisor discovery.</strong> Searches run live against public scholarly APIs — OpenAlex, Semantic Scholar, and Crossref — restricted to geoscience topic areas. Results are merged and de-duplicated by author identifier.</p>
-          <p><strong class="text-slate-100">2 · Drafting &amp; review.</strong> Templates assemble only the facts you enter plus publication metadata returned by those APIs. A deterministic style pass ("Natural Language Polish") and a rule-based pre-send reviewer run entirely in your browser.</p>
-          <p><strong class="text-slate-100">3 · Privacy.</strong> Your name, profile text, and drafts are assembled and reviewed entirely in your browser — they are never uploaded anywhere. Requests that do leave this page: (a) your search query goes to the public scholarly APIs (OpenAlex, Semantic Scholar, Crossref); (b) email verification is domain-only by default — just the university domain (never the full address, never your name) goes to Google DNS-over-HTTPS for the MX deliverability check; (c) only if you explicitly tick “Verify full address” does the complete professor email get forwarded to third-party verifiers (Hunter.io, Abstract API, or ZeroBounce) through our serverless proxy; (d) when you choose "Open in Email Client" the finished draft is handed to your own mail application via a mailto: link. Everything else — polish, review, tracker — stays local. Tracker data is saved in this browser's local storage only; use CSV export before clearing cookies or switching devices, because it does not sync. On shared or public computers turn on “Disable auto-save” below and use “Erase saved data” when you finish — anything left in local storage can be read by the next person who uses this browser.</p>
-          <p><strong class="text-slate-100">4 · Honest limits.</strong> Affiliations come from publication metadata ("last known"), not official HR records — always verify on the department's faculty page before sending. LetterDesk never predicts admission or funding outcomes.</p>
-        </div>
-        <div class="mt-5 flex flex-wrap gap-2 text-[11px] md:text-xs font-medium">
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">🌋 Geology &amp; Earth Sciences only</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Evidence-based supervisor discovery</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Personalized graduate outreach drafts</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Funding verification checklist</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Outreach tracker with export</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Smart pre-send reviewer</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">mailto: handoff</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">Under-150-word guardrail</span>
-          <span class="rounded-full bg-white/10 ring-1 ring-white/15 px-3 py-1">OpenAlex · Semantic Scholar · Crossref</span>
+          <p><strong class="text-slate-100">Discover.</strong> Searches run live against OpenAlex, Semantic Scholar and Crossref, restricted to Geology &amp; Earth Sciences authors, then merge and de-duplicate the results.</p>
+          <p><strong class="text-slate-100">Draft &amp; verify.</strong> Templates use only the facts you enter plus publication metadata; a deterministic polish pass and a rule-based pre-send reviewer run entirely in your browser.</p>
+          <p><strong class="text-slate-100">Privacy &amp; limits.</strong> Your name, text and drafts never leave this page — only search queries and (domain-only, by default) email checks are sent out. Affiliations come from publication metadata, so verify on the department's faculty page before sending. We never predict admission or funding outcomes.</p>
         </div>
       </div>
     </nav>
@@ -450,13 +461,18 @@
         <button type="button" id="modeTrackBtn" class="ld-mode-btn" role="tab" aria-selected="false" aria-controls="trackModePanel">Track</button>
       </div>
       <ol id="stepIndicator" class="ld-steps" aria-label="Write flow steps">
-        <li><button type="button" class="ld-step-chip is-active" data-goto-step="1">1 Search</button></li>
+        <!-- SIMPLE redesign: chips carry a plain-language action label plus a
+             short qualifier ("Search · find", not just "1 Search") so first-time
+             visitors instantly know what each step is for. The number badge and
+             data-goto-step attribute are untouched — switchStep() and app.js
+             read the attribute, never the text. -->
+        <li><button type="button" class="ld-step-chip is-active" data-goto-step="1"><span class="ld-step-num" aria-hidden="true">1</span>Search<span class="ld-step-sub"> · find a lab</span></button></li>
         <li aria-hidden="true" class="ld-step-arrow">→</li>
-        <li><button type="button" class="ld-step-chip" data-goto-step="2">2 Details</button></li>
+        <li><button type="button" class="ld-step-chip" data-goto-step="2"><span class="ld-step-num" aria-hidden="true">2</span>Details<span class="ld-step-sub"> · about you</span></button></li>
         <li aria-hidden="true" class="ld-step-arrow">→</li>
-        <li><button type="button" class="ld-step-chip" data-goto-step="3">3 Draft</button></li>
+        <li><button type="button" class="ld-step-chip" data-goto-step="3"><span class="ld-step-num" aria-hidden="true">3</span>Draft<span class="ld-step-sub"> · write it</span></button></li>
         <li aria-hidden="true" class="ld-step-arrow">→</li>
-        <li><button type="button" class="ld-step-chip" data-goto-step="4">4 Verify</button></li>
+        <li><button type="button" class="ld-step-chip" data-goto-step="4"><span class="ld-step-num" aria-hidden="true">4</span>Verify<span class="ld-step-sub"> · check facts</span></button></li>
       </ol>
       <a href="#" id="showAllPanelsLink" class="underline decoration-dotted text-ink-500 hover:text-ink-800">Show all panels</a>
     </div>
@@ -498,7 +514,7 @@
             </div>
           </div>
           <p class="mt-2 text-ink-400 leading-relaxed" style="font-size:var(--fs-sm)">
-            Examples: <em>"seismology at Cornell"</em> · <em>"Marcia Bjornerud"</em> · <em>"isotope geochemistry"</em>
+            Try a topic + school (<em>"seismology at Cornell"</em>), a name (<em>"Marcia Bjornerud"</em>), or a subfield (<em>"isotope geochemistry"</em>).
           </p>
           <!-- Interactive professor profile-card grid — rendered by the
                multi-engine search (OpenAlex + Semantic Scholar + Crossref)
@@ -4866,9 +4882,13 @@ Alex Rivera</pre>
     });
     document.querySelectorAll('[data-scroll-tips]').forEach(btn => {
       btn.addEventListener('click', () => {
+        /* SIMPLE redesign: the tips accordion lives inside Step 2 (Details),
+           which is display:none until its step is active. Jump there first
+           via the shared switchStep contract, then open + scroll to it. */
+        if (typeof window.switchStep === 'function') window.switchStep(1);
         tipsPanel.classList.add('open');
         tipsToggle.setAttribute('aria-expanded', 'true');
-        tipsToggle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => tipsToggle.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
       });
     });
 

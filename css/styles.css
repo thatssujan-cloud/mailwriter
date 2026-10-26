@@ -1,25 +1,35 @@
 /* ==========================================================================
    LetterDesk — css/styles.css
-   Interaction & accessibility layer. Tailwind (CDN) handles layout/colors;
-   this file adds the "feel": sticky nav, scroll reveals, focus states,
-   keyboard-hint chips, back-to-top button, toasts and loading indicators.
+   Interaction & accessibility layer for the SIMPLE theme.
+
+   Design rules for this pass (kept consistent with the inline tokens in
+   index.html):
+     • One accent color: blue #2563eb (the old terracotta brand was a second,
+       conflicting accent).
+     • Flat surfaces: no drop shadows anywhere — borders do the separating.
+     • No entrance/scroll animations; state changes are instant. Motion is
+       only used where it communicates status (the loading spinner) and is
+       fully disabled under prefers-reduced-motion.
+   Tailwind (CDN) handles layout/colors; this file adds focus states, the
+   sticky nav, keyboard-hint chips, toasts and the loading indicator.
    ========================================================================== */
 
 /* ---------- Design tokens (mirror the Tailwind config palette) ---------- */
 :root {
-  --ld-brand: #bc6238;
-  --ld-brand-dark: #9a4d2a;
+  --ld-brand: #2563eb;          /* blue 600 — the single accent */
+  --ld-brand-dark: #1d4ed8;     /* blue 700 */
   --ld-ink-900: #0f172a;
   --ld-ink-500: #64748b;
-  --ld-forest: #10b981;
-  --ld-sticky-h: 64px;
-  --ld-shadow: 0 8px 24px -8px rgba(15, 23, 42, .25);
+  --ld-line: #e2e8f0;
+  --ld-sticky-h: 56px;
 }
 
 /* Offset anchored sections so the sticky bar never covers headings */
 html { scroll-padding-top: calc(var(--ld-sticky-h) + 16px); }
 
-/* ---------- Sticky compact navigation bar (injected by js/app.js) -------- */
+/* ---------- Sticky compact navigation bar (injected by js/app.js) --------
+   Simple flat dark bar: solid background, one hairline border, no blur or
+   shadow. Slides in via transform only (no box-shadow "lift"). */
 #ldStickyNav {
   position: fixed;
   top: 0;
@@ -31,17 +41,14 @@ html { scroll-padding-top: calc(var(--ld-sticky-h) + 16px); }
   align-items: center;
   gap: .75rem;
   padding: 0 clamp(.75rem, 4vw, 2rem);
-  background: rgba(2, 6, 23, .88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
   color: #e2e8f0;
   transform: translateY(-110%);
-  transition: transform .3s ease, box-shadow .3s ease;
+  transition: transform .2s ease;
 }
 #ldStickyNav.ld-visible {
   transform: translateY(0);
-  box-shadow: var(--ld-shadow);
 }
 #ldStickyNav .ld-brand {
   font-weight: 800;
@@ -53,11 +60,10 @@ html { scroll-padding-top: calc(var(--ld-sticky-h) + 16px); }
   gap: .5rem;
 }
 #ldStickyNav .ld-brand-dot {
-  width: .65rem;
-  height: .65rem;
+  width: .6rem;
+  height: .6rem;
   border-radius: 9999px;
   background: var(--ld-brand);
-  box-shadow: 0 0 0 3px rgba(188, 98, 56, .25);
 }
 #ldStickyNav a,
 #ldStickyNav button {
@@ -87,61 +93,55 @@ html { scroll-padding-top: calc(var(--ld-sticky-h) + 16px); }
   #ldStickyNav .ld-nav-link { display: none; }
 }
 
-/* ---------- Scroll-progress bar under the sticky nav ---------- */
+/* ---------- Scroll-progress hairline under the sticky nav ----------------
+   Single accent color, 2px, no gradient — a quiet position cue only. */
 #ldScrollProgress {
   position: fixed;
   top: var(--ld-sticky-h);
   left: 0;
-  height: 3px;
+  height: 2px;
   width: 0;
   z-index: 61;
-  background: linear-gradient(90deg, var(--ld-brand), var(--ld-forest));
-  border-radius: 0 9999px 9999px 0;
-  transition: width .1s linear;
+  background: var(--ld-brand);
   pointer-events: none;
 }
 
-/* ---------- Back-to-top floating button ---------- */
+/* ---------- Back-to-top floating button ----------------------------------
+   Flat: bordered white circle, no shadow, no scale animation on reveal. */
 #ldBackToTop {
   position: fixed;
   right: 1.25rem;
   bottom: 1.25rem;
   z-index: 55;
-  width: 2.9rem;
-  height: 2.9rem;
+  width: 2.6rem;
+  height: 2.6rem;
   border-radius: 9999px;
-  border: 1px solid rgba(15, 23, 42, .1);
+  border: 1px solid var(--ld-line);
   background: #fff;
   color: var(--ld-ink-900);
-  box-shadow: var(--ld-shadow);
   display: grid;
   place-items: center;
   cursor: pointer;
   opacity: 0;
-  transform: translateY(12px) scale(.95);
   pointer-events: none;
-  transition: opacity .25s ease, transform .25s ease, background-color .2s ease;
+  transition: opacity .15s ease;
 }
 #ldBackToTop.ld-visible {
   opacity: 1;
-  transform: translateY(0) scale(1);
   pointer-events: auto;
 }
-#ldBackToTop:hover { background: var(--ld-brand); color: #fff; }
+#ldBackToTop:hover { border-color: var(--ld-brand); color: var(--ld-brand-dark); }
 #ldBackToTop:focus-visible { outline: 2px solid var(--ld-brand); outline-offset: 3px; }
 
-/* ---------- Scroll-reveal animation (JS adds .ld-in when visible) ------- */
-.ld-reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity .5s ease, transform .5s ease;
-}
-.ld-reveal.ld-in {
-  opacity: 1;
-  transform: none;
-}
+/* ---------- Scroll-reveal hook --------------------------------------------
+   Kept as a class contract because js/app.js still toggles .ld-reveal /
+   .ld-in; in the SIMPLE theme it carries NO visual change (content is
+   always visible — nothing fades or slides in). */
+.ld-reveal        { opacity: 1; transform: none; }
+.ld-reveal.ld-in  { opacity: 1; transform: none; }
 
-/* ---------- Accessible focus ring for every interactive element --------- */
+/* ---------- Accessible focus ring for every interactive element ---------
+   Blue accent ring, consistent everywhere. */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -153,21 +153,23 @@ textarea:focus-visible,
   border-radius: 6px;
 }
 
-/* Nicer, consistent focus glow on form fields */
+/* Nicer, consistent focus glow on form fields (accent-tinted, subtle) */
 .field:focus,
 input:focus,
 select:focus,
 textarea:focus {
-  box-shadow: 0 0 0 3px rgba(188, 98, 56, .15);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
 }
 
-/* ---------- Hover affordances for cards / buttons ------------------------ */
+/* ---------- Hover affordances ---------------------------------------------
+   Simple theme = flat borders, not lifting shadows. The blanket
+   `main section > div:hover` shadow rule was removed (it made every panel
+   react to hover, which is distracting in a focused writing tool). Only
+   genuinely interactive rows get a hover state. */
 button:not(:disabled):hover,
 [role="listbox"] > * {
-  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+  transition: background-color .15s ease, border-color .15s ease;
 }
-main section > div:hover { box-shadow: 0 12px 32px -12px rgba(15, 23, 42, .22); }
-main section > div { transition: box-shadow .3s ease; }
 
 /* Search-result rows get a clear hover/active state */
 #searchResults > * { cursor: pointer; }
@@ -189,6 +191,7 @@ main section > div { transition: box-shadow .3s ease; }
   text-align: center;
 }
 
+/* ---------- Shortcut-help modal ------------------------------------------ */
 #ldShortcutHelp {
   position: fixed;
   inset: 0;
@@ -196,26 +199,22 @@ main section > div { transition: box-shadow .3s ease; }
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(2, 6, 23, .55);
-  backdrop-filter: blur(3px);
+  background: rgba(15, 23, 42, .5);
 }
 #ldShortcutHelp.ld-open { display: flex; }
 #ldShortcutHelp .ld-modal {
   background: #fff;
   color: var(--ld-ink-900);
-  border-radius: 1rem;
+  border: 1px solid var(--ld-line);
+  border-radius: .75rem;
   padding: 1.5rem 1.75rem;
   max-width: 26rem;
   width: calc(100% - 2rem);
-  box-shadow: var(--ld-shadow);
-  animation: ld-pop .2s ease-out;
-}
-@keyframes ld-pop {
-  from { opacity: 0; transform: translateY(10px) scale(.98); }
-  to   { opacity: 1; transform: none; }
 }
 
-/* ---------- Inline loading spinner utility ------------------------------- */
+/* ---------- Inline loading spinner utility -------------------------------
+   The only animated element in the theme, because it communicates an
+   actual state (work in flight). Disabled/slowed under reduced motion. */
 .ld-spinner {
   width: 1em;
   height: 1em;
@@ -249,8 +248,6 @@ main section > div { transition: box-shadow .3s ease; }
 
 /* ---------- Reduced motion: keep everything usable ---------------------- */
 @media (prefers-reduced-motion: reduce) {
-  #ldStickyNav, #ldBackToTop, .ld-reveal, main section > div { transition: none !important; }
-  .ld-reveal { opacity: 1; transform: none; }
-  #ldShortcutHelp .ld-modal { animation: none; }
-  .ld-spinner { animation-duration: 1.6s; }
+  #ldStickyNav, #ldBackToTop, #ldSkipLink { transition: none !important; }
+  .ld-spinner { animation: none; }
 }
