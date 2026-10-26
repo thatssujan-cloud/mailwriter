@@ -16,107 +16,9 @@
          hijacking, no iframe embedding of the studio.
        - form-action 'self': exfiltration via crafted form submissions blocked. -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.openalex.org https://api.semanticscholar.org https://api.crossref.org https://dns.google https://cdn.jsdelivr.net; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" />
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.openalex.org https://api.semanticscholar.org https://api.crossref.org https://dns.google https://cdn.jsdelivr.net; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" />
 
-  <!-- Simple-theme fonts: Inter (UI text) + JetBrains Mono (counters and
-       code chips only). No display serif — the wordmark and headings use
-       the same sans family for a clean, uniform look. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS via CDN. §6 Supply chain: the Play CDN is an UNPINNED
-       build (its bytes change over time), so a static SRI hash would break
-       the site; instead it is pinned in the CSP script-src allow-list and
-       documented with its exact status in ASSET-INVENTORY.md. The primary
-       renderer (js/app.js) and DOMPurify are checksum-verified below. -->
-  <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
-  <script>
-    // Inline Tailwind configuration — SIMPLE theme.
-    // Neutral slate grays + one restrained blue accent. Status colors follow
-    // the spec: emerald #10B981 (confirmed), amber #F59E0B (estimated /
-    // pattern), rose #F43F5E (missing / unverified). No decorative shadows or
-    // custom display fonts — flat borders and system-style typography only.
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: {
-              DEFAULT: '#1e293b',
-              50:  '#f8fafc',
-              100: '#f1f5f9',
-              200: '#e2e8f0',
-              300: '#cbd5e1',
-              400: '#94a3b8',
-              500: '#64748b',
-              600: '#475569',
-              700: '#334155',
-              800: '#1e293b',
-              900: '#0f172a',
-              950: '#020617'
-            },
-            brand: {
-              50:  '#eff6ff',
-              100: '#dbeafe',
-              200: '#bfdbfe',
-              300: '#93c5fd',
-              400: '#60a5fa',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-              800: '#1e40af',
-              900: '#1e3a8a'
-            },
-            forest: {
-              50:  '#ecfdf5',
-              100: '#d1fae5',
-              200: '#a7f3d0',
-              300: '#6ee7b7',
-              400: '#34d399',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857',
-              800: '#065f46',
-              900: '#064e3b'
-            },
-            clay: {
-              50:  '#fffbeb',
-              100: '#fef3c7',
-              200: '#fde68a',
-              300: '#fcd34d',
-              400: '#fbbf24',
-              500: '#f59e0b',
-              600: '#d97706',
-              700: '#b45309',
-              800: '#92400e',
-              900: '#78350f'
-            },
-            rose: {
-              50:  '#fff1f2',
-              100: '#ffe4e6',
-              200: '#fecdd3',
-              300: '#fda4af',
-              400: '#fb7185',
-              500: '#f43f5e',
-              600: '#e11d48',
-              700: '#be123c',
-              800: '#9f1239',
-              900: '#881337'
-            }
-          },
-          fontFamily: {
-            display: ['"Inter"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
-            sans: ['"Inter"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace']
-          },
-          boxShadow: {
-            card: 'none',
-            lift: 'none'
-          }
-        }
-      }
-    };
-  </script>
 
   <!-- External stylesheet: minimal interaction & accessibility layer (sticky
        nav, focus rings, back-to-top, shortcut modal). See css/styles.css -->
@@ -437,7 +339,6 @@
           <a href="#profSearch" id="heroPrimaryCta"
              class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white hover:bg-brand-600 transition">
             Find a Supervisor
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
           <button type="button" id="howItWorksToggle" aria-expanded="false" aria-controls="howItWorksPanel"
                   class="text-sm font-semibold text-slate-300 hover:text-white underline underline-offset-4 decoration-slate-500 transition cursor-pointer">How it works</button>
@@ -494,7 +395,6 @@
               <button type="button" id="profSearchBtn"
                       class="shrink-0 inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-3 font-semibold text-slate-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition" style="font-size:var(--fs-md)"
                       title="Look up geoscience faculty profiles and verified papers via OpenAlex">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <span class="sr-only sm:not-sr-only">Search</span>
               </button>
             </div>
@@ -545,7 +445,6 @@
         <div class="ld-panel">
           <div class="border-b border-ink-200 bg-slate-50 px-4 py-4">
             <h2 id="formHeading" class="font-display font-bold text-ink-900 flex items-center gap-2" style="font-size:var(--fs-lg)">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               Step 2 · Details
             </h2>
             <p class="mt-1 text-ink-500" style="font-size:var(--fs-sm)">Most fields auto-fill when you pick a search result. Fill in only what you know; blanks use smart fallback defaults.</p>
@@ -728,7 +627,6 @@
                     <div class="mt-2.5 flex items-center gap-3">
                       <button type="button" id="eraseSavedBtn"
                               class="inline-flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-400/40 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         Erase saved data
                       </button>
                       <span id="eraseSavedInfo" class="text-[11px] text-ink-400">Removes form preferences, tracker, roadmap &amp; checklist from this browser.</span>
@@ -785,12 +683,10 @@ Alex Rivera</pre>
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
               <button type="submit" id="generateBtn"
                       class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-slate-50 shadow-lift hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 active:scale-[0.98] transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
                 Generate Email
               </button>
               <button type="button" id="resetBtn"
                       class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-ink-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.98] transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                 Reset Form
               </button>
             </div>
@@ -799,7 +695,6 @@ Alex Rivera</pre>
                  inquiry and a polite 2-sentence bump (reply to original thread) -->
             <button type="button" id="draftModeOn" aria-pressed="false"
                     class="hidden w-full inline-flex items-center justify-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-400/40 active:scale-[0.98] transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               <span id="draftModeLabel">Draft mode: Initial inquiry — click to switch to 10-day follow-up bump</span>
             </button>
 
@@ -847,10 +742,8 @@ Alex Rivera</pre>
           <button type="button" id="tipsToggle" aria-expanded="false" aria-controls="tipsPanel"
                   class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 transition sm:px-6">
             <span class="flex items-center gap-2.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>
               <span class="text-sm font-bold text-ink-900">Tips for Contacting Professors</span>
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-ink-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div id="tipsPanel" class="accordion-panel">
             <div>
@@ -891,7 +784,6 @@ Alex Rivera</pre>
                 <button type="button" id="copySubjectBtn"
                         class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-2.5 text-xs sm:text-sm font-semibold text-ink-800 hover:border-brand-400 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 active:scale-[0.97] transition"
                         title="Copy the subject line">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   <span class="hidden sm:inline">Copy Subject</span><span class="sm:hidden">Copy</span>
                 </button>
               </div>
@@ -934,12 +826,10 @@ Alex Rivera</pre>
             <div class="flex flex-wrap items-center gap-2 pt-4 border-t border-ink-200">
               <button type="button" id="copyBodyBtn"
                       class="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-3 font-semibold text-slate-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition" style="font-size:var(--fs-md)">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                 Copy Email Body
               </button>
               <button type="button" id="mailtoBtn"
                       class="inline-flex items-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-3 font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 active:scale-[0.97] transition" style="font-size:var(--fs-md)">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.994 5.7a2 2 0 0 1-2.006 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="3"/></svg>
                 Open draft in Email Client (mailto:)
               </button>
               <button type="button" id="ldLogTrackerBtn"
@@ -959,14 +849,12 @@ Alex Rivera</pre>
             <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 space-y-3">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
                   <h3 class="font-display text-sm font-bold text-ink-900">Natural Language Polish</h3>
                   <span id="humanStatusChip" class="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold text-ink-500">idle</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <button type="button" id="undoHumanizeBtn"
                           class="hidden inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-ink-400/40 active:scale-[0.97] transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
                     Undo polish
                   </button>
                   <button type="button" id="compareVersionBtn"
@@ -976,7 +864,6 @@ Alex Rivera</pre>
                   <button type="button" id="humanizeBtn"
                           class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-slate-50 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 active:scale-[0.97] transition disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Improve readability and professional tone: varied sentence rhythm, no stock corporate phrasing. Facts are never changed.">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
                     Polish This Email
                   </button>
                 </div>
@@ -1011,17 +898,14 @@ Alex Rivera</pre>
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" id="reviewBtn"
                         class="inline-flex items-center gap-2 rounded-lg border border-ink-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 hover:border-forest-500 hover:text-forest-700 focus:outline-none focus:ring-2 focus:ring-forest-500/40 active:scale-[0.97] transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="m9 11 2 2 4-4"/></svg>
                   Smart Review (what's right / what's wrong)
                 </button>
                 <button type="button" id="copyBodyBtn"
                         class="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-semibold text-slate-50 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500/50 active:scale-[0.97] transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                   Copy Email Body
                 </button>
                 <button type="button" id="mailtoBtn"
                         class="inline-flex items-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 active:scale-[0.97] transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.994 5.7a2 2 0 0 1-2.006 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="3"/></svg>
                   Open in Email Client (mailto:)
                 </button>
               </div>
@@ -1061,7 +945,6 @@ Alex Rivera</pre>
             <div id="auditCard" class="hidden rounded-xl border border-forest-200 bg-forest-50/70 overflow-hidden">
               <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-forest-600 text-white">
                 <h3 class="font-display text-sm font-bold flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
                   Verified Professor Audit Card
                 </h3>
                 <button type="button" id="clearAuditBtn" class="text-forest-100 hover:text-white text-xs font-semibold underline decoration-dotted focus:outline-none">clear</button>
@@ -1078,7 +961,6 @@ Alex Rivera</pre>
             <div id="fundingCard" class="hidden rounded-xl border border-brand-200 bg-brand-50 overflow-hidden">
               <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-brand-600 text-white">
                 <h3 class="font-display text-sm font-bold flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
                   University &amp; Funding Audit Card
                 </h3>
                 <button type="button" id="clearFundingBtn" class="text-slate-300 hover:text-white text-xs font-semibold underline decoration-dotted focus:outline-none">dismiss</button>
@@ -1144,7 +1026,6 @@ Alex Rivera</pre>
                 <!-- e) Deadline reminder (generic planning heuristic, clearly labeled) -->
                 <div class="rounded-lg border p-3.5" id="fundingDeadlineWrap">
                   <div class="flex items-start gap-2.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" id="fundingDeadlineIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                     <div class="min-w-0">
                       <p class="text-[10px] font-bold uppercase tracking-[0.15em] mb-1">Application Deadline &amp; Timeline</p>
                       <p class="text-sm font-semibold text-ink-900" id="fundingDeadlineMain">—</p>
@@ -1172,13 +1053,11 @@ Alex Rivera</pre>
             <div id="reviewPanel" class="hidden rounded-xl border border-ink-200 bg-white overflow-hidden">
               <div class="flex items-center justify-between px-4 py-3 bg-ink-950 text-slate-50">
                 <h3 class="font-display text-sm font-bold flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-brand-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
                   Smart Pre-Send Reviewer
                 </h3>
                 <div class="flex items-center gap-3">
                   <span id="reviewGrade" class="rounded-full px-2.5 py-1 text-[11px] font-bold bg-ink-700 text-slate-200">—</span>
                   <button type="button" id="closeReviewBtn" class="text-slate-300 hover:text-white transition" aria-label="Close review panel">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                   </button>
                 </div>
               </div>
@@ -1230,10 +1109,8 @@ Alex Rivera</pre>
           <button type="button" id="roadmapToggle" aria-expanded="false" aria-controls="roadmapPanel"
                   class="accordion-trigger w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 transition sm:px-6">
             <span class="flex items-center gap-2.5">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3 9 3-18 3 9h3"/></svg>
               <span class="text-sm font-bold text-ink-900">Graduate Applicant Success Roadmap &amp; Outreach Tracker</span>
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-ink-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div id="roadmapPanel" class="accordion-panel">
             <div class="px-5 pb-5 sm:px-6 space-y-4">
@@ -1259,12 +1136,10 @@ Alex Rivera</pre>
               <div class="flex flex-wrap gap-2 pt-1 border-t border-ink-200/80">
                 <button type="button" id="saveTrackerBtn"
                         class="inline-flex items-center gap-2 rounded-lg bg-forest-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-forest-500 focus:outline-none focus:ring-2 focus:ring-forest-500/50 active:scale-[0.97] transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
                   Save to Outreach Tracker
                 </button>
                 <button type="button" id="zoomCheatBtn"
                         class="inline-flex items-center gap-2 rounded-lg border border-brand-300 bg-white px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 active:scale-[0.97] transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
                   Zoom Interview Cheat Sheet
                 </button>
               </div>
@@ -1324,11 +1199,9 @@ Alex Rivera</pre>
     <div class="relative w-full max-w-md rounded-xl bg-white shadow-card ring-1 ring-ink-200 overflow-hidden">
       <div class="flex items-center justify-between px-5 py-3.5 bg-ink-950 text-slate-50">
         <h3 id="zoomModalTitle" class="font-display text-sm font-bold flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-brand-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
           Zoom Interview Cheat Sheet
         </h3>
         <button type="button" id="zoomModalClose" class="text-slate-300 hover:text-white transition" aria-label="Close cheat sheet">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>
       <div class="px-5 py-4 space-y-3">
@@ -1355,7 +1228,6 @@ Alex Rivera</pre>
       <div class="flex items-center justify-between px-5 py-3.5 bg-ink-950 text-slate-50 shrink-0">
         <h3 id="compareModalTitle" class="font-display text-sm font-bold">Version comparison — Original vs Polished</h3>
         <button type="button" id="compareModalClose" class="text-slate-300 hover:text-white transition" aria-label="Close comparison">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>
       <p class="px-5 pt-3 text-xs text-ink-500 leading-relaxed shrink-0">Polish is a style refinement only: it varies sentence rhythm and removes stock phrasing. It never adds qualifications or changes facts, names, dates, publications, or your signature.</p>
@@ -2587,7 +2459,7 @@ Alex Rivera</pre>
         '</div>';
       setSafeHtml(els.searchResults,
         `<p class="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-brand-700 flex items-center gap-2">` +
-        `<svg class="animate-spin h-3.5 w-3.5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path></svg>` +
+        `` +
         `Querying OpenAlex + Semantic Scholar + Crossref · Geology &amp; Earth Sciences only…</p>` +
         row() + row() + row());
       els.searchResults.classList.remove('hidden');
@@ -4501,7 +4373,7 @@ Alex Rivera</pre>
       good.forEach(g => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-2.5 text-forest-700';
-        setSafeHtml(li, `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`); // static template, sanitized (§2)
+        setSafeHtml(li, `<span></span>`); // static template, sanitized (§2)
         li.querySelector('span').textContent = g;
         els.reviewGood.appendChild(li);
       });
@@ -4509,7 +4381,7 @@ Alex Rivera</pre>
       bad.forEach(b => {
         const li = document.createElement('li');
         li.className = 'flex items-start gap-2.5 text-rose-700';
-        setSafeHtml(li, `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg><span><span class="block"></span><span class="block text-xs text-ink-500 mt-0.5 italic"></span></span>`); // static template, sanitized (§2)
+        setSafeHtml(li, `<span><span class="block"></span><span class="block text-xs text-ink-500 mt-0.5 italic"></span></span>`); // static template, sanitized (§2)
         const spans = li.querySelectorAll('span > span, span span');
         li.querySelector('span > span:first-child').textContent = b.t;
         li.querySelector('span > span:last-child').textContent = '→ ' + b.fix;
@@ -4547,7 +4419,7 @@ Alex Rivera</pre>
       };
       const toast = document.createElement('div');
       toast.className = `pointer-events-auto toast-enter ${colors[variant] || colors.info} text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-lg ring-1 ring-white/20 flex items-center gap-2`;
-      setSafeHtml(toast, `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span></span>`); // static template, sanitized (§2)
+      setSafeHtml(toast, `<span></span>`); // static template, sanitized (§2)
       toast.querySelector('span').textContent = message;
       document.getElementById('toastContainer').appendChild(toast);
 
