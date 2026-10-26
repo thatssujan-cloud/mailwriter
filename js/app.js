@@ -59,10 +59,14 @@
     nav.setAttribute('aria-label', 'Quick navigation');
     safeHtml(nav,
       '<span class="ld-brand"><span class="ld-brand-dot" aria-hidden="true"></span>LetterDesk</span>' +
-      '<a class="ld-nav-link" href="#generator" data-ld-scroll>Generator</a>' +
-      '<button type="button" class="ld-nav-link" data-ld-action="tips">Contact Tips</button>' +
-      '<button type="button" class="ld-nav-link" data-ld-action="humanize">Humanize</button>' +
-      '<button type="button" data-ld-action="copy" title="Copy email body">Copy</button>' +
+      /* SIMPLE redesign: the old bar carried four action buttons (Tips /
+         Humanize / Copy / ?) that duplicated controls inside the steps and
+         read as clutter. Now it offers one way back to the tool ("Start
+         over" → Step 1 · Search) plus the keyboard-help button. The
+         data-ld-action contract is unchanged — app.js's dispatcher still
+         handles "help"; "tips"/"humanize"/"copy" remain available in the
+         panels themselves. */
+      '<button type="button" class="ld-nav-link" data-goto-step="1">Start over · Search</button>' +
       '<button type="button" data-ld-action="help" title="Keyboard shortcuts (?)">?</button>');
 
     var bar = doc.createElement('div');
@@ -147,22 +151,15 @@
   }
 
   /* ------------------------------------------------------------------
-     4. Scroll-reveal for cards & sections (IntersectionObserver)
+     4. Scroll-reveal — intentionally DISABLED in the SIMPLE redesign.
+        Inactive steps live in the DOM (hidden via .ld-step), so observing
+        them could have left panels stuck at opacity:0 when revealed by
+        switchStep before the IntersectionObserver fired. The SIMPLE theme
+        shows content instantly anyway, so this is now a documented no-op;
+        the .ld-reveal/.ld-in class contract stays in css/styles.css for
+        anything else that still references it.
   ------------------------------------------------------------------ */
-  function buildReveals() {
-    if (!('IntersectionObserver' in window) || prefersReducedMotion) return;
-    var targets = doc.querySelectorAll('main section > div, #tipsPanel > div');
-    Array.prototype.forEach.call(targets, function (el) { el.classList.add('ld-reveal'); });
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) {
-          en.target.classList.add('ld-in');
-          io.unobserve(en.target);
-        }
-      });
-    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
-    Array.prototype.forEach.call(targets, function (el) { io.observe(el); });
-  }
+  function buildReveals() { /* no-op: simple theme = no entrance animations */ }
 
   /* ------------------------------------------------------------------
      5. Keyboard shortcuts + help modal
@@ -479,7 +476,12 @@
   function bindStepNav() {
     // Step chips: map through data-goto-step (1-based) → array index (0-based).
     // Arrow <li>s in the ordered list carry no chip and are skipped naturally.
-    doc.querySelectorAll('#stepIndicator [data-goto-step]').forEach(function (chip) {
+    // Selector is document-wide so the sticky-nav "Start over · Search"
+    // button (also a [data-goto-step] element, injected by buildStickyNav)
+    // gets wired by the same handler. The #stepIndicator sync inside
+    // switchStep stays scoped to the bar, so the nav button never picks up
+    // chip styling.
+    doc.querySelectorAll('[data-goto-step]').forEach(function (chip) {
       chip.style.cursor = 'pointer';
       chip.addEventListener('click', function (e) {
         e.preventDefault();
